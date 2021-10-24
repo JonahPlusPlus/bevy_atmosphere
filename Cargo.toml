@@ -13,7 +13,7 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 bevy = { version = "0.5", features = ["dynamic"]}
 
 [dev-dependencies]
-bevy_flycam = "*"
+bevy_flycam = "0.5"
 
 [[example]]
 name = "cycle"

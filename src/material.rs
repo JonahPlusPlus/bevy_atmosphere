@@ -16,7 +16,7 @@ const SKY_FRAGMENT_SHADER: &str = include_str!("shaders/sky.frag");
 pub struct AtmosphereMat {
     /// Default: (0.0, 6372e3, 0.0)
     pub ray_origin: Vec3,
-    /// Default: (0.0, 0.0, 1.0)
+    /// Default: (0.0, 1.0, 1.0)
     pub sun_position: Vec3,
     /// Default: 22.0
     pub sun_intensity: f32,
@@ -87,7 +87,7 @@ impl Default for AtmosphereMat {
     fn default() -> Self {
         Self {
             ray_origin: Vec3::new(0.0, 6372e3, 0.0),
-            sun_position: Vec3::new(0.0, 0.0, 1.0),
+            sun_position: Vec3::new(0.0, 1.0, 1.0),
             sun_intensity: 22.0,
             radius: Vec2::new(6371e3, 6471e3),
             rayleigh: Vec4::new(5.5e-6, 13.0e-6, 22.4e-6, 8e3),

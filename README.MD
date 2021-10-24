@@ -2,6 +2,8 @@
 
 ### A procedural sky plugin for bevy
 
+![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere) ![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere) 
+
 ### Example
 ```
 use bevy::prelude::*;

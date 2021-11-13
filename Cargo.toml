@@ -10,7 +10,7 @@ homepage = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 
 [dependencies]
-bevy = "0.5.0"
+bevy = { version = "0.5", default-features = false, features = ["render"] }
 
 [dev-dependencies]
 bevy_flycam = "0.5"

@@ -1,8 +1,8 @@
 [package]
 name = "bevy_atmosphere"
 description = "A procedural sky plugin for bevy"
-version = "0.1.3"
-edition = "2018"
+version = "0.2.0"
+edition = "2021"
 authors = ["JonahPlusPlus <33059163+JonahPlusPlus@users.noreply.github.com>"]
 license = "MIT"
 documentation = "https://docs.rs/bevy_atmosphere"
@@ -10,11 +10,9 @@ homepage = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 
 [dependencies]
-bevy = { version = "0.5", default-features = false, features = ["render"] }
-
-[dev-dependencies]
-bevy = { version = "0.5" }
-bevy_flycam = "0.5"
+bevy = { version = "0.6", default-features = false, features = ["bevy_winit", "x11", "bevy_gilrs", "render"] }
+bevy_flycam = "0.6"
+naga = { version = "0.8.0", features = ["glsl-in"] } # Needed for naga::ShaderStage; will be fixed in next bevy release
 
 [[example]]
 name = "cycle"

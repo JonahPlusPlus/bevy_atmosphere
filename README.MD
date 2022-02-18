@@ -9,11 +9,11 @@
 use bevy::prelude::*;
 use bevy_atmosphere::*;
 fn main() {
-    App::build()
+    App::new()
         .insert_resource(bevy_atmosphere::AtmosphereMat::default()) // Default Earth sky
         .add_plugins(DefaultPlugins)
         .add_plugin(bevy_atmosphere::AtmospherePlugin { dynamic: false }) // Set to false since we aren't changing the sky's appearance
-        .add_startup_system(setup.system())
+        .add_startup_system(setup)
         .run();
 }
 fn setup(mut commands: Commands) {

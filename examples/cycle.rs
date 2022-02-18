@@ -10,8 +10,8 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(PlayerPlugin)// Simple movement for this example
         .add_plugin(AtmospherePlugin { dynamic: true }) // Dynamic is set to true so that the material is updated when the SkyMaterial resource is edited. If it was not set to true, we would have to update ourselves.
-        .add_startup_system(setup_environment.system())
-        .add_system(daylight_cycle.system())
+        .add_startup_system(setup_environment)
+        .add_system(daylight_cycle)
         .run();
 }
 

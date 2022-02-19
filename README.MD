@@ -21,7 +21,7 @@ fn setup(mut commands: Commands) {
 }
 ```
 
-Thank you [kbieganski](https://github.com/kbieganski) for your help on the 0.2.0 update!
+Thank you [kbieganski](https://github.com/kbieganski) for doing the 0.2.0 update!
 
 Big thanks to [glsl-atmosphere](https://github.com/wwwtyro/glsl-atmosphere) and [bevy_skybox](https://github.com/jomala/bevy_skybox), which I essentially tried to merge together
 

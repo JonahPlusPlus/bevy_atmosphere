@@ -5,28 +5,17 @@ precision highp float;
 layout(location = 0) in vec3 v_Pos;
 layout(location = 0) out vec4 o_Target;
 
-layout(std140, set = 2, binding = 0) uniform AtmosphereMat_ray_origin {
+layout(std140, set = 1, binding = 0) uniform AtmosphereMat_ray_origin {
     vec3 ray_origin;
-};
-
-layout(std140, set = 2, binding = 1) uniform AtmosphereMat_sun_position {
     vec3 sun_position;
-};
-
-layout(std140, set = 2, binding = 2) uniform AtmosphereMat_sun_intensity {
     float sun_intensity;
-};
-
-layout(std140, set = 2, binding = 3) uniform AtmosphereMat_radius {
-    vec2 radius;
-};
-
-layout(std140, set = 2, binding = 4) uniform AtmosphereMat_rayleigh {
-    vec4 rayleigh;
-};
-
-layout(std140, set = 2, binding = 5) uniform AtmosphereMat_mie {
-    vec3 mie;
+    float planet_radius;
+    float atmosphere_radius;
+    vec3 rayleigh_coefficient;
+    float rayleigh_scale_height;
+    float mie_coefficient;
+    float mie_scale_height;
+    float mie_direction;
 };
 
 #define PI 3.141592
@@ -139,17 +128,17 @@ vec3 atmosphere(vec3 r, vec3 r0, vec3 pSun, float iSun, float rPlanet, float rAt
 
 void main() {
     vec3 sky = atmosphere(
-        normalize(v_Pos),   // normalized ray direction
-        ray_origin,         // ray origin
-        sun_position,       // position of the sun
-        sun_intensity,      // intensity of the sun
-        radius.x,           // radius of the planet in meters
-        radius.y,           // radius of the atmosphere in meters
-        rayleigh.xyz,       // Rayleigh scattering coefficient
-        mie.x,              // Mie scattering coefficient
-        rayleigh.w,         // Rayleigh scale height
-        mie.y,              // Mie scale height
-        mie.z               // Mie preferred scattering direction
+        normalize(v_Pos),      // normalized ray direction
+        ray_origin,            // ray origin
+        sun_position,          // position of the sun
+        sun_intensity,         // intensity of the sun
+        planet_radius,         // radius of the planet in meters
+        atmosphere_radius,     // radius of the atmosphere in meters
+        rayleigh_coefficient,  // Rayleigh scattering coefficient
+        mie_coefficient,       // Mie scattering coefficient
+        rayleigh_scale_height, // Rayleigh scale height
+        mie_scale_height,      // Mie scale height
+        mie_direction          // Mie preferred scattering direction
     );
 
     sky = 1.0 - exp(-1.0 * sky);

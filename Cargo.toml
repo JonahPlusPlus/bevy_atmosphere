@@ -11,8 +11,10 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 
 [dependencies]
 bevy = { version = "0.6", default-features = false, features = ["bevy_winit", "x11", "bevy_gilrs", "render"] }
-bevy_flycam = "0.6"
 naga = { version = "0.8.0", features = ["glsl-in"] } # Needed for naga::ShaderStage; will be fixed in next bevy release
+
+[dev-dependencies]
+bevy_flycam = "0.6"
 
 [[example]]
 name = "cycle"

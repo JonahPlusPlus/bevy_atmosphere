@@ -1,12 +1,12 @@
 //! A procedural sky plugin for bevy
 //!
 //! ## Example
-//! ```
+//! ```no_run
 //! use bevy::prelude::*;
 //! use bevy_atmosphere::*;
 //!
 //! fn main() {
-//!     App::build()
+//!     App::new()
 //!         .insert_resource(bevy_atmosphere::AtmosphereMat::default()) // Default Earth sky
 //!         .add_plugins(DefaultPlugins)
 //!         .add_plugin(bevy_atmosphere::AtmospherePlugin { dynamic: false }) // Set to false since we aren't changing the sky's appearance
@@ -19,13 +19,13 @@
 //! }
 //! ```
 
-use std::ops::Deref;
-use bevy::{prelude::*, pbr::NotShadowCaster};
 use bevy::render::camera::Camera;
+use bevy::{pbr::NotShadowCaster, prelude::*};
+use std::ops::Deref;
 
 mod material;
 pub use material::AtmosphereMat;
-use material::{SKY_VERTEX_SHADER_HANDLE, SKY_FRAGMENT_SHADER_HANDLE};
+use material::{SKY_FRAGMENT_SHADER_HANDLE, SKY_VERTEX_SHADER_HANDLE};
 use naga::ShaderStage;
 
 const SKY_VERTEX_SHADER: &str = include_str!("shaders/sky.vert");
@@ -57,7 +57,7 @@ pub struct AtmospherePlugin {
     ///     }
     /// }
     /// ```
-    pub dynamic: bool
+    pub dynamic: bool,
 }
 
 impl Plugin for AtmospherePlugin {
@@ -74,34 +74,45 @@ impl Plugin for AtmospherePlugin {
 
         app.add_plugin(MaterialPlugin::<AtmosphereMat>::default());
         app.add_startup_system(atmosphere_add_sky_sphere);
-        app.add_system_to_stage(CoreStage::Last, // Should run after transform_propagate_system
-                                atmosphere_sky_follow);
+        app.add_system_to_stage(
+            CoreStage::Last, // Should run after transform_propagate_system
+            atmosphere_sky_follow,
+        );
         if self.dynamic {
             app.add_system(atmosphere_dynamic_sky);
         }
     }
 }
 
-fn atmosphere_add_sky_sphere(mut commands: Commands,
-                             mut meshes: ResMut<Assets<Mesh>>,
-                             mut sky_materials: ResMut<Assets<AtmosphereMat>>,
-                             config: Option<Res<AtmosphereMat>>
+fn atmosphere_add_sky_sphere(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut sky_materials: ResMut<Assets<AtmosphereMat>>,
+    config: Option<Res<AtmosphereMat>>,
 ) {
     let sky_material = match config {
         None => AtmosphereMat::default(),
-        Some(c) => c.deref().clone()
+        Some(c) => c.deref().clone(),
     };
 
     let sky_material = sky_materials.add(sky_material);
 
-    commands.spawn_bundle(MaterialMeshBundle {
-        mesh: meshes.add(Mesh::from(shape::Icosphere { radius: -10.0, subdivisions: 2 })),
-        material: sky_material,
-        ..Default::default()
-    }).insert(NotShadowCaster);
+    commands
+        .spawn_bundle(MaterialMeshBundle {
+            mesh: meshes.add(Mesh::from(shape::Icosphere {
+                radius: -10.0,
+                subdivisions: 2,
+            })),
+            material: sky_material,
+            ..Default::default()
+        })
+        .insert(NotShadowCaster);
 }
 
-fn atmosphere_sky_follow(camera_transform_query: Query<&GlobalTransform, (With<Camera>, Without<Handle<AtmosphereMat>>)>, mut sky_transform_query: Query<&mut GlobalTransform, With<Handle<AtmosphereMat>>>) {
+fn atmosphere_sky_follow(
+    camera_transform_query: Query<&GlobalTransform, (With<Camera>, Without<Handle<AtmosphereMat>>)>,
+    mut sky_transform_query: Query<&mut GlobalTransform, With<Handle<AtmosphereMat>>>,
+) {
     if let Some(camera_transform) = camera_transform_query.iter().next() {
         if let Some(mut sky_transform) = sky_transform_query.iter_mut().next() {
             sky_transform.translation = camera_transform.translation;
@@ -109,7 +120,11 @@ fn atmosphere_sky_follow(camera_transform_query: Query<&GlobalTransform, (With<C
     }
 }
 
-fn atmosphere_dynamic_sky(config: Res<AtmosphereMat>, sky_mat_query: Query<&Handle<AtmosphereMat>>, mut sky_materials: ResMut<Assets<AtmosphereMat>>) {
+fn atmosphere_dynamic_sky(
+    config: Res<AtmosphereMat>,
+    sky_mat_query: Query<&Handle<AtmosphereMat>>,
+    mut sky_materials: ResMut<Assets<AtmosphereMat>>,
+) {
     if config.is_changed() {
         if let Some(sky_mat_handle) = sky_mat_query.iter().next() {
             if let Some(sky_mat) = sky_materials.get_mut(sky_mat_handle) {

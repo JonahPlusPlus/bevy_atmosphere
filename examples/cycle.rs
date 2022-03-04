@@ -2,13 +2,12 @@ use bevy::prelude::*;
 use bevy_atmosphere::*;
 use bevy_flycam::PlayerPlugin;
 
-
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
-        .insert_resource(AtmosphereMat::default())// Default AtmosphereMat, we can edit it to simulate another planet
+        .insert_resource(AtmosphereMat::default()) // Default AtmosphereMat, we can edit it to simulate another planet
         .add_plugins(DefaultPlugins)
-        .add_plugin(PlayerPlugin)// Simple movement for this example
+        .add_plugin(PlayerPlugin) // Simple movement for this example
         .add_plugin(AtmospherePlugin { dynamic: true }) // Dynamic is set to true so that the material is updated when the SkyMaterial resource is edited. If it was not set to true, we would have to update ourselves.
         .add_startup_system(setup_environment)
         .add_system(daylight_cycle)
@@ -20,7 +19,11 @@ fn main() {
 struct Sun;
 
 // We can edit the SkyMaterial resource and it will be updated automatically, as long as ZephyrPlugin.dynamic is true
-fn daylight_cycle(mut sky_mat: ResMut<AtmosphereMat>, mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>, time: Res<Time>) {
+fn daylight_cycle(
+    mut sky_mat: ResMut<AtmosphereMat>,
+    mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,
+    time: Res<Time>,
+) {
     let mut pos = sky_mat.sun_position;
     let t = time.time_since_startup().as_millis() as f32 / 2000.0;
     pos.y = t.sin();
@@ -34,11 +37,16 @@ fn daylight_cycle(mut sky_mat: ResMut<AtmosphereMat>, mut query: Query<(&mut Tra
 }
 
 // Simple environment
-fn setup_environment(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
+fn setup_environment(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     // Our Sun
-    commands.spawn_bundle(DirectionalLightBundle {
-        ..Default::default()
-    })
+    commands
+        .spawn_bundle(DirectionalLightBundle {
+            ..Default::default()
+        })
         .insert(Sun); // Marks the light as Sun
 
     // Simple cube just for reference

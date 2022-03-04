@@ -1,15 +1,21 @@
-use bevy::ecs::system::SystemParamItem;
 use bevy::ecs::system::lifetimeless::SRes;
-use bevy::pbr::{SpecializedMaterial, MaterialPipeline};
+use bevy::ecs::system::SystemParamItem;
+use bevy::pbr::{MaterialPipeline, SpecializedMaterial};
 use bevy::prelude::*;
 use bevy::reflect::TypeUuid;
-use bevy::render::render_asset::{RenderAsset, PrepareAssetError};
-use bevy::render::render_resource::{Buffer, BindGroup, BufferSize, BufferBindingType, BindingType, BindGroupLayoutEntry, BindGroupLayout, BindGroupLayoutDescriptor, RenderPipelineDescriptor, CompareFunction, BufferUsages, BindGroupDescriptor, BufferInitDescriptor, BindGroupEntry, ShaderStages};
+use bevy::render::render_asset::{PrepareAssetError, RenderAsset};
+use bevy::render::render_resource::std140::{AsStd140, Std140};
+use bevy::render::render_resource::{
+    BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
+    BindGroupLayoutEntry, BindingType, Buffer, BufferBindingType, BufferInitDescriptor, BufferSize,
+    BufferUsages, CompareFunction, RenderPipelineDescriptor, ShaderStages,
+};
 use bevy::render::renderer::RenderDevice;
-use bevy::render::render_resource::std140::{Std140, AsStd140};
 
-pub const SKY_VERTEX_SHADER_HANDLE: HandleUntyped = HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 17795653402514319180);
-pub const SKY_FRAGMENT_SHADER_HANDLE: HandleUntyped = HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 13775252721647315361);
+pub const SKY_VERTEX_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 17795653402514319180);
+pub const SKY_FRAGMENT_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 13775252721647315361);
 
 /// Controls the appearance of the sky
 ///
@@ -63,9 +69,9 @@ impl AtmosphereMat {
 
     /// Sets the Rayleigh scattering coefficient
     pub fn set_rayleigh_scattering_coefficient(&mut self, coefficient: Vec3) {
-        self.rayleigh_coefficient.x = coefficient.x.clone();
-        self.rayleigh_coefficient.y = coefficient.y.clone();
-        self.rayleigh_coefficient.z = coefficient.z.clone();
+        self.rayleigh_coefficient.x = coefficient.x;
+        self.rayleigh_coefficient.y = coefficient.y;
+        self.rayleigh_coefficient.z = coefficient.z;
     }
 
     /// Sets the scale height (in meters) for Rayleigh scattering

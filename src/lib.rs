@@ -106,7 +106,8 @@ fn atmosphere_add_sky_sphere(
             material: sky_material,
             ..Default::default()
         })
-        .insert(NotShadowCaster);
+        .insert(NotShadowCaster)
+        .insert(Name::new("Sky Sphere"));
 }
 
 fn atmosphere_sky_follow(

@@ -19,7 +19,7 @@
 //! }
 //! ```
 
-use bevy::render::camera::Camera;
+use bevy::render::camera::{ActiveCameras, Camera, CameraPlugin};
 use bevy::{pbr::NotShadowCaster, prelude::*};
 use std::ops::Deref;
 
@@ -113,10 +113,15 @@ fn atmosphere_add_sky_sphere(
 fn atmosphere_sky_follow(
     camera_transform_query: Query<&GlobalTransform, (With<Camera>, Without<Handle<AtmosphereMat>>)>,
     mut sky_transform_query: Query<&mut GlobalTransform, With<Handle<AtmosphereMat>>>,
+    active_cameras: Res<ActiveCameras>,
 ) {
-    if let Some(camera_transform) = camera_transform_query.iter().next() {
-        if let Some(mut sky_transform) = sky_transform_query.iter_mut().next() {
-            sky_transform.translation = camera_transform.translation;
+    if let Some(camera_3d) = active_cameras.get(CameraPlugin::CAMERA_3D) {
+        if let Some(camera_3d_entity) = camera_3d.entity {
+            if let Ok(camera_transform) = camera_transform_query.get(camera_3d_entity) {
+                if let Some(mut sky_transform) = sky_transform_query.iter_mut().next() {
+                    sky_transform.translation = camera_transform.translation;
+                }
+            }
         }
     }
 }

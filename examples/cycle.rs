@@ -21,7 +21,7 @@ fn main() {
 #[derive(Component)]
 struct Sun;
 
-// We can edit the SkyMaterial resource and it will be updated automatically, as long as ZephyrPlugin.dynamic is true
+// We can edit the SkyMaterial resource and it will be updated automatically, as long as AtmospherePlugin.dynamic is true
 fn daylight_cycle(
     mut sky_mat: ResMut<AtmosphereMat>,
     mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,

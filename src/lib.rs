@@ -34,7 +34,6 @@ const SKY_FRAGMENT_SHADER: &str = include_str!("shaders/sky.frag");
 /// Sets up the atmosphere and the systems that control it
 ///
 /// Follows the first camera it finds
-#[derive(Default)]
 pub struct AtmospherePlugin {
     /// If set to `true`, whenever the [`AtmosphereMat`](crate::AtmosphereMat) resource (if it exists) is changed, the sky is updated
     ///
@@ -58,7 +57,19 @@ pub struct AtmospherePlugin {
     /// }
     /// ```
     pub dynamic: bool,
+    pub sky_radius: f32,
 }
+
+impl Default for AtmospherePlugin {
+    fn default() -> Self {
+        Self {
+            dynamic: false,
+            sky_radius: 10.0,
+        }
+    }
+}
+
+pub struct SkyRadius(f32);
 
 impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {
@@ -81,6 +92,8 @@ impl Plugin for AtmospherePlugin {
         if self.dynamic {
             app.add_system(atmosphere_dynamic_sky);
         }
+
+        app.insert_resource(SkyRadius(self.sky_radius));
     }
 }
 
@@ -88,6 +101,7 @@ fn atmosphere_add_sky_sphere(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut sky_materials: ResMut<Assets<AtmosphereMat>>,
+    sky_radius: Res<SkyRadius>,
     config: Option<Res<AtmosphereMat>>,
 ) {
     let sky_material = match config {
@@ -100,7 +114,7 @@ fn atmosphere_add_sky_sphere(
     commands
         .spawn_bundle(MaterialMeshBundle {
             mesh: meshes.add(Mesh::from(shape::Icosphere {
-                radius: -10.0,
+                radius: -sky_radius.0,
                 subdivisions: 2,
             })),
             material: sky_material,

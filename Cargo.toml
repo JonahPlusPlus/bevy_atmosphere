@@ -10,7 +10,7 @@ homepage = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 
 [dependencies]
-bevy = { version = "0.6", default-features = false, features = ["render"] }
+bevy = { version = "0.6", default-features = false, features = ["bevy_render", "bevy_pbr"] }
 naga = { version = "0.8.0", features = ["glsl-in"] } # Needed for naga::ShaderStage; will be fixed in next bevy release
 
 [dev-dependencies]

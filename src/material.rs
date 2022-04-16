@@ -1,16 +1,21 @@
-use bevy::ecs::system::lifetimeless::SRes;
-use bevy::ecs::system::SystemParamItem;
-use bevy::pbr::{MaterialPipeline, SpecializedMaterial};
-use bevy::prelude::*;
-use bevy::reflect::TypeUuid;
-use bevy::render::render_asset::{PrepareAssetError, RenderAsset};
-use bevy::render::render_resource::std140::{AsStd140, Std140};
-use bevy::render::render_resource::{
-    BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
-    BindGroupLayoutEntry, BindingType, Buffer, BufferBindingType, BufferInitDescriptor, BufferSize,
-    BufferUsages, CompareFunction, RenderPipelineDescriptor, ShaderStages,
-};
 use bevy::render::renderer::RenderDevice;
+use bevy::{
+    ecs::system::{lifetimeless::SRes, SystemParamItem},
+    pbr::{MaterialPipeline, SpecializedMaterial},
+    prelude::*,
+    reflect::TypeUuid,
+    render::{
+        mesh::MeshVertexBufferLayout,
+        render_asset::{PrepareAssetError, RenderAsset},
+        render_resource::{
+            std140::{AsStd140, Std140},
+            BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
+            BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType, Buffer,
+            BufferBindingType, BufferInitDescriptor, BufferSize, BufferUsages, CompareFunction,
+            RenderPipelineDescriptor, ShaderStages, SpecializedMeshPipelineError,
+        },
+    },
+};
 
 pub const SKY_VERTEX_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 17795653402514319180);
@@ -154,22 +159,28 @@ impl RenderAsset for AtmosphereMat {
 impl SpecializedMaterial for AtmosphereMat {
     type Key = ();
 
-    fn key(_: &<AtmosphereMat as RenderAsset>::PreparedAsset) -> Self::Key {}
+    fn key(_render_asset: &<Self as RenderAsset>::PreparedAsset) -> Self::Key {}
 
-    fn specialize(_: Self::Key, descriptor: &mut RenderPipelineDescriptor) {
+    fn specialize(
+        _pipeline: &MaterialPipeline<Self>,
+        descriptor: &mut RenderPipelineDescriptor,
+        _key: Self::Key,
+        _layout: &MeshVertexBufferLayout,
+    ) -> Result<(), SpecializedMeshPipelineError> {
         descriptor.vertex.entry_point = "main".into();
         descriptor.fragment.as_mut().unwrap().entry_point = "main".into();
         if let Some(depth_stencil_state) = &mut descriptor.depth_stencil {
             depth_stencil_state.depth_compare = CompareFunction::GreaterEqual;
             depth_stencil_state.depth_write_enabled = false;
         }
+        Ok(())
     }
 
-    fn vertex_shader(_: &AssetServer) -> Option<Handle<Shader>> {
+    fn vertex_shader(_asset_server: &AssetServer) -> Option<Handle<Shader>> {
         Some(SKY_VERTEX_SHADER_HANDLE.typed())
     }
 
-    fn fragment_shader(_: &AssetServer) -> Option<Handle<Shader>> {
+    fn fragment_shader(_asset_server: &AssetServer) -> Option<Handle<Shader>> {
         Some(SKY_FRAGMENT_SHADER_HANDLE.typed())
     }
 

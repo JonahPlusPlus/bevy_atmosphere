@@ -22,14 +22,19 @@
 //! }
 //! ```
 
-use bevy::render::camera::{ActiveCameras, Camera, CameraPlugin};
-use bevy::{pbr::NotShadowCaster, prelude::*};
+use bevy::{
+    pbr::NotShadowCaster,
+    prelude::*,
+    render::{
+        camera::{ActiveCamera, Camera3d},
+        render_resource::ShaderStage,
+    },
+};
 use std::ops::Deref;
 
 mod material;
 pub use material::AtmosphereMat;
 use material::{SKY_FRAGMENT_SHADER_HANDLE, SKY_VERTEX_SHADER_HANDLE};
-use naga::ShaderStage;
 
 const SKY_VERTEX_SHADER: &str = include_str!("shaders/sky.vert");
 const SKY_FRAGMENT_SHADER: &str = include_str!("shaders/sky.frag");
@@ -76,7 +81,7 @@ pub struct SkyRadius(f32);
 
 impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {
-        let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
+        let mut shaders = app.world.resource_mut::<Assets<Shader>>();
         shaders.set_untracked(
             SKY_VERTEX_SHADER_HANDLE,
             Shader::from_glsl(SKY_VERTEX_SHADER, ShaderStage::Vertex),
@@ -128,16 +133,14 @@ fn atmosphere_add_sky_sphere(
 }
 
 fn atmosphere_sky_follow(
-    camera_transform_query: Query<&GlobalTransform, (With<Camera>, Without<Handle<AtmosphereMat>>)>,
+    camera_transform_query: Query<&GlobalTransform, Without<Handle<AtmosphereMat>>>,
     mut sky_transform_query: Query<&mut GlobalTransform, With<Handle<AtmosphereMat>>>,
-    active_cameras: Res<ActiveCameras>,
+    active_cameras: Res<ActiveCamera<Camera3d>>,
 ) {
-    if let Some(camera_3d) = active_cameras.get(CameraPlugin::CAMERA_3D) {
-        if let Some(camera_3d_entity) = camera_3d.entity {
-            if let Ok(camera_transform) = camera_transform_query.get(camera_3d_entity) {
-                if let Some(mut sky_transform) = sky_transform_query.iter_mut().next() {
-                    sky_transform.translation = camera_transform.translation;
-                }
+    if let Some(camera_3d) = active_cameras.get() {
+        if let Ok(camera_transform) = camera_transform_query.get(camera_3d) {
+            if let Some(mut sky_transform) = sky_transform_query.iter_mut().next() {
+                sky_transform.translation = camera_transform.translation;
             }
         }
     }

@@ -81,7 +81,7 @@ pub struct SkyRadius(f32);
 
 impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {
-        let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
+        let mut shaders = app.world.resource_mut::<Assets<Shader>>();
         shaders.set_untracked(
             SKY_VERTEX_SHADER_HANDLE,
             Shader::from_glsl(SKY_VERTEX_SHADER, ShaderStage::Vertex),

@@ -11,7 +11,7 @@
 //!         .add_plugins(DefaultPlugins)
 //!         .add_plugin(bevy_atmosphere::AtmospherePlugin {
 //!             dynamic: false,  // Set to false since we aren't changing the sky's appearance
-//!             sky_radius: 500.0
+//!             sky_radius: 100.0
 //!         })
 //!         .add_startup_system(setup)
 //!         .run();
@@ -72,7 +72,7 @@ impl Default for AtmospherePlugin {
     fn default() -> Self {
         Self {
             dynamic: false,
-            sky_radius: 500.0,
+            sky_radius: 100.0,
         }
     }
 }

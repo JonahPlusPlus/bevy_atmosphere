@@ -24,8 +24,7 @@ fn setup(mut commands: Commands) {
 }
 ```
 
-Thank you [kbieganski](https://github.com/kbieganski) for doing the 0.2.0 update!
+## Change Log
 
-Big thanks to [glsl-atmosphere](https://github.com/wwwtyro/glsl-atmosphere) and [bevy_skybox](https://github.com/jomala/bevy_skybox), which I essentially tried to merge together
-
-Also thanks to those on the Bevy Discord who took the time to help me 
+* v0.3.1: Changed default radius from 10 to 100 (larger values can reduce visual artifacts)
+* v0.3.0: Updated to bevy v0.7

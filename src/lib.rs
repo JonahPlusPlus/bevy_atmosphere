@@ -33,7 +33,7 @@ use bevy::{
 use std::ops::Deref;
 
 mod material;
-pub use material::AtmosphereMat;
+pub use material::Atmosphere;
 use material::{SKY_FRAGMENT_SHADER_HANDLE, SKY_VERTEX_SHADER_HANDLE};
 
 const SKY_VERTEX_SHADER: &str = include_str!("shaders/sky.vert");
@@ -91,7 +91,7 @@ impl Plugin for AtmospherePlugin {
             Shader::from_glsl(SKY_FRAGMENT_SHADER, ShaderStage::Fragment),
         );
 
-        app.add_plugin(MaterialPlugin::<AtmosphereMat>::default());
+        app.add_plugin(MaterialPlugin::<Atmosphere>::default());
         app.add_startup_system(atmosphere_add_sky_sphere);
         app.add_system_to_stage(
             CoreStage::Last, // Should run after transform_propagate_system
@@ -108,12 +108,12 @@ impl Plugin for AtmospherePlugin {
 fn atmosphere_add_sky_sphere(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut sky_materials: ResMut<Assets<AtmosphereMat>>,
+    mut sky_materials: ResMut<Assets<Atmosphere>>,
     sky_radius: Res<SkyRadius>,
-    config: Option<Res<AtmosphereMat>>,
+    config: Option<Res<Atmosphere>>,
 ) {
     let sky_material = match config {
-        None => AtmosphereMat::default(),
+        None => Atmosphere::default(),
         Some(c) => c.deref().clone(),
     };
 
@@ -133,8 +133,8 @@ fn atmosphere_add_sky_sphere(
 }
 
 fn atmosphere_sky_follow(
-    camera_transform_query: Query<&GlobalTransform, Without<Handle<AtmosphereMat>>>,
-    mut sky_transform_query: Query<&mut GlobalTransform, With<Handle<AtmosphereMat>>>,
+    camera_transform_query: Query<&GlobalTransform, Without<Handle<Atmosphere>>>,
+    mut sky_transform_query: Query<&mut GlobalTransform, With<Handle<Atmosphere>>>,
     active_cameras: Res<ActiveCamera<Camera3d>>,
 ) {
     if let Some(camera_3d) = active_cameras.get() {
@@ -147,9 +147,9 @@ fn atmosphere_sky_follow(
 }
 
 fn atmosphere_dynamic_sky(
-    config: Res<AtmosphereMat>,
-    sky_mat_query: Query<&Handle<AtmosphereMat>>,
-    mut sky_materials: ResMut<Assets<AtmosphereMat>>,
+    config: Res<Atmosphere>,
+    sky_mat_query: Query<&Handle<Atmosphere>>,
+    mut sky_materials: ResMut<Assets<Atmosphere>>,
 ) {
     if config.is_changed() {
         if let Some(sky_mat_handle) = sky_mat_query.iter().next() {

@@ -5,7 +5,7 @@ use bevy_flycam::PlayerPlugin;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
-        .insert_resource(AtmosphereMat::default()) // Default AtmosphereMat, we can edit it to simulate another planet
+        .insert_resource(Atmosphere::default()) // Default AtmosphereMat, we can edit it to simulate another planet
         .add_plugins(DefaultPlugins)
         .add_plugin(PlayerPlugin) // Simple movement for this example
         .add_plugin(AtmospherePlugin {
@@ -23,7 +23,7 @@ struct Sun;
 
 // We can edit the SkyMaterial resource and it will be updated automatically, as long as AtmospherePlugin.dynamic is true
 fn daylight_cycle(
-    mut sky_mat: ResMut<AtmosphereMat>,
+    mut sky_mat: ResMut<Atmosphere>,
     mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,
     time: Res<Time>,
 ) {

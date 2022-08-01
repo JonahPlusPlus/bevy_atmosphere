@@ -26,7 +26,7 @@ pub const SKY_FRAGMENT_SHADER_HANDLE: HandleUntyped =
 ///
 #[derive(Debug, TypeUuid, Clone, AsStd140)]
 #[uuid = "a57878c4-569e-4511-be7c-b0e5b2c983e2"]
-pub struct AtmosphereMat {
+pub struct Atmosphere {
     /// Default: (0.0, 6372e3, 0.0)
     pub ray_origin: Vec3,
     /// Default: (0.0, 1.0, 1.0)
@@ -46,7 +46,7 @@ pub struct AtmosphereMat {
 }
 
 #[allow(dead_code)]
-impl AtmosphereMat {
+impl Atmosphere {
     /// Sets the ray origin
     pub fn set_ray_origin(&mut self, ray_origin: Vec3) {
         self.ray_origin = ray_origin;
@@ -100,7 +100,7 @@ impl AtmosphereMat {
     }
 }
 
-impl Default for AtmosphereMat {
+impl Default for Atmosphere {
     fn default() -> Self {
         Self {
             ray_origin: Vec3::new(0.0, 6372e3, 0.0),
@@ -123,8 +123,8 @@ pub struct GpuAtmosphereMat {
     bind_group: BindGroup,
 }
 
-impl RenderAsset for AtmosphereMat {
-    type ExtractedAsset = AtmosphereMat;
+impl RenderAsset for Atmosphere {
+    type ExtractedAsset = Atmosphere;
     type PreparedAsset = GpuAtmosphereMat;
     type Param = (SRes<RenderDevice>, SRes<MaterialPipeline<Self>>);
     fn extract_asset(&self) -> Self {
@@ -156,7 +156,7 @@ impl RenderAsset for AtmosphereMat {
     }
 }
 
-impl SpecializedMaterial for AtmosphereMat {
+impl SpecializedMaterial for Atmosphere {
     type Key = ();
 
     fn key(_render_asset: &<Self as RenderAsset>::PreparedAsset) -> Self::Key {}
@@ -196,7 +196,7 @@ impl SpecializedMaterial for AtmosphereMat {
                 ty: BindingType::Buffer {
                     ty: BufferBindingType::Uniform,
                     has_dynamic_offset: false,
-                    min_binding_size: BufferSize::new(AtmosphereMat::std140_size_static() as u64),
+                    min_binding_size: BufferSize::new(Atmosphere::std140_size_static() as u64),
                 },
                 count: None,
             }],

@@ -28,7 +28,6 @@ use bevy::{
     pbr::NotShadowCaster,
     prelude::*, asset::load_internal_asset,
 };
-use std::ops::Deref;
 use material::*;
 
 
@@ -88,7 +87,7 @@ fn atmosphere_init(
 ) {
     let atmosphere = match atmosphere {
         None => Atmosphere::default(),
-        Some(c) => c.deref().clone(),
+        Some(c) => c.clone(),
     };
 
     let atmosphere = sky_materials.add(atmosphere);
@@ -115,7 +114,7 @@ fn atmosphere_dynamic_sky(
     if global_atmosphere.is_changed() {
         if let Some(atmosphere_handle) = atmosphere_query.iter().next() {
             if let Some(atmosphere) = atmospheres.get_mut(atmosphere_handle) {
-                *atmosphere = global_atmosphere.deref().clone();
+                *atmosphere = global_atmosphere.clone();
             }
         }
     }

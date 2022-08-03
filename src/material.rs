@@ -1,4 +1,4 @@
-use bevy::{prelude::*, reflect::TypeUuid, render::render_resource::{AsBindGroup, ShaderRef, CompareFunction}};
+use bevy::{prelude::*, reflect::TypeUuid, render::render_resource::{AsBindGroup, ShaderRef, CompareFunction, ShaderType}};
 
 pub const ATMOSPHERE_MAIN_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 05132991701789555342);
@@ -8,39 +8,36 @@ pub const ATMOSPHERE_TYPES_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 09615256157423613453);
 
 /// Controls the appearance of the sky
-#[derive(AsBindGroup, Debug, TypeUuid, Clone)]
+#[derive(ShaderType, AsBindGroup, Debug, TypeUuid, Clone, Copy)]
 #[uuid = "a57878c4-569e-4511-be7c-b0e5b2c983e2"]
+#[uniform(0, Atmosphere)]
 pub struct Atmosphere {
     /// Ray Origin (Default: (0.0, 6372e3, 0.0))
-    #[uniform(0)]
     pub ray_origin: Vec3,
     /// Sun Position (Default: (0.0, 1.0, 1.0))
-    #[uniform(0)]
     pub sun_position: Vec3,
     /// Sun Intensity (Default: 22.0)
-    #[uniform(0)]
     pub sun_intensity: f32,
     /// Planet Radius (Default: 6371e3)
-    #[uniform(0)]
     pub planet_radius: f32,
     /// Atmosphere Radius (Default: 6471e3)
-    #[uniform(0)]
     pub atmosphere_radius: f32,
     /// Rayleigh Scattering Coefficient (Default: (5.5e-6, 13.0e-6, 22.4e-6))
-    #[uniform(0)]
     pub rayleigh_coefficient: Vec3,
     /// Rayleigh Scattering Scale Height (Default: 8e3)
-    #[uniform(0)]
     pub rayleigh_scale_height: f32,
     /// Mie Scattering Coefficient (Default: 21e-6)
-    #[uniform(0)]
     pub mie_coefficient: f32,
     /// Mie Scattering Scale Height (Default: 1.2e3)
-    #[uniform(0)]
     pub mie_scale_height: f32,
     /// Mie Scattering Preferred Direction (Default: 0.758)
-    #[uniform(0)]
     pub mie_direction: f32,
+}
+
+impl From<&Atmosphere> for Atmosphere {
+    fn from(atmosphere: &Atmosphere) -> Self {
+        *atmosphere
+    }
 }
 
 impl Default for Atmosphere {
@@ -73,7 +70,7 @@ impl Material for Atmosphere {
             _pipeline: &bevy::pbr::MaterialPipeline<Self>,
             descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
             layout: &bevy::render::mesh::MeshVertexBufferLayout,
-            key: bevy::pbr::MaterialPipelineKey<Self>,
+            _key: bevy::pbr::MaterialPipelineKey<Self>,
         ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
 
             let vertex_layout = layout.get_layout(&[

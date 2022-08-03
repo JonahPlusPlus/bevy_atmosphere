@@ -1,103 +1,46 @@
-use bevy::render::renderer::RenderDevice;
-use bevy::{
-    ecs::system::{lifetimeless::SRes, SystemParamItem},
-    pbr::{MaterialPipeline, SpecializedMaterial},
-    prelude::*,
-    reflect::TypeUuid,
-    render::{
-        mesh::MeshVertexBufferLayout,
-        render_asset::{PrepareAssetError, RenderAsset},
-        render_resource::{
-            std140::{AsStd140, Std140},
-            BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
-            BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType, Buffer,
-            BufferBindingType, BufferInitDescriptor, BufferSize, BufferUsages, CompareFunction,
-            RenderPipelineDescriptor, ShaderStages, SpecializedMeshPipelineError,
-        },
-    },
-};
+use bevy::{prelude::*, reflect::TypeUuid, render::render_resource::{AsBindGroup, ShaderRef, CompareFunction}};
 
-pub const SKY_VERTEX_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 17795653402514319180);
-pub const SKY_FRAGMENT_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 13775252721647315361);
+pub const ATMOSPHERE_MAIN_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 05132991701789555342);
+pub const ATMOSPHERE_MATH_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 07843425155352921761);
+pub const ATMOSPHERE_TYPES_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 09615256157423613453);
 
 /// Controls the appearance of the sky
-///
-#[derive(Debug, TypeUuid, Clone, AsStd140)]
+#[derive(AsBindGroup, Debug, TypeUuid, Clone)]
 #[uuid = "a57878c4-569e-4511-be7c-b0e5b2c983e2"]
 pub struct Atmosphere {
-    /// Default: (0.0, 6372e3, 0.0)
+    /// Ray Origin (Default: (0.0, 6372e3, 0.0))
+    #[uniform(0)]
     pub ray_origin: Vec3,
-    /// Default: (0.0, 1.0, 1.0)
+    /// Sun Position (Default: (0.0, 1.0, 1.0))
+    #[uniform(0)]
     pub sun_position: Vec3,
-    /// Default: 22.0
+    /// Sun Intensity (Default: 22.0)
+    #[uniform(0)]
     pub sun_intensity: f32,
-    /// Represents Planet radius (Default: 6371e3) and Atmosphere radius (Default: 6471e3)
+    /// Planet Radius (Default: 6371e3)
+    #[uniform(0)]
     pub planet_radius: f32,
+    /// Atmosphere Radius (Default: 6471e3)
+    #[uniform(0)]
     pub atmosphere_radius: f32,
-    /// Represents Rayleigh coefficient (Default: (5.5e-6, 13.0e-6, 22.4e-6)) and scale height (Default: 8e3)
+    /// Rayleigh Scattering Coefficient (Default: (5.5e-6, 13.0e-6, 22.4e-6))
+    #[uniform(0)]
     pub rayleigh_coefficient: Vec3,
+    /// Rayleigh Scattering Scale Height (Default: 8e3)
+    #[uniform(0)]
     pub rayleigh_scale_height: f32,
-    /// Represents Mie coefficient (Default: 21e-6), scale height (Default: 1.2e3) and preferred scattering direction (Default: 0.758)
+    /// Mie Scattering Coefficient (Default: 21e-6)
+    #[uniform(0)]
     pub mie_coefficient: f32,
+    /// Mie Scattering Scale Height (Default: 1.2e3)
+    #[uniform(0)]
     pub mie_scale_height: f32,
+    /// Mie Scattering Preferred Direction (Default: 0.758)
+    #[uniform(0)]
     pub mie_direction: f32,
-}
-
-#[allow(dead_code)]
-impl Atmosphere {
-    /// Sets the ray origin
-    pub fn set_ray_origin(&mut self, ray_origin: Vec3) {
-        self.ray_origin = ray_origin;
-    }
-
-    /// Sets the sun's position
-    pub fn set_sun_position(&mut self, sun_position: Vec3) {
-        self.sun_position = sun_position;
-    }
-
-    /// Sets the sun's intensity (brightness)
-    pub fn set_sun_intensity(&mut self, sun_intensity: f32) {
-        self.sun_intensity = sun_intensity;
-    }
-
-    /// Sets the planet's radius (in meters)
-    pub fn set_planet_radius(&mut self, planet_radius: f32) {
-        self.planet_radius = planet_radius;
-    }
-
-    /// Sets the atmosphere's radius (in meters)
-    pub fn set_atmosphere_radius(&mut self, atmosphere_radius: f32) {
-        self.atmosphere_radius = atmosphere_radius;
-    }
-
-    /// Sets the Rayleigh scattering coefficient
-    pub fn set_rayleigh_scattering_coefficient(&mut self, coefficient: Vec3) {
-        self.rayleigh_coefficient.x = coefficient.x;
-        self.rayleigh_coefficient.y = coefficient.y;
-        self.rayleigh_coefficient.z = coefficient.z;
-    }
-
-    /// Sets the scale height (in meters) for Rayleigh scattering
-    pub fn set_rayleigh_scale_height(&mut self, scale: f32) {
-        self.rayleigh_scale_height = scale;
-    }
-
-    /// Sets the Mie scattering coefficient
-    pub fn set_mie_scattering_coefficient(&mut self, coefficient: f32) {
-        self.mie_coefficient = coefficient;
-    }
-
-    /// Sets the scale height (in meters) for Mie scattering
-    pub fn set_mie_scale_height(&mut self, scale: f32) {
-        self.mie_scale_height = scale;
-    }
-
-    /// Sets the preferred direction for Mie scattering
-    pub fn set_mie_scattering_direction(&mut self, direction: f32) {
-        self.mie_direction = direction;
-    }
 }
 
 impl Default for Atmosphere {
@@ -117,90 +60,34 @@ impl Default for Atmosphere {
     }
 }
 
-#[derive(Clone)]
-pub struct GpuAtmosphereMat {
-    _buffer: Buffer,
-    bind_group: BindGroup,
-}
-
-impl RenderAsset for Atmosphere {
-    type ExtractedAsset = Atmosphere;
-    type PreparedAsset = GpuAtmosphereMat;
-    type Param = (SRes<RenderDevice>, SRes<MaterialPipeline<Self>>);
-    fn extract_asset(&self) -> Self {
-        self.clone()
+impl Material for Atmosphere {
+    fn fragment_shader() -> ShaderRef {
+        ATMOSPHERE_MAIN_SHADER_HANDLE.typed().into()
     }
 
-    fn prepare_asset(
-        extracted_asset: Self,
-        (render_device, material_pipeline): &mut SystemParamItem<Self::Param>,
-    ) -> Result<Self::PreparedAsset, PrepareAssetError<Self>> {
-        let buffer = render_device.create_buffer_with_data(&BufferInitDescriptor {
-            contents: extracted_asset.as_std140().as_bytes(),
-            label: None,
-            usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
-        });
-        let bind_group = render_device.create_bind_group(&BindGroupDescriptor {
-            entries: &[BindGroupEntry {
-                binding: 0,
-                resource: buffer.as_entire_binding(),
-            }],
-            label: None,
-            layout: &material_pipeline.material_layout,
-        });
-
-        Ok(Self::PreparedAsset {
-            _buffer: buffer,
-            bind_group,
-        })
+    fn vertex_shader() -> ShaderRef {
+        ATMOSPHERE_MAIN_SHADER_HANDLE.typed().into()
     }
-}
-
-impl SpecializedMaterial for Atmosphere {
-    type Key = ();
-
-    fn key(_render_asset: &<Self as RenderAsset>::PreparedAsset) -> Self::Key {}
 
     fn specialize(
-        _pipeline: &MaterialPipeline<Self>,
-        descriptor: &mut RenderPipelineDescriptor,
-        _key: Self::Key,
-        _layout: &MeshVertexBufferLayout,
-    ) -> Result<(), SpecializedMeshPipelineError> {
-        descriptor.vertex.entry_point = "main".into();
-        descriptor.fragment.as_mut().unwrap().entry_point = "main".into();
-        if let Some(depth_stencil_state) = &mut descriptor.depth_stencil {
-            depth_stencil_state.depth_compare = CompareFunction::GreaterEqual;
-            depth_stencil_state.depth_write_enabled = false;
-        }
-        Ok(())
-    }
+            _pipeline: &bevy::pbr::MaterialPipeline<Self>,
+            descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
+            layout: &bevy::render::mesh::MeshVertexBufferLayout,
+            key: bevy::pbr::MaterialPipelineKey<Self>,
+        ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
 
-    fn vertex_shader(_asset_server: &AssetServer) -> Option<Handle<Shader>> {
-        Some(SKY_VERTEX_SHADER_HANDLE.typed())
-    }
+            let vertex_layout = layout.get_layout(&[
+                Mesh::ATTRIBUTE_POSITION.at_shader_location(0),
+                Mesh::ATTRIBUTE_NORMAL.at_shader_location(1),
+                Mesh::ATTRIBUTE_UV_0.at_shader_location(2),
+            ])?;
 
-    fn fragment_shader(_asset_server: &AssetServer) -> Option<Handle<Shader>> {
-        Some(SKY_FRAGMENT_SHADER_HANDLE.typed())
-    }
+            descriptor.vertex.buffers = vec![vertex_layout];
 
-    fn bind_group(render_asset: &<Self as RenderAsset>::PreparedAsset) -> &BindGroup {
-        &render_asset.bind_group
-    }
-
-    fn bind_group_layout(render_device: &RenderDevice) -> BindGroupLayout {
-        render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            entries: &[BindGroupLayoutEntry {
-                binding: 0,
-                visibility: ShaderStages::FRAGMENT,
-                ty: BindingType::Buffer {
-                    ty: BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: BufferSize::new(Atmosphere::std140_size_static() as u64),
-                },
-                count: None,
-            }],
-            label: None,
-        })
+            if let Some (depth_stencil_state) = &mut descriptor.depth_stencil {
+                depth_stencil_state.depth_compare = CompareFunction::GreaterEqual;
+                depth_stencil_state.depth_write_enabled = false;
+            }
+            Ok(())
     }
 }

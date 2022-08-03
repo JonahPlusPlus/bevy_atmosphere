@@ -16,6 +16,11 @@ bevy = { version = "0.8", default-features = false, features = ["bevy_render", "
 bevy_flycam = "0.8"
 bevy = { version = "0.8", default-features = false, features = ["bevy_core_pipeline", "x11"] }
 
+[features]
+default = []
+dynamic = []
+
 [[example]]
 name = "cycle"
 path = "examples/cycle.rs"
+required-features = ["dynamic"]

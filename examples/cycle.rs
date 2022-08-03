@@ -1,17 +1,14 @@
 use bevy::prelude::*;
-use bevy_atmosphere::*;
+use bevy_atmosphere::prelude::*;
 use bevy_flycam::PlayerPlugin;
 
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
-        .insert_resource(Atmosphere::default()) // Default AtmosphereMat, we can edit it to simulate another planet
+        .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .add_plugins(DefaultPlugins)
         .add_plugin(PlayerPlugin) // Simple movement for this example
-        .add_plugin(AtmospherePlugin {
-            dynamic: true,
-            sky_radius: 10.0,
-        }) // Dynamic is set to true so that the material is updated when the SkyMaterial resource is edited. If it was not set to true, we would have to update ourselves.
+        .add_plugin(AtmospherePlugin::default()) // Default AtmospherePlugin
         .add_startup_system(setup_environment)
         .add_system(daylight_cycle)
         .run();

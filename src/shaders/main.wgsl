@@ -1,7 +1,11 @@
 #import bevy_pbr::mesh_view_bindings
 #import bevy_pbr::mesh_bindings
 
-#import bevy_pbr::mesh_functions
+// Derived from bevy_pbr::mesh_functions to avoid naga logs about skipped functions
+fn mesh_position_local_to_clip(model: mat4x4<f32>, vertex_position: vec4<f32>) -> vec4<f32> {
+    let world_position = model * vertex_position;
+    return view.view_proj * world_position;
+}
 
 #import bevy_atmosphere::types
 #import bevy_atmosphere::math

@@ -11,9 +11,10 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 
 [dependencies]
 bevy = { version = "0.8", default-features = false, features = ["bevy_render", "bevy_pbr"] }
+radsort = "0.1"
 
 [dev-dependencies]
-bevy_flycam = "0.8"
+bevy_flycam = "~0.8.1"
 bevy = { version = "0.8", default-features = false, features = ["bevy_core_pipeline", "x11"] }
 
 [features]
@@ -24,3 +25,7 @@ dynamic = []
 name = "cycle"
 path = "examples/cycle.rs"
 required-features = ["dynamic"]
+
+[[example]]
+name = "splitscreen"
+path = "examples/splitscreen.rs"

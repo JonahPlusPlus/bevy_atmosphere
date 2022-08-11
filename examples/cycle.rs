@@ -1,14 +1,21 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
-use bevy_flycam::PlayerPlugin;
 
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
+        .insert_resource(WindowDescriptor {
+            // uncomment for unthrottled FPS
+            present_mode: bevy::window::PresentMode::AutoNoVsync,
+            ..default()
+        })
         .add_plugins(DefaultPlugins)
-        .add_plugin(PlayerPlugin) // Simple movement for this example
-        .add_plugin(AtmospherePlugin::default()) // Default AtmospherePlugin
+        .add_plugin(bevy_flycam::NoCameraPlayerPlugin) // Simple movement for this example
+        .add_plugin(AtmospherePlugin(Some(AtmosphereSettings {
+            size: 64,
+            ..default()
+        }))) // Default AtmospherePlugin
         .add_startup_system(setup_environment)
         .add_system(daylight_cycle)
         .run();
@@ -49,10 +56,43 @@ fn setup_environment(
         })
         .insert(Sun); // Marks the light as Sun
 
-    // Simple cube just for reference
+    // Simple transform shape just for reference
     commands.spawn_bundle(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(StandardMaterial::from(Color::rgb(1.0, 0.0, 0.5))),
+        material: materials.add(StandardMaterial::from(Color::rgb(0.8, 0.8, 0.8))),
         ..Default::default()
     });
+
+    // X axis
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
+        material: materials.add(StandardMaterial::from(Color::rgb(0.8, 0.0, 0.0))),
+        transform: Transform::from_xyz(1., 0., 0.),
+        ..Default::default()
+    });
+
+    // Y axis
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
+        material: materials.add(StandardMaterial::from(Color::rgb(0.0, 0.8, 0.0))),
+        transform: Transform::from_xyz(0., 1., 0.),
+        ..Default::default()
+    });
+
+    // Z axis
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
+        material: materials.add(StandardMaterial::from(Color::rgb(0.0, 0.0, 0.8))),
+        transform: Transform::from_xyz(0., 0., 1.),
+        ..Default::default()
+    });
+
+    // Spawn our camera
+    commands
+        .spawn_bundle(Camera3dBundle {
+            transform: Transform::from_xyz(10.0, 10.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
+            ..default()
+        })
+        .insert(AtmosphereCamera) // Marks camera as having an atmosphere
+        .insert(bevy_flycam::FlyCam); // Marks camera as flycam (specific to bevy_flycam)
 }

@@ -42,7 +42,7 @@ impl Plugin for AtmospherePlugin {
             Shader::from_wgsl
         );
 
-        app.add_plugin(crate::pipeline::AtmospherePipelinePlugin);
+        app.add_plugin(AtmospherePipelinePlugin);
 
         #[cfg(feature = "automatic")]
         app.add_startup_system_to_stage(

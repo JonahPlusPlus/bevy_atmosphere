@@ -61,7 +61,7 @@ fn setup(
             transform: Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(RenderLayers::from_layers(&[0,1])) // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
+        .insert(RenderLayers::from_layers(&[0, 1])) // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
         .insert(AtmosphereCamera(1))
         .insert(LeftCamera);
 
@@ -81,7 +81,7 @@ fn setup(
             },
             ..default()
         })
-        .insert(RenderLayers::from_layers(&[0,2]))
+        .insert(RenderLayers::from_layers(&[0, 2]))
         .insert(AtmosphereCamera(2))
         .insert(RightCamera);
 }

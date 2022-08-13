@@ -1,6 +1,15 @@
-use bevy::{asset::load_internal_asset, prelude::*, render::{render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages}, camera::{Projection, CameraProjection}, view::RenderLayers}, pbr::{NotShadowCaster, NotShadowReceiver}};
+use bevy::{
+    asset::load_internal_asset,
+    pbr::{NotShadowCaster, NotShadowReceiver},
+    prelude::*,
+    render::{
+        camera::{CameraProjection, Projection},
+        render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages},
+        view::RenderLayers,
+    },
+};
 
-use crate::pipeline::{*, self};
+use crate::pipeline::{self, *};
 
 /// Sets up the atmosphere and the systems that control it
 ///
@@ -9,7 +18,7 @@ use crate::pipeline::{*, self};
 pub struct AtmospherePlugin;
 
 /// Label for startup system that prepares skyboxes
-pub const ATMOSPHERE_INIT: &'static str = "ATMOSPHERE_INIT";
+pub const ATMOSPHERE_INIT: &str = "ATMOSPHERE_INIT";
 
 impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {

@@ -5,40 +5,208 @@ use crate::pipeline;
 /// Generates an inverted box mesh with face UVs that fit inside a `pipeline::SIZE` square with a 1 pixel border
 pub fn mesh(far: f32) -> Mesh {
     let size = (far * f32::sqrt(0.5)) - 1.0; // sqrt(0.5) is the ratio between squares separated by a circle
-    // where one lies on the outside of the circle (edges) and the other lies on the inside of the circle (corners) 
-    // this is necessary since while the faces of the skybox may be seen, the corners and edges probably won't, since they don't lie on the radius of the far plane
+                                             // where one lies on the outside of the circle (edges) and the other lies on the inside of the circle (corners)
+                                             // this is necessary since while the faces of the skybox may be seen, the corners and edges probably won't, since they don't lie on the radius of the far plane
     let (vertices, indices) = (
         &[
             // (+, 0, 0) Left Side
-            ([ size,  size,  size], [-1., 00., 00.], [(0./6.) + (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (+, +, +)
-            ([ size,  size, -size], [-1., 00., 00.], [(0./6.) + (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (+, +, -)
-            ([ size, -size,  size], [-1., 00., 00.], [(1./6.) - (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (+, -, +)
-            ([ size, -size, -size], [-1., 00., 00.], [(1./6.) - (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (+, -, -)
+            (
+                [size, size, size],
+                [-1., 00., 00.],
+                [
+                    (0. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, +, +)
+            (
+                [size, size, -size],
+                [-1., 00., 00.],
+                [
+                    (0. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, +, -)
+            (
+                [size, -size, size],
+                [-1., 00., 00.],
+                [
+                    (1. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, -, +)
+            (
+                [size, -size, -size],
+                [-1., 00., 00.],
+                [
+                    (1. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, -, -)
             // (0, +, 0) Top Side
-            ([-size,  size,  size], [00., -1., 00.], [(1./6.) + (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (+, +, +)
-            ([-size,  size, -size], [00., -1., 00.], [(1./6.) + (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (-, +, +)
-            ([ size,  size,  size], [00., -1., 00.], [(2./6.) - (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (+, +, -)
-            ([ size,  size, -size], [00., -1., 00.], [(2./6.) - (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (-, +, -)
+            (
+                [-size, size, size],
+                [00., -1., 00.],
+                [
+                    (1. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, +, +)
+            (
+                [-size, size, -size],
+                [00., -1., 00.],
+                [
+                    (1. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, +, +)
+            (
+                [size, size, size],
+                [00., -1., 00.],
+                [
+                    (2. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, +, -)
+            (
+                [size, size, -size],
+                [00., -1., 00.],
+                [
+                    (2. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, +, -)
             // (0, 0, +) Front Side
-            ([ size,  size,  size], [00., 00., -1.], [(2./6.) + (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (+, +, +)
-            ([ size, -size,  size], [00., 00., -1.], [(2./6.) + (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (+, -, +)
-            ([-size,  size,  size], [00., 00., -1.], [(3./6.) - (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (-, +, +)
-            ([-size, -size,  size], [00., 00., -1.], [(3./6.) - (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (-, -, +)
+            (
+                [size, size, size],
+                [00., 00., -1.],
+                [
+                    (2. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, +, +)
+            (
+                [size, -size, size],
+                [00., 00., -1.],
+                [
+                    (2. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, -, +)
+            (
+                [-size, size, size],
+                [00., 00., -1.],
+                [
+                    (3. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, +, +)
+            (
+                [-size, -size, size],
+                [00., 00., -1.],
+                [
+                    (3. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, -, +)
             // (-, 0, 0) Right Side
-            ([-size,  size,  size], [01., 00., 00.], [(3./6.) + (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (-, +, +)
-            ([-size, -size,  size], [01., 00., 00.], [(3./6.) + (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (-, -, +)
-            ([-size,  size, -size], [01., 00., 00.], [(4./6.) - (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (-, +, -)
-            ([-size, -size, -size], [01., 00., 00.], [(4./6.) - (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (-, -, -)
+            (
+                [-size, size, size],
+                [01., 00., 00.],
+                [
+                    (3. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, +, +)
+            (
+                [-size, -size, size],
+                [01., 00., 00.],
+                [
+                    (3. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, -, +)
+            (
+                [-size, size, -size],
+                [01., 00., 00.],
+                [
+                    (4. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, +, -)
+            (
+                [-size, -size, -size],
+                [01., 00., 00.],
+                [
+                    (4. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, -, -)
             // (0, -, 0) Bottom Side
-            ([-size, -size,  size], [00., 01., 00.], [(4./6.) + (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (+, -, +)
-            ([ size, -size,  size], [00., 01., 00.], [(4./6.) + (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (+, -, -)
-            ([-size, -size, -size], [00., 01., 00.], [(5./6.) - (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (-, -, +)
-            ([ size, -size, -size], [00., 01., 00.], [(5./6.) - (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (-, -, -)
+            (
+                [-size, -size, size],
+                [00., 01., 00.],
+                [
+                    (4. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, -, +)
+            (
+                [size, -size, size],
+                [00., 01., 00.],
+                [
+                    (4. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, -, -)
+            (
+                [-size, -size, -size],
+                [00., 01., 00.],
+                [
+                    (5. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, -, +)
+            (
+                [size, -size, -size],
+                [00., 01., 00.],
+                [
+                    (5. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, -, -)
             // (0, 0, -) Back Side
-            ([ size,  size, -size], [00., 00., 01.], [(5./6.) + (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (+, +, -)
-            ([-size,  size, -size], [00., 00., 01.], [(5./6.) + (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (-, +, -)
-            ([ size, -size, -size], [00., 00., 01.], [(6./6.) - (1./(6.*pipeline::SIZE as f32)), 0. + (1./(pipeline::SIZE as f32))]), // (+, -, -)
-            ([-size, -size, -size], [00., 00., 01.], [(6./6.) - (1./(6.*pipeline::SIZE as f32)), 1. - (1./(pipeline::SIZE as f32))]), // (-, -, -)
+            (
+                [size, size, -size],
+                [00., 00., 01.],
+                [
+                    (5. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, +, -)
+            (
+                [-size, size, -size],
+                [00., 00., 01.],
+                [
+                    (5. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, +, -)
+            (
+                [size, -size, -size],
+                [00., 00., 01.],
+                [
+                    (6. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    0. + (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (+, -, -)
+            (
+                [-size, -size, -size],
+                [00., 00., 01.],
+                [
+                    (6. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
+                    1. - (1. / (pipeline::SIZE as f32)),
+                ],
+            ), // (-, -, -)
         ],
         &[
             00, 01, 02, 02, 01, 03, // (+, 0, 0)

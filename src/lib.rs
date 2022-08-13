@@ -22,10 +22,12 @@
 //! }
 //! ```
 
-pub mod skybox;
+#![allow(clippy::zero_prefixed_literal)] // ignore so we can make constant data look pretty
+
 pub mod pipeline;
 pub mod plugin;
 pub mod resource;
+pub mod skybox;
 
 pub mod prelude {
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};

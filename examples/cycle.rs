@@ -5,7 +5,10 @@ fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
-        .insert_resource(CycleTimer(Timer::new(bevy::utils::Duration::from_millis(5), true))) // Update our atmosphere every 10ms
+        .insert_resource(CycleTimer(Timer::new(
+            bevy::utils::Duration::from_millis(5),
+            true,
+        ))) // Update our atmosphere every 10ms
         .insert_resource(WindowDescriptor {
             // uncomment for unthrottled FPS (can cause input lag)
             //present_mode: bevy::window::PresentMode::AutoNoVsync,
@@ -34,10 +37,8 @@ fn daylight_cycle(
     time: Res<Time>,
 ) {
     timer.0.tick(time.delta());
-    
-    if timer.0.finished() {
-        
-    }
+
+    if timer.0.finished() {}
 
     let mut pos = atmosphere.sun_position;
     let t = time.time_since_startup().as_millis() as f32 / 2000.0;

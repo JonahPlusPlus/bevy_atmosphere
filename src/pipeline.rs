@@ -189,25 +189,28 @@ impl render_graph::Node for AtmosphereNode {
     ) -> Result<(), render_graph::NodeRunError> {
         match self.state {
             AtmosphereState::Loading => {}
-            AtmosphereState::Update => if world.is_resource_changed::<Atmosphere>() {
-                let bind_groups = world.resource::<AtmosphereBindGroups>();
-                let pipeline_cache = world.resource::<PipelineCache>();
-                let pipeline = world.resource::<AtmospherePipeline>();
+            AtmosphereState::Update => {
+                if world.is_resource_changed::<Atmosphere>() {
+                    let bind_groups = world.resource::<AtmosphereBindGroups>();
+                    let pipeline_cache = world.resource::<PipelineCache>();
+                    let pipeline = world.resource::<AtmospherePipeline>();
 
-                let mut pass = render_context
-                    .command_encoder
-                    .begin_compute_pass(&ComputePassDescriptor {
-                        label: Some("atmosphere_pass"),
-                    });
-                
-                pass.set_bind_group(0, &bind_groups.0, &[]);
-                pass.set_bind_group(1, &bind_groups.1, &[]);
-                
-                let update_pipeline = pipeline_cache
-                    .get_compute_pipeline(pipeline.update_pipeline)
-                    .unwrap();
-                pass.set_pipeline(update_pipeline);
-                pass.dispatch_workgroups(SIZE/WORKGROUP_SIZE, SIZE/WORKGROUP_SIZE, 6);
+                    let mut pass =
+                        render_context
+                            .command_encoder
+                            .begin_compute_pass(&ComputePassDescriptor {
+                                label: Some("atmosphere_pass"),
+                            });
+
+                    pass.set_bind_group(0, &bind_groups.0, &[]);
+                    pass.set_bind_group(1, &bind_groups.1, &[]);
+
+                    let update_pipeline = pipeline_cache
+                        .get_compute_pipeline(pipeline.update_pipeline)
+                        .unwrap();
+                    pass.set_pipeline(update_pipeline);
+                    pass.dispatch_workgroups(SIZE / WORKGROUP_SIZE, SIZE / WORKGROUP_SIZE, 6);
+                }
             }
         }
 

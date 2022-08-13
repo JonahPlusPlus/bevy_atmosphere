@@ -5,17 +5,15 @@ fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
+        .insert_resource(CycleTimer(Timer::new(bevy::utils::Duration::from_millis(5), true))) // Update our atmosphere every 10ms
         .insert_resource(WindowDescriptor {
-            // uncomment for unthrottled FPS
-            present_mode: bevy::window::PresentMode::AutoNoVsync,
+            // uncomment for unthrottled FPS (can cause input lag)
+            //present_mode: bevy::window::PresentMode::AutoNoVsync,
             ..default()
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(bevy_flycam::NoCameraPlayerPlugin) // Simple movement for this example
-        .add_plugin(AtmospherePlugin(Some(AtmosphereSettings {
-            size: 64,
-            ..default()
-        }))) // Default AtmospherePlugin
+        .add_plugin(AtmospherePlugin::default()) // Default AtmospherePlugin
         .add_startup_system(setup_environment)
         .add_system(daylight_cycle)
         .run();
@@ -25,17 +23,27 @@ fn main() {
 #[derive(Component)]
 struct Sun;
 
-// We can edit the SkyMaterial resource and it will be updated automatically, as long as AtmospherePlugin.dynamic is true
+// Timer for updating the daylight cycle (updating the atmosphere every frame is slow, so it's better to do incremental changes)
+struct CycleTimer(Timer);
+
+// We can edit the Atmosphere resource and it will be updated automatically
 fn daylight_cycle(
-    mut sky_mat: ResMut<Atmosphere>,
+    mut atmosphere: ResMut<Atmosphere>,
     mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,
+    mut timer: ResMut<CycleTimer>,
     time: Res<Time>,
 ) {
-    let mut pos = sky_mat.sun_position;
+    timer.0.tick(time.delta());
+    
+    if timer.0.finished() {
+        
+    }
+
+    let mut pos = atmosphere.sun_position;
     let t = time.time_since_startup().as_millis() as f32 / 2000.0;
     pos.y = t.sin();
     pos.z = t.cos();
-    sky_mat.sun_position = pos;
+    atmosphere.sun_position = pos;
 
     if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
         light_trans.rotation = Quat::from_rotation_x(-pos.y.atan2(pos.z));
@@ -90,9 +98,10 @@ fn setup_environment(
     // Spawn our camera
     commands
         .spawn_bundle(Camera3dBundle {
-            transform: Transform::from_xyz(10.0, 10.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_xyz(0.5, 0.5, 0.5).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(AtmosphereCamera) // Marks camera as having an atmosphere
+        .insert(AtmosphereCamera(0)) // Marks camera as having an atmosphere that is on render layer 0
+        // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
         .insert(bevy_flycam::FlyCam); // Marks camera as flycam (specific to bevy_flycam)
 }

@@ -4,7 +4,7 @@
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig,
     prelude::*,
-    render::camera::Viewport,
+    render::{camera::Viewport, view::RenderLayers},
     window::{WindowId, WindowResized},
 };
 use bevy_atmosphere::prelude::*;
@@ -12,10 +12,13 @@ use bevy_atmosphere::prelude::*;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
-        .insert_resource(Atmosphere::default())
+        .insert_resource(Atmosphere {
+            rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6), // Change rayleigh coefficient to change color
+            ..default()
+        })
         .insert_resource(WindowDescriptor {
-            // uncomment for unthrottled FPS
-            present_mode: bevy::window::PresentMode::AutoNoVsync,
+            // uncomment for unthrottled FPS (can cause input lag)
+            //present_mode: bevy::window::PresentMode::AutoNoVsync,
             ..default()
         })
         .add_plugins(DefaultPlugins)
@@ -58,7 +61,8 @@ fn setup(
             transform: Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(AtmosphereCamera)
+        .insert(RenderLayers::from_layers(&[0,1])) // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
+        .insert(AtmosphereCamera(1))
         .insert(LeftCamera);
 
     // spawn right screen camera
@@ -77,7 +81,8 @@ fn setup(
             },
             ..default()
         })
-        .insert(AtmosphereCamera)
+        .insert(RenderLayers::from_layers(&[0,2]))
+        .insert(AtmosphereCamera(2))
         .insert(RightCamera);
 }
 

@@ -22,14 +22,12 @@
 //! }
 //! ```
 
-pub mod mesh;
+pub mod skybox;
 pub mod pipeline;
 pub mod plugin;
 pub mod resource;
-pub mod settings;
 
 pub mod prelude {
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
     pub use crate::resource::Atmosphere;
-    pub use crate::settings::AtmosphereSettings;
 }

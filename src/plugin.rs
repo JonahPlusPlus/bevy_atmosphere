@@ -1,12 +1,12 @@
-use bevy::{asset::load_internal_asset, prelude::*, render::render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages}};
+use bevy::{asset::load_internal_asset, prelude::*, render::{render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages}, camera::{Projection, CameraProjection}, view::RenderLayers}, pbr::{NotShadowCaster, NotShadowReceiver}};
 
-use crate::{pipeline::*, settings::*};
+use crate::pipeline::{*, self};
 
 /// Sets up the atmosphere and the systems that control it
 ///
 /// Follows the first camera it finds
 #[derive(Default)]
-pub struct AtmospherePlugin(pub Option<AtmosphereSettings>);
+pub struct AtmospherePlugin;
 
 /// Label for startup system that prepares skyboxes
 pub const ATMOSPHERE_INIT: &'static str = "ATMOSPHERE_INIT";
@@ -34,14 +34,7 @@ impl Plugin for AtmospherePlugin {
             Shader::from_wgsl
         );
 
-        let settings = match &self.0 {
-            Some(s) => s.clone(),
-            None => default(),
-        };
-
-        app.insert_resource(settings.clone());
-
-        app.add_plugin(crate::pipeline::AtmospherePipelinePlugin(settings));
+        app.add_plugin(crate::pipeline::AtmospherePipelinePlugin);
 
         app.add_startup_system_to_stage(
             StartupStage::PostStartup,
@@ -54,32 +47,23 @@ impl Plugin for AtmospherePlugin {
 
 /// Camera that receives an atmosphere skybox
 #[derive(Component)]
-pub struct AtmosphereCamera;
+pub struct AtmosphereCamera(pub u8);
 
 /// Skybox that renders atmosphere
 #[derive(Component)]
 pub struct AtmosphereSkyBox;
 
-/// Plane that the atmosphere texture is rendered on
-#[derive(Component)]
-pub struct AtmosphereRenderPlane;
-
-/// Camera that handles rendering the skybox texture
-#[derive(Component)]
-pub struct AtmosphereRenderCamera;
-
 fn atmosphere_init(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut atmosphere_cameras: Query<Entity, With<AtmosphereCamera>>,
+    mut atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
     mut material_assets: ResMut<Assets<StandardMaterial>>,
     mut image_assets: ResMut<Assets<Image>>,
-    settings: Res<AtmosphereSettings>,
 ) {
     let mut image = Image::new_fill(
         Extent3d {
-            width: settings.size * 8 * 6 + 12,
-            height: settings.size * 8 + 2,
+            width: pipeline::SIZE * 6,
+            height: pipeline::SIZE,
             depth_or_array_layers: 1,
         },
         TextureDimension::D2,
@@ -95,7 +79,7 @@ fn atmosphere_init(
     commands.insert_resource(AtmosphereImage(image_handle.clone()));
 
     // Spawn atmosphere skyboxes
-    let image_material_handle = material_assets.add(StandardMaterial {
+    let skybox_material_handle = material_assets.add(StandardMaterial {
         base_color_texture: Some(image_handle),
         unlit: true,
         ..default()
@@ -106,14 +90,7 @@ fn atmosphere_init(
         atmosphere_cameras.iter().len()
     );
 
-    commands.spawn_bundle(PbrBundle {
-        mesh: mesh_assets.add(crate::mesh::skybox_mesh(settings.size as f32)),
-        material: image_material_handle.clone(),
-        ..default()
-    })
-    .insert(AtmosphereSkyBox);
-
-    for camera in &mut atmosphere_cameras {
+    for (camera, projection, atmosphere_camera) in &mut atmosphere_cameras {
         trace!("Adding skybox to camera entity (ID:{:?})", camera);
         commands
             .entity(camera)
@@ -122,12 +99,15 @@ fn atmosphere_init(
                 ..default()
             })
             .with_children(|p| {
-                // p.spawn_bundle(PbrBundle {
-                //     mesh: mesh_assets.add(crate::mesh::skybox_mesh(settings.resolution as f32)),
-                //     material: image_material_handle.clone(),
-                //     ..default()
-                // })
-                // .insert(AtmosphereSkyBox);
+                p.spawn_bundle(MaterialMeshBundle {
+                    mesh: mesh_assets.add(crate::skybox::mesh(projection.far())),
+                    material: skybox_material_handle.clone(),
+                    ..default()
+                })
+                .insert(RenderLayers::layer(atmosphere_camera.0))
+                .insert(AtmosphereSkyBox)
+                .insert(NotShadowCaster)
+                .insert(NotShadowReceiver);
             });
     }
 }

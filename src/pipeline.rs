@@ -20,7 +20,7 @@ use bevy::{
     },
 };
 
-use crate::{resource::Atmosphere, settings::AtmosphereSettings};
+use crate::resource::Atmosphere;
 
 pub const ATMOSPHERE_MAIN_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 05132991701789555342);
@@ -30,13 +30,15 @@ pub const ATMOSPHERE_TYPES_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 09615256157423613453);
 
 pub const NAME: &str = "bevy_atmosphere";
+pub const SIZE: u32 = 512;
+pub const WORKGROUP_SIZE: u32 = 8;
 
 #[derive(Clone, Deref, ExtractResource)]
 pub struct AtmosphereImage(pub Handle<Image>);
 
 pub struct AtmosphereBindGroups(pub BindGroup, pub BindGroup);
 
-pub struct AtmospherePipelinePlugin(pub AtmosphereSettings);
+pub struct AtmospherePipelinePlugin;
 
 impl Plugin for AtmospherePipelinePlugin {
     fn build(&self, app: &mut App) {
@@ -46,7 +48,6 @@ impl Plugin for AtmospherePipelinePlugin {
         let render_app = app.sub_app_mut(RenderApp);
         render_app
             .init_resource::<AtmospherePipeline>()
-            .insert_resource(self.0.clone())
             .add_system_to_stage(RenderStage::Queue, queue_bind_group);
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
@@ -192,7 +193,6 @@ impl render_graph::Node for AtmosphereNode {
                 let bind_groups = world.resource::<AtmosphereBindGroups>();
                 let pipeline_cache = world.resource::<PipelineCache>();
                 let pipeline = world.resource::<AtmospherePipeline>();
-                let settings = world.resource::<AtmosphereSettings>();
 
                 let mut pass = render_context
                     .command_encoder
@@ -207,7 +207,7 @@ impl render_graph::Node for AtmosphereNode {
                     .get_compute_pipeline(pipeline.update_pipeline)
                     .unwrap();
                 pass.set_pipeline(update_pipeline);
-                pass.dispatch_workgroups(settings.size, settings.size, 1);
+                pass.dispatch_workgroups(SIZE/WORKGROUP_SIZE, SIZE/WORKGROUP_SIZE, 6);
             }
         }
 

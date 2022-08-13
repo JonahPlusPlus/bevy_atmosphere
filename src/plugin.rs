@@ -4,12 +4,11 @@ use bevy::{
     prelude::*,
     render::{
         camera::{CameraProjection, Projection},
-        render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages},
         view::RenderLayers,
     },
 };
 
-use crate::pipeline::{self, *};
+use crate::pipeline::*;
 
 /// Sets up the atmosphere and the systems that control it
 ///
@@ -69,29 +68,11 @@ fn atmosphere_init(
     mut mesh_assets: ResMut<Assets<Mesh>>,
     mut atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
     mut material_assets: ResMut<Assets<StandardMaterial>>,
-    mut image_assets: ResMut<Assets<Image>>,
+    image: Res<AtmosphereImage>,
 ) {
-    let mut image = Image::new_fill(
-        Extent3d {
-            width: pipeline::SIZE * 6,
-            height: pipeline::SIZE,
-            depth_or_array_layers: 1,
-        },
-        TextureDimension::D2,
-        &[0, 0, 0, 255],
-        TextureFormat::Rgba8Unorm,
-    );
-
-    image.texture_descriptor.usage =
-        TextureUsages::COPY_DST | TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
-
-    let image_handle = image_assets.add(image);
-
-    commands.insert_resource(AtmosphereImage(image_handle.clone()));
-
     // Spawn atmosphere skyboxes
     let skybox_material_handle = material_assets.add(StandardMaterial {
-        base_color_texture: Some(image_handle),
+        base_color_texture: Some(image.0.clone()),
         unlit: true,
         ..default()
     });

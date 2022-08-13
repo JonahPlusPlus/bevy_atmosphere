@@ -12,7 +12,7 @@ use bevy::{
             BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
             CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
             ComputePipelineDescriptor, PipelineCache, ShaderStages, StorageTextureAccess,
-            TextureFormat, TextureViewDimension,
+            TextureFormat, TextureViewDimension, Extent3d, TextureDimension, TextureUsages,
         },
         renderer::RenderDevice,
         texture::FallbackImage,
@@ -42,6 +42,26 @@ pub struct AtmospherePipelinePlugin;
 
 impl Plugin for AtmospherePipelinePlugin {
     fn build(&self, app: &mut App) {
+        let mut image_assets = app.world.resource_mut::<Assets<Image>>();
+
+        let mut image = Image::new_fill(
+            Extent3d {
+                width: SIZE * 6,
+                height: SIZE,
+                depth_or_array_layers: 1,
+            },
+            TextureDimension::D2,
+            &[0, 0, 0, 255],
+            TextureFormat::Rgba8Unorm,
+        );
+    
+        image.texture_descriptor.usage =
+            TextureUsages::COPY_DST | TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
+
+        let image_handle = image_assets.add(image);
+    
+        app.insert_resource(AtmosphereImage(image_handle.clone()));
+
         app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
 
         let render_app = app.sub_app_mut(RenderApp);

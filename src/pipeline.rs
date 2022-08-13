@@ -16,7 +16,7 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::FallbackImage,
-        RenderApp, RenderStage,
+        RenderApp, RenderStage, Extract,
     },
 };
 
@@ -42,12 +42,13 @@ pub struct AtmospherePipelinePlugin;
 
 impl Plugin for AtmospherePipelinePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(ExtractResourcePlugin::<Atmosphere>::default());
         app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app
             .init_resource::<AtmospherePipeline>()
+            .insert_resource(Atmosphere::default())
+            .add_system_to_stage(RenderStage::Extract, extract_atmosphere)
             .add_system_to_stage(RenderStage::Queue, queue_bind_group);
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
@@ -55,6 +56,17 @@ impl Plugin for AtmospherePipelinePlugin {
         render_graph
             .add_node_edge(NAME, bevy::render::main_graph::node::CAMERA_DRIVER)
             .unwrap();
+    }
+}
+
+fn extract_atmosphere(
+    main_resource: Extract<Option<Res<Atmosphere>>>,
+    mut target_resource: ResMut<Atmosphere>,
+) {
+    if let Some(atmosphere) = &*main_resource {
+        if atmosphere.is_changed() {
+            *target_resource = Atmosphere::extract_resource(&*atmosphere);
+        }
     }
 }
 

@@ -57,7 +57,7 @@ impl Plugin for AtmospherePlugin {
 
 /// Camera that receives an atmosphere skybox
 #[derive(Component)]
-pub struct AtmosphereCamera(pub u8);
+pub struct AtmosphereCamera(pub Option<u8>);
 
 /// Skybox that renders atmosphere
 #[derive(Component)]
@@ -109,16 +109,21 @@ fn atmosphere_init(
                 visibility: Visibility { is_visible: true },
                 ..default()
             })
-            .with_children(|p| {
-                p.spawn_bundle(MaterialMeshBundle {
+            .with_children(|c| {
+                let mut child = c.spawn_bundle(MaterialMeshBundle {
                     mesh: mesh_assets.add(crate::skybox::mesh(projection.far())),
                     material: skybox_material_handle.clone(),
                     ..default()
-                })
-                .insert(RenderLayers::layer(atmosphere_camera.0))
-                .insert(AtmosphereSkyBox)
-                .insert(NotShadowCaster)
-                .insert(NotShadowReceiver);
+                });
+                
+                child
+                    .insert(AtmosphereSkyBox)
+                    .insert(NotShadowCaster)
+                    .insert(NotShadowReceiver);
+
+                if let AtmosphereCamera(Some(render_layer)) = atmosphere_camera {
+                    child.insert(RenderLayers::layer(*render_layer));
+                }
             });
     }
 }

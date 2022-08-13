@@ -62,7 +62,7 @@ fn setup(
             ..default()
         })
         .insert(RenderLayers::from_layers(&[0, 1])) // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
-        .insert(AtmosphereCamera(1))
+        .insert(AtmosphereCamera(Some(1)))
         .insert(LeftCamera);
 
     // spawn right screen camera
@@ -82,7 +82,7 @@ fn setup(
             ..default()
         })
         .insert(RenderLayers::from_layers(&[0, 2]))
-        .insert(AtmosphereCamera(2))
+        .insert(AtmosphereCamera(Some(2)))
         .insert(RightCamera);
 }
 

@@ -102,7 +102,7 @@ fn setup_environment(
             transform: Transform::from_xyz(0.5, 0.5, 0.5).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(AtmosphereCamera(0)) // Marks camera as having an atmosphere that is on render layer 0
+        .insert(AtmosphereCamera(None)) // Marks camera as having an atmosphere that isn't on a specific render layer
         // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
         .insert(bevy_flycam::FlyCam); // Marks camera as flycam (specific to bevy_flycam)
 }

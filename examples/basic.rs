@@ -12,5 +12,5 @@ fn main() {
 fn setup(mut commands: Commands) {
     commands
         .spawn_bundle(Camera3dBundle::default())
-        .insert(AtmosphereCamera(0));
+        .insert(AtmosphereCamera(None));
 }

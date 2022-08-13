@@ -138,7 +138,7 @@ fn atmosphere_cancel_rotation(
             let (_, parent_rotation, _) = parent_transform.to_scale_rotation_translation();
             transform.rotation = parent_rotation.inverse();
         } else {
-            warn!("Failed to get transform of skybox parent");
+            debug!("Did not get transform of skybox parent");
         }
     }
 }

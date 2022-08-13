@@ -17,7 +17,7 @@ use crate::pipeline::{self, *};
 #[derive(Default)]
 pub struct AtmospherePlugin;
 
-/// Label for startup system that prepares skyboxes
+/// Label for the startup system that prepares skyboxes
 pub const ATMOSPHERE_INIT: &str = "ATMOSPHERE_INIT";
 
 impl Plugin for AtmospherePlugin {
@@ -45,6 +45,7 @@ impl Plugin for AtmospherePlugin {
 
         app.add_plugin(crate::pipeline::AtmospherePipelinePlugin);
 
+        #[cfg(feature = "automatic")]
         app.add_startup_system_to_stage(
             StartupStage::PostStartup,
             atmosphere_init.label(ATMOSPHERE_INIT),
@@ -62,6 +63,7 @@ pub struct AtmosphereCamera(pub u8);
 #[derive(Component)]
 pub struct AtmosphereSkyBox;
 
+#[cfg(feature = "automatic")]
 fn atmosphere_init(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,

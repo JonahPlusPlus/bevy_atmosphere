@@ -1,8 +1,8 @@
-//! a procedural sky plugin for bevy
+//! A procedural sky plugin for bevy.
 //! 
 //!
 //! ## "basic" Example
-//! ```no_run
+//! ```norun
 //! use bevy::prelude::*;
 //! use bevy_atmosphere::prelude::*;
 //! 
@@ -20,6 +20,17 @@
 //!         .insert(AtmosphereCamera(None));
 //! }
 //! ```
+//! 
+//! To change the sky's appearance, use the [Atmosphere](crate::resource::Atmosphere) resource
+//! ```no_run
+//! Atmosphere {
+//!     // changes the sky color from Rayleigh scattering
+//!     rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6),
+//!     ..default()
+//! }
+//! ```
+//! 
+//! To see more examples, view the ["examples"](https://www.github.com/JonahPlusPlus/examples) directory
 
 pub mod pipeline;
 pub mod plugin;
@@ -27,6 +38,7 @@ pub mod resource;
 pub mod skybox;
 
 pub mod prelude {
+    //! `use bevy_atmosphere::prelude::*;` to import the most commonly used items.
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
     pub use crate::resource::Atmosphere;
 }

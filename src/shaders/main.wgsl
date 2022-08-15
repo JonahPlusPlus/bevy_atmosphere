@@ -7,15 +7,18 @@ var<uniform> atmosphere: Atmosphere;
 @group(1) @binding(0)
 var image: texture_storage_2d<rgba8unorm, read_write>;
 
-let SCALE: f32 = 256f;
-
 @compute @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_workgroups) num_workgroups: vec3<u32>) {
+    let size = textureDimensions(image).y;
+    let scale = f32(size)/2f;
+
     let location = vec2<i32>(invocation_id.xy);
 
+#ifdef DITHER
     let dither = dither(vec2<f32>(invocation_id.xy));
+#endif
     
-    let dir = vec2<f32>(f32(invocation_id.x)/SCALE, f32(invocation_id.y)/SCALE);
+    let dir = vec2<f32>(f32(invocation_id.x)/scale, f32(invocation_id.y)/scale);
 
     var ray: vec3<f32>;
     
@@ -54,5 +57,15 @@ fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_wo
         atmosphere.mie_direction,
     );
 
-    textureStore(image, location + vec2<i32>(512i * i32(invocation_id.z), 0), vec4<f32>(render + dither, 1.0));
+    textureStore(
+        image,
+        location + vec2<i32>(i32(size) * i32(invocation_id.z), 0),
+        vec4<f32>(
+            render
+#ifdef DITHER
+            + dither
+#endif
+            , 1.0
+        )
+    );
 }

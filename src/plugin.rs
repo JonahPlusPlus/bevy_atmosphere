@@ -1,5 +1,4 @@
 use bevy::{
-    asset::load_internal_asset,
     pbr::{NotShadowCaster, NotShadowReceiver},
     prelude::*,
     render::{
@@ -10,60 +9,50 @@ use bevy::{
 
 use crate::pipeline::*;
 
-/// Sets up the atmosphere and the systems that control it
-///
-/// Follows the first camera it finds
-#[derive(Default)]
-pub struct AtmospherePlugin;
-
 /// Label for the startup system that prepares skyboxes
 pub const ATMOSPHERE_INIT: &str = "ATMOSPHERE_INIT";
 
-impl Plugin for AtmospherePlugin {
+/// A [Plugin] that adds the prerequisites for a procedural sky
+pub struct AtmospherePlugin<const SIZE: u32>;
+
+impl Default for AtmospherePlugin<1024> {
+    fn default() -> Self {
+        Self
+    }
+}
+
+impl<const SIZE: u32> Plugin for AtmospherePlugin<SIZE> {
     fn build(&self, app: &mut App) {
-        load_internal_asset!(
-            app,
-            ATMOSPHERE_TYPES_SHADER_HANDLE,
-            "shaders/types.wgsl",
-            Shader::from_wgsl
-        );
+        app.add_plugin(AtmospherePipelinePlugin::<SIZE>);
 
-        load_internal_asset!(
-            app,
-            ATMOSPHERE_MATH_SHADER_HANDLE,
-            "shaders/math.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            ATMOSPHERE_MAIN_SHADER_HANDLE,
-            "shaders/main.wgsl",
-            Shader::from_wgsl
-        );
-
-        app.add_plugin(AtmospherePipelinePlugin);
-
-        #[cfg(feature = "automatic")]
+        #[cfg(feature = "init")]
         app.add_startup_system_to_stage(
             StartupStage::PostStartup,
-            atmosphere_init.label(ATMOSPHERE_INIT),
+            atmosphere_init::<SIZE>.label(ATMOSPHERE_INIT),
         );
 
         app.add_system(atmosphere_cancel_rotation);
     }
 }
 
-/// Camera that receives an atmosphere skybox
+/// Marker for a `Camera` that receives a skybox
+/// 
+/// When added before the `ATMOSPHERE_INIT` stage, a skybox will be added
+/// This behaviour can be disabled by turning off the "automatic" feature
+/// 
+/// `Some(u8)` specifies the `RenderLayers` for the skybox to be on
+/// `None` doesn't add the `RenderLayers` component
 #[derive(Component)]
 pub struct AtmosphereCamera(pub Option<u8>);
 
-/// Skybox that renders atmosphere
+/// Marker for skyboxes
+/// 
+/// Automatically added to skyboxes generated in the `ATMOSPHERE_INIT` stage
 #[derive(Component)]
 pub struct AtmosphereSkyBox;
 
-#[cfg(feature = "automatic")]
-fn atmosphere_init(
+#[cfg(feature = "init")]
+fn atmosphere_init<const SIZE: u32>(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
     mut atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
@@ -92,7 +81,7 @@ fn atmosphere_init(
             })
             .with_children(|c| {
                 let mut child = c.spawn_bundle(MaterialMeshBundle {
-                    mesh: mesh_assets.add(crate::skybox::mesh(projection.far())),
+                    mesh: mesh_assets.add(crate::skybox::mesh(projection.far(), SIZE as f32)),
                     material: skybox_material_handle.clone(),
                     ..default()
                 });

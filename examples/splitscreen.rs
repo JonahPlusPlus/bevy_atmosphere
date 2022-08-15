@@ -16,13 +16,8 @@ fn main() {
             rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6), // Change rayleigh coefficient to change color
             ..default()
         })
-        .insert_resource(WindowDescriptor {
-            // uncomment for unthrottled FPS (can cause input lag)
-            //present_mode: bevy::window::PresentMode::AutoNoVsync,
-            ..default()
-        })
         .add_plugins(DefaultPlugins)
-        .add_plugin(AtmospherePlugin::default())
+        .add_plugin(AtmospherePlugin::<512>) // To change the resolution, there is an associated constant that controls it.
         .add_startup_system(setup)
         .add_system(set_camera_viewports)
         .run();

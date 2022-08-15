@@ -110,6 +110,7 @@ fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, 
     return i_sun * (p_rlh * k_rlh * total_rlh + p_mie * k_mie * total_mie);
 }
 
+#ifdef DITHER
 // From https://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
 // and https://www.shadertoy.com/view/MslGR8 (5th one starting from the bottom)
 fn dither(frag_coord: vec2<f32>) -> vec3<f32> {
@@ -119,3 +120,4 @@ fn dither(frag_coord: vec2<f32>) -> vec3<f32> {
 	// Subtract 0.5 to avoid slightly brightening the whole viewport.
     return (dither.rgb - 0.5) / 255.0;
 }
+#endif

@@ -6,14 +6,9 @@ fn main() {
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
-            bevy::utils::Duration::from_millis(5),
+            bevy::utils::Duration::from_millis(10), // Update our atmosphere every 10ms
             true,
-        ))) // Update our atmosphere every 10ms
-        .insert_resource(WindowDescriptor {
-            // uncomment for unthrottled FPS (can cause input lag)
-            //present_mode: bevy::window::PresentMode::AutoNoVsync,
-            ..default()
-        })
+        ))) 
         .add_plugins(DefaultPlugins)
         .add_plugin(bevy_flycam::NoCameraPlayerPlugin) // Simple movement for this example
         .add_plugin(AtmospherePlugin::default()) // Default AtmospherePlugin
@@ -38,17 +33,19 @@ fn daylight_cycle(
 ) {
     timer.0.tick(time.delta());
 
-    if timer.0.finished() {}
-
     let mut pos = atmosphere.sun_position;
     let t = time.time_since_startup().as_millis() as f32 / 2000.0;
     pos.y = t.sin();
     pos.z = t.cos();
     atmosphere.sun_position = pos;
-
+    
     if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
         light_trans.rotation = Quat::from_rotation_x(-pos.y.atan2(pos.z));
         directional.illuminance = t.sin().max(0.0).powf(2.0) * 100000.0;
+    }
+
+    if timer.0.finished() {
+        
     }
 }
 
@@ -99,7 +96,7 @@ fn setup_environment(
     // Spawn our camera
     commands
         .spawn_bundle(Camera3dBundle {
-            transform: Transform::from_xyz(0.5, 0.5, 0.5).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_xyz(5., 0., 5.),
             ..default()
         })
         .insert(AtmosphereCamera(None)) // Marks camera as having an atmosphere that isn't on a specific render layer

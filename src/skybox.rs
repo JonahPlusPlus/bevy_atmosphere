@@ -1,9 +1,7 @@
 use bevy::render::mesh::{Indices, Mesh, PrimitiveTopology};
 
-use crate::pipeline;
-
 /// Generates an inverted box mesh with face UVs that fit inside a `pipeline::SIZE` square with a 1 pixel border
-pub fn mesh(far: f32) -> Mesh {
+pub fn mesh(far: f32, res: f32) -> Mesh {
     let size = (far * f32::sqrt(0.5)) - 1.0; // sqrt(0.5) is the ratio between squares separated by a circle
                                              // where one lies on the outside of the circle (edges) and the other lies on the inside of the circle (corners)
                                              // this is necessary since while the faces of the skybox may be seen, the corners and edges probably won't, since they don't lie on the radius of the far plane
@@ -14,32 +12,32 @@ pub fn mesh(far: f32) -> Mesh {
                 [size, size, size],
                 [-1., 00., 00.],
                 [
-                    (0. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (0. / 6.) + (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (+, +, +)
             (
                 [size, size, -size],
                 [-1., 00., 00.],
                 [
-                    (0. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (0. / 6.) + (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (+, +, -)
             (
                 [size, -size, size],
                 [-1., 00., 00.],
                 [
-                    (1. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (1. / 6.) - (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (+, -, +)
             (
                 [size, -size, -size],
                 [-1., 00., 00.],
                 [
-                    (1. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (1. / 6.) - (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (+, -, -)
             // (0, +, 0) Top Side
@@ -47,32 +45,32 @@ pub fn mesh(far: f32) -> Mesh {
                 [-size, size, size],
                 [00., -1., 00.],
                 [
-                    (1. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (1. / 6.) + (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (+, +, +)
             (
                 [-size, size, -size],
                 [00., -1., 00.],
                 [
-                    (1. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (1. / 6.) + (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (-, +, +)
             (
                 [size, size, size],
                 [00., -1., 00.],
                 [
-                    (2. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (2. / 6.) - (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (+, +, -)
             (
                 [size, size, -size],
                 [00., -1., 00.],
                 [
-                    (2. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (2. / 6.) - (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (-, +, -)
             // (0, 0, +) Front Side
@@ -80,32 +78,32 @@ pub fn mesh(far: f32) -> Mesh {
                 [size, size, size],
                 [00., 00., -1.],
                 [
-                    (2. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (2. / 6.) + (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (+, +, +)
             (
                 [size, -size, size],
                 [00., 00., -1.],
                 [
-                    (2. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (2. / 6.) + (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (+, -, +)
             (
                 [-size, size, size],
                 [00., 00., -1.],
                 [
-                    (3. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (3. / 6.) - (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (-, +, +)
             (
                 [-size, -size, size],
                 [00., 00., -1.],
                 [
-                    (3. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (3. / 6.) - (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (-, -, +)
             // (-, 0, 0) Right Side
@@ -113,32 +111,32 @@ pub fn mesh(far: f32) -> Mesh {
                 [-size, size, size],
                 [01., 00., 00.],
                 [
-                    (3. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (3. / 6.) + (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (-, +, +)
             (
                 [-size, -size, size],
                 [01., 00., 00.],
                 [
-                    (3. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (3. / 6.) + (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (-, -, +)
             (
                 [-size, size, -size],
                 [01., 00., 00.],
                 [
-                    (4. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (4. / 6.) - (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (-, +, -)
             (
                 [-size, -size, -size],
                 [01., 00., 00.],
                 [
-                    (4. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (4. / 6.) - (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (-, -, -)
             // (0, -, 0) Bottom Side
@@ -146,32 +144,32 @@ pub fn mesh(far: f32) -> Mesh {
                 [-size, -size, size],
                 [00., 01., 00.],
                 [
-                    (4. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (4. / 6.) + (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (+, -, +)
             (
                 [size, -size, size],
                 [00., 01., 00.],
                 [
-                    (4. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (4. / 6.) + (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (+, -, -)
             (
                 [-size, -size, -size],
                 [00., 01., 00.],
                 [
-                    (5. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (5. / 6.) - (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (-, -, +)
             (
                 [size, -size, -size],
                 [00., 01., 00.],
                 [
-                    (5. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (5. / 6.) - (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (-, -, -)
             // (0, 0, -) Back Side
@@ -179,32 +177,32 @@ pub fn mesh(far: f32) -> Mesh {
                 [size, size, -size],
                 [00., 00., 01.],
                 [
-                    (5. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (5. / 6.) + (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (+, +, -)
             (
                 [-size, size, -size],
                 [00., 00., 01.],
                 [
-                    (5. / 6.) + (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (5. / 6.) + (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (-, +, -)
             (
                 [size, -size, -size],
                 [00., 00., 01.],
                 [
-                    (6. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    0. + (1. / (pipeline::SIZE as f32)),
+                    (6. / 6.) - (1. / (6. * res)),
+                    0. + (1. / res),
                 ],
             ), // (+, -, -)
             (
                 [-size, -size, -size],
                 [00., 00., 01.],
                 [
-                    (6. / 6.) - (1. / (6. * pipeline::SIZE as f32)),
-                    1. - (1. / (pipeline::SIZE as f32)),
+                    (6. / 6.) - (1. / (6. * res)),
+                    1. - (1. / res),
                 ],
             ), // (-, -, -)
         ],

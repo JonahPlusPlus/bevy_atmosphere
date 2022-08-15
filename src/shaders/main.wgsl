@@ -61,9 +61,10 @@ fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_wo
         image,
         location + vec2<i32>(i32(size) * i32(invocation_id.z), 0),
         vec4<f32>(
-            render
 #ifdef DITHER
-            + dither
+            render + dither
+#else
+            render
 #endif
             , 1.0
         )

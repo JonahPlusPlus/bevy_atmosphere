@@ -1,229 +1,78 @@
-use bevy::render::mesh::{Indices, Mesh, PrimitiveTopology};
+use bevy::{
+    pbr::{MaterialPipeline, MaterialPipelineKey},
+    prelude::*,
+    reflect::TypeUuid,
+    render::{
+        mesh::{Indices, Mesh, MeshVertexBufferLayout, PrimitiveTopology},
+        render_resource::{
+            AsBindGroup, RenderPipelineDescriptor, ShaderRef,
+        },
+    },
+};
+
+pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 04511926918914205353);
+
+#[derive(AsBindGroup, TypeUuid, Debug, Clone)]
+#[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]
+pub struct SkyBoxMaterial {
+    #[texture(0, dimension = "cube")]
+    #[sampler(1)]
+    pub sky_texture: Handle<Image>,
+}
+
+impl Material for SkyBoxMaterial {
+    fn fragment_shader() -> ShaderRef {
+        ATMOSPHERE_SKYBOX_SHADER_HANDLE.typed().into()
+    }
+
+    fn specialize(
+        _pipeline: &MaterialPipeline<Self>,
+        descriptor: &mut RenderPipelineDescriptor,
+        _layout: &MeshVertexBufferLayout,
+        _key: MaterialPipelineKey<Self>,
+    ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
+        #[cfg(feature = "dither")]
+        if let Some(fragment) = &mut descriptor.fragment {
+            fragment.shader_defs.push(String::from("DITHER"));
+        }
+        Ok(())
+    }
+}
 
 /// Generates an inverted box mesh with face UVs that fit inside a `pipeline::SIZE` square with a 1 pixel border
-pub fn mesh(far: f32, res: f32) -> Mesh {
+pub fn mesh(far: f32) -> Mesh {
     let size = (far * f32::sqrt(0.5)) - 1.0; // sqrt(0.5) is the ratio between squares separated by a circle
                                              // where one lies on the outside of the circle (edges) and the other lies on the inside of the circle (corners)
                                              // this is necessary since while the faces of the skybox may be seen, the corners and edges probably won't, since they don't lie on the radius of the far plane
+    let norm = f32::sqrt(1. / 3.); // component of normalized (1, 1, 1)
     let (vertices, indices) = (
         &[
-            // (+, 0, 0) Left Side
-            (
-                [size, size, size],
-                [-1., 00., 00.],
-                [
-                    (0. / 6.) + (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (+, +, +)
-            (
-                [size, size, -size],
-                [-1., 00., 00.],
-                [
-                    (0. / 6.) + (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (+, +, -)
-            (
-                [size, -size, size],
-                [-1., 00., 00.],
-                [
-                    (1. / 6.) - (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (+, -, +)
-            (
-                [size, -size, -size],
-                [-1., 00., 00.],
-                [
-                    (1. / 6.) - (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (+, -, -)
-            // (0, +, 0) Top Side
-            (
-                [-size, size, size],
-                [00., -1., 00.],
-                [
-                    (1. / 6.) + (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (+, +, +)
-            (
-                [-size, size, -size],
-                [00., -1., 00.],
-                [
-                    (1. / 6.) + (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (-, +, +)
-            (
-                [size, size, size],
-                [00., -1., 00.],
-                [
-                    (2. / 6.) - (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (+, +, -)
-            (
-                [size, size, -size],
-                [00., -1., 00.],
-                [
-                    (2. / 6.) - (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (-, +, -)
-            // (0, 0, +) Front Side
-            (
-                [size, size, size],
-                [00., 00., -1.],
-                [
-                    (2. / 6.) + (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (+, +, +)
-            (
-                [size, -size, size],
-                [00., 00., -1.],
-                [
-                    (2. / 6.) + (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (+, -, +)
-            (
-                [-size, size, size],
-                [00., 00., -1.],
-                [
-                    (3. / 6.) - (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (-, +, +)
-            (
-                [-size, -size, size],
-                [00., 00., -1.],
-                [
-                    (3. / 6.) - (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (-, -, +)
-            // (-, 0, 0) Right Side
-            (
-                [-size, size, size],
-                [01., 00., 00.],
-                [
-                    (3. / 6.) + (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (-, +, +)
-            (
-                [-size, -size, size],
-                [01., 00., 00.],
-                [
-                    (3. / 6.) + (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (-, -, +)
-            (
-                [-size, size, -size],
-                [01., 00., 00.],
-                [
-                    (4. / 6.) - (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (-, +, -)
-            (
-                [-size, -size, -size],
-                [01., 00., 00.],
-                [
-                    (4. / 6.) - (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (-, -, -)
-            // (0, -, 0) Bottom Side
-            (
-                [-size, -size, size],
-                [00., 01., 00.],
-                [
-                    (4. / 6.) + (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (+, -, +)
-            (
-                [size, -size, size],
-                [00., 01., 00.],
-                [
-                    (4. / 6.) + (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (+, -, -)
-            (
-                [-size, -size, -size],
-                [00., 01., 00.],
-                [
-                    (5. / 6.) - (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (-, -, +)
-            (
-                [size, -size, -size],
-                [00., 01., 00.],
-                [
-                    (5. / 6.) - (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (-, -, -)
-            // (0, 0, -) Back Side
-            (
-                [size, size, -size],
-                [00., 00., 01.],
-                [
-                    (5. / 6.) + (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (+, +, -)
-            (
-                [-size, size, -size],
-                [00., 00., 01.],
-                [
-                    (5. / 6.) + (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (-, +, -)
-            (
-                [size, -size, -size],
-                [00., 00., 01.],
-                [
-                    (6. / 6.) - (1. / (6. * res)),
-                    0. + (1. / res),
-                ],
-            ), // (+, -, -)
-            (
-                [-size, -size, -size],
-                [00., 00., 01.],
-                [
-                    (6. / 6.) - (1. / (6. * res)),
-                    1. - (1. / res),
-                ],
-            ), // (-, -, -)
+            ([size, size, size], [norm, norm, norm]),       // 0(+, +, +)
+            ([-size, size, size], [-norm, norm, norm]),     // 1(-, +, +)
+            ([size, -size, size], [norm, -norm, norm]),     // 2(+, -, +)
+            ([size, size, -size], [norm, norm, -norm]),     // 3(+, +, -)
+            ([-size, -size, size], [-norm, -norm, norm]),   // 4(-, -, +)
+            ([size, -size, -size], [norm, -norm, -norm]),   // 5(+, -, -)
+            ([-size, size, -size], [-norm, norm, -norm]),   // 6(-, +, -)
+            ([-size, -size, -size], [-norm, -norm, -norm]), // 7(-, -, -)
         ],
         &[
-            00, 01, 02, 02, 01, 03, // (+, 0, 0)
-            04, 05, 06, 06, 05, 07, // (0, +, 0)
-            08, 09, 10, 10, 09, 11, // (0, 0, +)
-            12, 13, 14, 14, 13, 15, // (-, 0, 0)
-            16, 17, 18, 18, 17, 19, // (0, -, 0)
-            20, 21, 22, 22, 21, 23, // (0, 0, -)
+            0, 5, 2, 5, 0, 3, // +X
+            6, 4, 7, 4, 6, 1, // -X
+            0, 6, 3, 6, 0, 1, // +Y
+            2, 7, 4, 7, 2, 5, // -Y
+            1, 2, 4, 2, 1, 0, // +Z
+            3, 7, 5, 7, 3, 6, // -Z
         ],
     );
 
-    let positions: Vec<_> = vertices.iter().map(|(p, _, _)| *p).collect();
-    let normals: Vec<_> = vertices.iter().map(|(_, n, _)| *n).collect();
-    let uvs: Vec<_> = vertices.iter().map(|(_, _, uv)| *uv).collect();
+    let positions: Vec<_> = vertices.iter().map(|(p, _)| *p).collect();
+    let normals: Vec<_> = vertices.iter().map(|(_, n)| *n).collect();
 
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
     mesh.set_indices(Some(Indices::U16(indices.to_vec())));
     mesh
 }

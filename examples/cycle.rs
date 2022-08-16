@@ -6,12 +6,12 @@ fn main() {
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
-            bevy::utils::Duration::from_millis(10), // Update our atmosphere every 10ms
+            bevy::utils::Duration::from_millis(100), // Update our atmosphere every 100ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
             true,
-        ))) 
+        )))
         .add_plugins(DefaultPlugins)
         .add_plugin(bevy_flycam::NoCameraPlayerPlugin) // Simple movement for this example
-        .add_plugin(AtmospherePlugin::default()) // Default AtmospherePlugin
+        .add_plugin(AtmospherePlugin) // Default AtmospherePlugin
         .add_startup_system(setup_environment)
         .add_system(daylight_cycle)
         .run();
@@ -38,15 +38,13 @@ fn daylight_cycle(
     pos.y = t.sin();
     pos.z = t.cos();
     atmosphere.sun_position = pos;
-    
+
     if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
         light_trans.rotation = Quat::from_rotation_x(-pos.y.atan2(pos.z));
         directional.illuminance = t.sin().max(0.0).powf(2.0) * 100000.0;
     }
 
-    if timer.0.finished() {
-        
-    }
+    if timer.0.finished() {}
 }
 
 // Simple environment

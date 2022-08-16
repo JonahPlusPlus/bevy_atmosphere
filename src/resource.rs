@@ -7,7 +7,7 @@ use bevy::{
 };
 
 /// Controls the appearance of the sky
-#[derive(AsBindGroup, ShaderType, ExtractResource, Clone, Copy)]
+#[derive(AsBindGroup, ShaderType, ExtractResource, Debug, Clone, Copy)]
 #[uniform(0, Atmosphere)]
 pub struct Atmosphere {
     /// Ray Origin (Default: (0.0, 6372e3, 0.0))

@@ -31,5 +31,9 @@ name = "cycle"
 path = "examples/cycle.rs"
 
 [[example]]
+name = "settings"
+path = "examples/settings.rs"
+
+[[example]]
 name = "splitscreen"
 path = "examples/splitscreen.rs"

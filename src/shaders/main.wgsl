@@ -5,41 +5,35 @@
 var<uniform> atmosphere: Atmosphere;
 
 @group(1) @binding(0)
-var image: texture_storage_2d<rgba8unorm, read_write>;
+var image: texture_storage_2d_array<rgba16float, write>;
 
 @compute @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_workgroups) num_workgroups: vec3<u32>) {
-    let size = textureDimensions(image).y;
+    let size = textureDimensions(image).x;
     let scale = f32(size)/2f;
-
-    let location = vec2<i32>(invocation_id.xy);
-
-#ifdef DITHER
-    let dither = dither(vec2<f32>(invocation_id.xy));
-#endif
     
-    let dir = vec2<f32>(f32(invocation_id.x)/scale, f32(invocation_id.y)/scale);
+    let dir = vec2<f32>((f32(invocation_id.x)/scale) - 1f, (f32(invocation_id.y)/scale) - 1f);
 
     var ray: vec3<f32>;
     
     switch invocation_id.z {
         case 0u {
-            ray = vec3<f32>(1f, 1f - dir.x, 1f - dir.y); // +X
+            ray = vec3<f32>(1f, -dir.y, -dir.x); // +X
         }
         case 1u {
-            ray = vec3<f32>(dir.x - 1f, 1f, 1f - dir.y); // +Y
+            ray = vec3<f32>(-1f, -dir.y, dir.x);// -X
         }
         case 2u {
-            ray = vec3<f32>(dir.x - 1f, 1f - dir.y, 1f); // +Z
+            ray = vec3<f32>(dir.x, 1f, dir.y); // +Y
         }
         case 3u {
-            ray = vec3<f32>(-1f, 1f - dir.y, 1f - dir.x);// -X
+            ray = vec3<f32>(dir.x, -1f, -dir.y);// -Y
         }
         case 4u {
-            ray = vec3<f32>(dir.y - 1f, -1f, 1f - dir.x);// -Y
+            ray = vec3<f32>(dir.x, -dir.y, 1f); // +Z
         }
         default {
-            ray = vec3<f32>(dir.y - 1f, 1f - dir.x, -1f);// -Z
+            ray = vec3<f32>(-dir.x, -dir.y, -1f);// -Z
         }
     }
 
@@ -59,14 +53,8 @@ fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_wo
 
     textureStore(
         image,
-        location + vec2<i32>(i32(size) * i32(invocation_id.z), 0),
-        vec4<f32>(
-#ifdef DITHER
-            render + dither
-#else
-            render
-#endif
-            , 1.0
-        )
+        vec2<i32>(invocation_id.xy),
+        i32(invocation_id.z),
+        vec4<f32>(render, 1.0)
     );
 }

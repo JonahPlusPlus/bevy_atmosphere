@@ -1,6 +1,7 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, num::NonZeroU32};
 
 use bevy::{
+    asset::load_internal_asset,
     prelude::*,
     reflect::TypeUuid,
     render::{
@@ -11,16 +12,17 @@ use bevy::{
             AsBindGroup, BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
             BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
             CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
-            ComputePipelineDescriptor, PipelineCache, ShaderStages, StorageTextureAccess,
-            TextureFormat, TextureViewDimension, Extent3d, TextureDimension, TextureUsages,
+            ComputePipelineDescriptor, Extent3d, PipelineCache, ShaderStages, StorageTextureAccess,
+            TextureAspect, TextureDimension, TextureFormat, TextureUsages, TextureView,
+            TextureViewDescriptor, TextureViewDimension, TextureDescriptor,
         },
         renderer::RenderDevice,
         texture::FallbackImage,
-        RenderApp, RenderStage, Extract,
-    }, asset::load_internal_asset,
+        Extract, RenderApp, RenderStage,
+    },
 };
 
-use crate::resource::Atmosphere;
+use crate::{resource::Atmosphere, settings::AtmosphereSettings};
 
 pub const ATMOSPHERE_MAIN_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 05132991701789555342);
@@ -33,21 +35,26 @@ pub const NAME: &str = "bevy_atmosphere";
 pub const WORKGROUP_SIZE: u32 = 8;
 
 /// [Handle] to a procedural sky [Image]
-/// 
+///
 /// It can be used in a material for a skybox mesh.
-/// 
+///
 /// The image is (6*512)px by 512px.
 /// Each 512x512 area corresponds to a face on the mesh.
 /// The order of faces is [X, Y, Z, -X, -Y, -Z].
-#[derive(Clone, Deref, ExtractResource)]
-pub struct AtmosphereImage(pub Handle<Image>);
+#[derive(ExtractResource, Debug, Clone)]
+pub struct AtmosphereImage {
+    pub handle: Handle<Image>,
+    pub array_view: Option<TextureView>,
+}
 
+#[derive(Clone, Debug)]
 struct AtmosphereBindGroups(pub BindGroup, pub BindGroup);
 
 /// A [Plugin] that creates the compute pipeline for rendering a procedural sky cubemap texture.
-pub struct AtmospherePipelinePlugin<const SIZE: u32>;
+#[derive(Debug, Clone, Copy)]
+pub struct AtmospherePipelinePlugin;
 
-impl<const SIZE: u32> Plugin for AtmospherePipelinePlugin<SIZE> {
+impl Plugin for AtmospherePipelinePlugin {
     fn build(&self, app: &mut App) {
         load_internal_asset!(
             app,
@@ -70,67 +77,134 @@ impl<const SIZE: u32> Plugin for AtmospherePipelinePlugin<SIZE> {
             Shader::from_wgsl
         );
 
-        let mut image_assets = app.world.resource_mut::<Assets<Image>>();
+        let settings = match app.world.get_resource::<AtmosphereSettings>() {
+            Some(s) => *s,
+            None => default(),
+        };
+
+        let atmosphere = match app.world.get_resource::<Atmosphere>() {
+            Some(s) => *s,
+            None => default(),
+        };
 
         let mut image = Image::new_fill(
             Extent3d {
-                width: SIZE * 6,
-                height: SIZE,
-                depth_or_array_layers: 1,
+                width: settings.resolution,
+                height: settings.resolution,
+                depth_or_array_layers: 6,
             },
             TextureDimension::D2,
-            &[0, 0, 0, 255],
-            TextureFormat::Rgba8Unorm,
+            &[0; 4 * 4],
+            TextureFormat::Rgba16Float,
         );
-    
-        image.texture_descriptor.usage =
-            TextureUsages::COPY_DST | TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
 
-        let image_handle = image_assets.add(image);
-    
-        app.insert_resource(AtmosphereImage(image_handle.clone()));
+        image.texture_view_descriptor = Some(ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR);
+
+        image.texture_descriptor = ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR(settings.resolution);
+
+        let mut image_assets = app.world.resource_mut::<Assets<Image>>();
+        let handle = image_assets.add(image);
+
+        app.insert_resource(AtmosphereImage {
+            handle,
+            array_view: None,
+        });
 
         app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app
             .init_resource::<AtmospherePipeline>()
-            .insert_resource(Atmosphere::default())
-            .add_system_to_stage(RenderStage::Extract, extract_atmosphere)
+            .insert_resource(atmosphere)
+            .insert_resource(settings)
+            .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
+            .add_system_to_stage(RenderStage::Prepare, atmosphere_pipeline_settings_changed)
             .add_system_to_stage(RenderStage::Queue, queue_bind_group);
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
-        render_graph.add_node(NAME, AtmosphereNode {
-            size: SIZE,
-            ..default()
-        });
+        render_graph.add_node(NAME, AtmosphereNode::default());
         render_graph
             .add_node_edge(NAME, bevy::render::main_graph::node::CAMERA_DRIVER)
             .unwrap();
     }
 }
 
-fn extract_atmosphere(
-    main_resource: Extract<Option<Res<Atmosphere>>>,
-    mut target_resource: ResMut<Atmosphere>,
+fn extract_atmosphere_resources(
+    main_atmosphere: Extract<Option<Res<Atmosphere>>>,
+    mut render_atmosphere: ResMut<Atmosphere>,
+    main_settings: Extract<Option<Res<AtmosphereSettings>>>,
+    mut render_settings: ResMut<AtmosphereSettings>,
 ) {
-    if let Some(atmosphere) = &*main_resource {
+    if let Some(atmosphere) = &*main_atmosphere {
         if atmosphere.is_changed() {
-            *target_resource = Atmosphere::extract_resource(&*atmosphere);
+            *render_atmosphere = Atmosphere::extract_resource(&*atmosphere);
+        }
+    }
+
+    if let Some(settings) = &*main_settings {
+        if settings.is_changed() {
+            *render_settings = AtmosphereSettings::extract_resource(&*settings);
         }
     }
 }
 
+const ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = TextureViewDescriptor {
+    label: Some("atmosphere_image_array_view"),
+    format: Some(TextureFormat::Rgba16Float),
+    dimension: Some(TextureViewDimension::Cube),
+    aspect: TextureAspect::All,
+    base_mip_level: 0,
+    mip_level_count: None,
+    base_array_layer: 0,
+    array_layer_count: NonZeroU32::new(6),
+};
+
+const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = TextureViewDescriptor {
+    label: Some("atmosphere_image_cube_view"),
+    format: Some(TextureFormat::Rgba16Float),
+    dimension: Some(TextureViewDimension::D2Array),
+    aspect: TextureAspect::All,
+    base_mip_level: 0,
+    mip_level_count: None,
+    base_array_layer: 0,
+    array_layer_count: NonZeroU32::new(6),
+};
+
+const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR:  fn(u32) -> TextureDescriptor<'static> = |res| TextureDescriptor {
+    label: Some("atmosphere_image_texture"),
+    size: Extent3d {
+        width: res.clone(),
+        height: res.clone(),
+        depth_or_array_layers: 6,
+    },
+    mip_level_count: 1,
+    sample_count: 1,
+    dimension: TextureDimension::D2,
+    format: TextureFormat::Rgba16Float,
+    usage: TextureUsages::COPY_DST
+    | TextureUsages::STORAGE_BINDING
+    | TextureUsages::TEXTURE_BINDING
+};
+
 fn queue_bind_group(
     mut commands: Commands,
-    pipeline: Res<AtmospherePipeline>,
-    gpu_images: Res<RenderAssets<Image>>,
-    atmosphere_image: Res<AtmosphereImage>,
-    atmosphere: Option<Res<Atmosphere>>,
+    mut atmosphere_image: ResMut<AtmosphereImage>,
     render_device: Res<RenderDevice>,
+    gpu_images: Res<RenderAssets<Image>>,
     fallback_image: Res<FallbackImage>,
+    pipeline: Res<AtmospherePipeline>,
+    atmosphere: Option<Res<Atmosphere>>,
 ) {
-    let view = &gpu_images[&atmosphere_image.0];
+    let view = match &atmosphere_image.array_view {
+        Some(v) => v.clone(),
+        None => {
+            let texture = &gpu_images[&atmosphere_image.handle].texture;
+            let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
+            atmosphere_image.array_view = Some(view.clone());
+
+            view
+        }
+    };
 
     let atmosphere = match atmosphere {
         Some(a) => *a,
@@ -154,7 +228,7 @@ fn queue_bind_group(
         layout: &pipeline.associated_bind_group_layout,
         entries: &[BindGroupEntry {
             binding: 0,
-            resource: BindingResource::TextureView(&view.texture_view),
+            resource: BindingResource::TextureView(&view),
         }],
     });
 
@@ -162,6 +236,27 @@ fn queue_bind_group(
         atmosphere_bind_group,
         associated_bind_group,
     ));
+}
+
+// Updates atmosphere when settings change
+fn atmosphere_pipeline_settings_changed(
+    mut gpu_images: ResMut<RenderAssets<Image>>,
+    render_device: Res<RenderDevice>,
+    mut atmosphere_image: ResMut<AtmosphereImage>,
+    settings: Option<Res<AtmosphereSettings>>,
+) {
+    if let Some(settings) = settings {
+        if settings.is_changed() {
+            if let Some(mut gpu_image) = gpu_images.remove(&atmosphere_image.handle) {
+                gpu_image.size = Vec2::new(settings.resolution as f32, settings.resolution as f32 * 6.);
+                //gpu_image.texture.destroy();
+                gpu_image.texture = render_device.create_texture(&ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR(settings.resolution));
+                gpu_image.texture_view = gpu_image.texture.create_view(&ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR);
+                atmosphere_image.array_view = Some(gpu_image.texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR));
+            }
+            trace!("Resized atmosphere image to {}", settings.resolution);
+        }
+    }
 }
 
 struct AtmospherePipeline {
@@ -178,20 +273,21 @@ impl FromWorld for AtmospherePipeline {
         let associated_bind_group_layout =
             render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                 label: Some("bevy_atmosphere_associated_bind_group_layout"),
-                entries: &[BindGroupLayoutEntry { // AtmosphereImage
+                entries: &[BindGroupLayoutEntry {
+                    // AtmosphereImage
                     binding: 0,
                     visibility: ShaderStages::COMPUTE,
                     ty: BindingType::StorageTexture {
-                        access: StorageTextureAccess::ReadWrite,
-                        format: TextureFormat::Rgba8Unorm,
-                        view_dimension: TextureViewDimension::D2,
+                        access: StorageTextureAccess::WriteOnly,
+                        format: TextureFormat::Rgba16Float,
+                        view_dimension: TextureViewDimension::D2Array,
                     },
                     count: None,
                 }],
             });
         let shader = ATMOSPHERE_MAIN_SHADER_HANDLE.typed();
         let mut pipeline_cache = world.resource_mut::<PipelineCache>();
-        
+
         let update_pipeline = pipeline_cache.queue_compute_pipeline(ComputePipelineDescriptor {
             label: Some(Cow::from("bevy_atmosphere_compute_pipeline")),
             layout: Some(vec![
@@ -221,14 +317,12 @@ enum AtmosphereState {
 
 struct AtmosphereNode {
     state: AtmosphereState,
-    size: u32,
 }
 
 impl Default for AtmosphereNode {
     fn default() -> Self {
         Self {
             state: AtmosphereState::Loading,
-            size: 1024,
         }
     }
 }
@@ -259,10 +353,13 @@ impl render_graph::Node for AtmosphereNode {
         match self.state {
             AtmosphereState::Loading => {}
             AtmosphereState::Update => {
-                if world.is_resource_changed::<Atmosphere>() {
+                if world.is_resource_changed::<Atmosphere>()
+                    || world.is_resource_changed::<AtmosphereSettings>()
+                {
                     let bind_groups = world.resource::<AtmosphereBindGroups>();
                     let pipeline_cache = world.resource::<PipelineCache>();
                     let pipeline = world.resource::<AtmospherePipeline>();
+                    let settings = world.resource::<AtmosphereSettings>();
 
                     let mut pass =
                         render_context
@@ -278,7 +375,11 @@ impl render_graph::Node for AtmosphereNode {
                         .get_compute_pipeline(pipeline.update_pipeline)
                         .unwrap();
                     pass.set_pipeline(update_pipeline);
-                    pass.dispatch_workgroups(self.size / WORKGROUP_SIZE, self.size / WORKGROUP_SIZE, 6);
+                    pass.dispatch_workgroups(
+                        settings.resolution / WORKGROUP_SIZE,
+                        settings.resolution / WORKGROUP_SIZE,
+                        6,
+                    );
                 }
             }
         }

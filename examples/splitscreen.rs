@@ -17,7 +17,7 @@ fn main() {
             ..default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(AtmospherePlugin::<512>) // To change the resolution, there is an associated constant that controls it.
+        .add_plugin(AtmospherePlugin)
         .add_startup_system(setup)
         .add_system(set_camera_viewports)
         .run();

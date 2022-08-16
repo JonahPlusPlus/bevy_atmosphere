@@ -1,69 +1,79 @@
 use bevy::{
+    asset::load_internal_asset,
     pbr::{NotShadowCaster, NotShadowReceiver},
     prelude::*,
     render::{
         camera::{CameraProjection, Projection},
+        render_resource::{Extent3d},
         view::RenderLayers,
     },
 };
 
-use crate::pipeline::*;
+use crate::{
+    pipeline::*,
+    settings::AtmosphereSettings,
+    skybox::{SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
+};
 
 /// Label for the startup system that prepares skyboxes
 pub const ATMOSPHERE_INIT: &str = "ATMOSPHERE_INIT";
 
 /// A [Plugin] that adds the prerequisites for a procedural sky
-pub struct AtmospherePlugin<const SIZE: u32>;
+#[derive(Debug, Clone, Copy)]
+pub struct AtmospherePlugin;
 
-impl Default for AtmospherePlugin<1024> {
-    fn default() -> Self {
-        Self
-    }
-}
-
-impl<const SIZE: u32> Plugin for AtmospherePlugin<SIZE> {
+impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(AtmospherePipelinePlugin::<SIZE>);
+        load_internal_asset!(
+            app,
+            ATMOSPHERE_SKYBOX_SHADER_HANDLE,
+            "shaders/skybox.wgsl",
+            Shader::from_wgsl
+        );
+
+        app.add_plugin(MaterialPlugin::<SkyBoxMaterial>::default());
+
+        app.add_plugin(AtmospherePipelinePlugin);
 
         #[cfg(feature = "init")]
         app.add_startup_system_to_stage(
             StartupStage::PostStartup,
-            atmosphere_init::<SIZE>.label(ATMOSPHERE_INIT),
+            atmosphere_init.label(ATMOSPHERE_INIT),
         );
 
-        app.add_system(atmosphere_cancel_rotation);
+        app
+            .add_system(atmosphere_cancel_rotation)
+            .add_system(atmosphere_settings_changed);
     }
 }
 
 /// Marker for a `Camera` that receives a skybox
-/// 
+///
 /// When added before the `ATMOSPHERE_INIT` stage, a skybox will be added
 /// This behaviour can be disabled by turning off the "automatic" feature
-/// 
+///
 /// `Some(u8)` specifies the `RenderLayers` for the skybox to be on
 /// `None` doesn't add the `RenderLayers` component
-#[derive(Component)]
+#[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereCamera(pub Option<u8>);
 
 /// Marker for skyboxes
-/// 
+///
 /// Automatically added to skyboxes generated in the `ATMOSPHERE_INIT` stage
-#[derive(Component)]
+#[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;
 
 #[cfg(feature = "init")]
-fn atmosphere_init<const SIZE: u32>(
+fn atmosphere_init(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
-    mut material_assets: ResMut<Assets<StandardMaterial>>,
+    mut material_assets: ResMut<Assets<SkyBoxMaterial>>,
     image: Res<AtmosphereImage>,
+    atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
 ) {
     // Spawn atmosphere skyboxes
-    let skybox_material_handle = material_assets.add(StandardMaterial {
-        base_color_texture: Some(image.0.clone()),
-        unlit: true,
-        ..default()
+    let skybox_material_handle = material_assets.add(SkyBoxMaterial {
+        sky_texture: image.handle.clone(),
     });
 
     debug!(
@@ -71,7 +81,7 @@ fn atmosphere_init<const SIZE: u32>(
         atmosphere_cameras.iter().len()
     );
 
-    for (camera, projection, atmosphere_camera) in &mut atmosphere_cameras {
+    for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
         trace!("Adding skybox to camera entity (ID:{:?})", camera);
         commands
             .entity(camera)
@@ -81,11 +91,13 @@ fn atmosphere_init<const SIZE: u32>(
             })
             .with_children(|c| {
                 let mut child = c.spawn_bundle(MaterialMeshBundle {
-                    mesh: mesh_assets.add(crate::skybox::mesh(projection.far(), SIZE as f32)),
+                    mesh: mesh_assets.add(crate::skybox::mesh(
+                        projection.far(),
+                    )),
                     material: skybox_material_handle.clone(),
                     ..default()
                 });
-                
+
                 child
                     .insert(AtmosphereSkyBox)
                     .insert(NotShadowCaster)
@@ -109,6 +121,25 @@ fn atmosphere_cancel_rotation(
             transform.rotation = parent_rotation.inverse();
         } else {
             debug!("Did not get transform of skybox parent");
+        }
+    }
+}
+
+fn atmosphere_settings_changed(
+    mut image_assets: ResMut<Assets<Image>>,
+    atmosphere_image: Res<AtmosphereImage>,
+    settings: Option<Res<AtmosphereSettings>>,
+) {
+    if let Some(settings) = settings {
+        if settings.is_changed() {
+            if let Some(image) = image_assets.get_mut(&atmosphere_image.handle) {
+                let size = Extent3d {
+                    width: settings.resolution,
+                    height: settings.resolution,
+                    depth_or_array_layers: 6,
+                };
+                image.resize(size);
+            }
         }
     }
 }

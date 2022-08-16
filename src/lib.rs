@@ -1,11 +1,11 @@
 //! A procedural sky plugin for bevy.
-//! 
+//!
 //!
 //! ## "basic" Example
-//! ```norun
+//! ```no_run
 //! use bevy::prelude::*;
 //! use bevy_atmosphere::prelude::*;
-//! 
+//!
 //! fn main() {
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)
@@ -13,14 +13,14 @@
 //!         .add_startup_system(setup)
 //!         .run();
 //! }
-//! 
+//!
 //! fn setup(mut commands: Commands) {
 //!     commands
 //!         .spawn_bundle(Camera3dBundle::default())
 //!         .insert(AtmosphereCamera(None));
 //! }
 //! ```
-//! 
+//!
 //! To change the sky's appearance, use the [Atmosphere](crate::resource::Atmosphere) resource
 //! ```no_run
 //! Atmosphere {
@@ -29,16 +29,18 @@
 //!     ..default()
 //! }
 //! ```
-//! 
+//!
 //! To see more examples, view the ["examples"](https://www.github.com/JonahPlusPlus/examples) directory
 
 pub mod pipeline;
 pub mod plugin;
 pub mod resource;
+pub mod settings;
 pub mod skybox;
 
 pub mod prelude {
     //! `use bevy_atmosphere::prelude::*;` to import the most commonly used items.
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
     pub use crate::resource::Atmosphere;
+    pub use crate::settings::AtmosphereSettings;
 }

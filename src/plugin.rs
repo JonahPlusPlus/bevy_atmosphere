@@ -133,12 +133,14 @@ fn atmosphere_cancel_rotation(
 fn atmosphere_settings_changed(
     mut image_assets: ResMut<Assets<Image>>,
     mut material_assets: ResMut<Assets<SkyBoxMaterial>>,
-    atmosphere_image: Res<AtmosphereImage>,
+    mut atmosphere_image: ResMut<AtmosphereImage>,
     settings: Option<Res<AtmosphereSettings>>,
     material: Res<AtmosphereSkyBoxMaterial>,
 ) {
     if let Some(settings) = settings {
         if settings.is_changed() {
+            #[cfg(feature = "trace")]
+            let _atmosphere_settings_changed_executed_span = info_span!("atmosphere_settings_changed_executed").entered();
             if let Some(image) = image_assets.get_mut(&atmosphere_image.handle) {
                 let size = Extent3d {
                     width: settings.resolution,
@@ -147,6 +149,7 @@ fn atmosphere_settings_changed(
                 };
                 image.resize(size);
                 let _ = material_assets.get_mut(&material.0);
+                atmosphere_image.array_view = None;
             }
         }
     }

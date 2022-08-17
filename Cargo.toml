@@ -21,6 +21,7 @@ bevy = { version = "0.8", default-features = false, features = ["bevy_core_pipel
 default = ["init", "dither"]
 init = [] # enables ATMOSPHERE_INIT
 dither = [] # enables dithering (disable for banding)
+trace = ["bevy/trace_tracy"]
 
 [[example]]
 name = "basic"

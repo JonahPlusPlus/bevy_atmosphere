@@ -120,7 +120,7 @@ impl Plugin for AtmospherePipelinePlugin {
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
             .add_system_to_stage(
                 RenderStage::Prepare,
-                prepare_changed_settings.after(PrepareAssetLabel::AssetPrepare),
+                prepare_atmosphere_assets.after(PrepareAssetLabel::AssetPrepare),
             )
             .add_system_to_stage(RenderStage::Queue, queue_bind_group);
 
@@ -191,12 +191,13 @@ const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'static>
     };
 
 // Whenever settings changed, the texture view needs to be updated to use the new texture
-fn prepare_changed_settings(
+fn prepare_atmosphere_assets(
     mut atmosphere_image: ResMut<AtmosphereImage>,
     gpu_images: Res<RenderAssets<Image>>,
-    settings: Res<AtmosphereSettings>,
 ) {
-    if settings.is_changed() | atmosphere_image.array_view.is_none() {
+    if atmosphere_image.array_view.is_none() {
+        #[cfg(feature = "trace")]
+        let _prepare_atmosphere_assets_executed_span = info_span!("prepare_atmosphere_assets_executed").entered();
         let texture = &gpu_images[&atmosphere_image.handle].texture;
         let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
         atmosphere_image.array_view = Some(view.clone());

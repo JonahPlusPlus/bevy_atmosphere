@@ -6,7 +6,7 @@ use bevy::{
     reflect::TypeUuid,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
-        render_asset::RenderAssets,
+        render_asset::{RenderAssets, PrepareAssetLabel},
         render_graph::{self, RenderGraph},
         render_resource::{
             AsBindGroup, BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
@@ -118,7 +118,7 @@ impl Plugin for AtmospherePipelinePlugin {
             .insert_resource(atmosphere)
             .insert_resource(settings)
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
-            .add_system_to_stage(RenderStage::Prepare, atmosphere_pipeline_settings_changed)
+            .add_system_to_stage(RenderStage::Prepare, prepare_changed_settings.after(PrepareAssetLabel::AssetPrepare))
             .add_system_to_stage(RenderStage::Queue, queue_bind_group);
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
@@ -186,25 +186,28 @@ const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR:  fn(u32) -> TextureDescriptor<'static
     | TextureUsages::TEXTURE_BINDING
 };
 
+fn prepare_changed_settings(
+    mut atmosphere_image: ResMut<AtmosphereImage>,
+    gpu_images: Res<RenderAssets<Image>>,
+    settings: Res<AtmosphereSettings>,
+) {
+    if settings.is_changed() | atmosphere_image.array_view.is_none() {
+        let texture = &gpu_images[&atmosphere_image.handle].texture;
+        let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
+        atmosphere_image.array_view = Some(view.clone());
+    }
+}
+
 fn queue_bind_group(
     mut commands: Commands,
-    mut atmosphere_image: ResMut<AtmosphereImage>,
-    render_device: Res<RenderDevice>,
     gpu_images: Res<RenderAssets<Image>>,
+    atmosphere_image: Res<AtmosphereImage>,
+    render_device: Res<RenderDevice>,
     fallback_image: Res<FallbackImage>,
     pipeline: Res<AtmospherePipeline>,
     atmosphere: Option<Res<Atmosphere>>,
 ) {
-    let view = match &atmosphere_image.array_view {
-        Some(v) => v.clone(),
-        None => {
-            let texture = &gpu_images[&atmosphere_image.handle].texture;
-            let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
-            atmosphere_image.array_view = Some(view.clone());
-
-            view
-        }
-    };
+    let view = atmosphere_image.array_view.as_ref().expect("prepare_changed_settings should have took care of making AtmosphereImage.array_value Some(TextureView)");
 
     let atmosphere = match atmosphere {
         Some(a) => *a,
@@ -236,27 +239,6 @@ fn queue_bind_group(
         atmosphere_bind_group,
         associated_bind_group,
     ));
-}
-
-// Updates atmosphere when settings change
-fn atmosphere_pipeline_settings_changed(
-    mut gpu_images: ResMut<RenderAssets<Image>>,
-    render_device: Res<RenderDevice>,
-    mut atmosphere_image: ResMut<AtmosphereImage>,
-    settings: Option<Res<AtmosphereSettings>>,
-) {
-    if let Some(settings) = settings {
-        if settings.is_changed() {
-            if let Some(mut gpu_image) = gpu_images.remove(&atmosphere_image.handle) {
-                gpu_image.size = Vec2::new(settings.resolution as f32, settings.resolution as f32 * 6.);
-                //gpu_image.texture.destroy();
-                gpu_image.texture = render_device.create_texture(&ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR(settings.resolution));
-                gpu_image.texture_view = gpu_image.texture.create_view(&ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR);
-                atmosphere_image.array_view = Some(gpu_image.texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR));
-            }
-            trace!("Resized atmosphere image to {}", settings.resolution);
-        }
-    }
 }
 
 struct AtmospherePipeline {

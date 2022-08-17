@@ -4,6 +4,9 @@ use bevy_atmosphere::prelude::*;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
+        .insert_resource(AtmosphereSettings {
+            resolution: 8
+        })
         .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
             bevy::utils::Duration::from_millis(100), // Update our atmosphere every 100ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
@@ -14,6 +17,7 @@ fn main() {
         .add_plugin(AtmospherePlugin) // Default AtmospherePlugin
         .add_startup_system(setup_environment)
         .add_system(daylight_cycle)
+        .add_system(change_resolution)
         .run();
 }
 
@@ -100,4 +104,32 @@ fn setup_environment(
         .insert(AtmosphereCamera(None)) // Marks camera as having an atmosphere that isn't on a specific render layer
         // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
         .insert(bevy_flycam::FlyCam); // Marks camera as flycam (specific to bevy_flycam)
+}
+
+fn change_resolution(mut settings: ResMut<AtmosphereSettings>, keys: Res<Input<KeyCode>>) {
+    if keys.just_pressed(KeyCode::Key1) {
+        settings.resolution = 8;
+        info!("Changed resolution to 8");
+    } else if keys.just_pressed(KeyCode::Key2) {
+        settings.resolution = 16;
+        info!("Changed resolution to 16");
+    } else if keys.just_pressed(KeyCode::Key3) {
+        settings.resolution = 32;
+        info!("Changed resolution to 32");
+    } else if keys.just_pressed(KeyCode::Key4) {
+        settings.resolution = 64;
+        info!("Changed resolution to 64");
+    } else if keys.just_pressed(KeyCode::Key5) {
+        settings.resolution = 128;
+        info!("Changed resolution to 128");
+    } else if keys.just_pressed(KeyCode::Key6) {
+        settings.resolution = 256;
+        info!("Changed resolution to 256");
+    } else if keys.just_pressed(KeyCode::Key7) {
+        settings.resolution = 512;
+        info!("Changed resolution to 512");
+    } else if keys.just_pressed(KeyCode::Key8) {
+        settings.resolution = 1024;
+        info!("Changed resolution to 1024");
+    }
 }

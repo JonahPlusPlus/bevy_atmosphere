@@ -6,15 +6,15 @@ use bevy::{
     reflect::TypeUuid,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
-        render_asset::{RenderAssets, PrepareAssetLabel},
+        render_asset::{PrepareAssetLabel, RenderAssets},
         render_graph::{self, RenderGraph},
         render_resource::{
             AsBindGroup, BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
             BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
             CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
             ComputePipelineDescriptor, Extent3d, PipelineCache, ShaderStages, StorageTextureAccess,
-            TextureAspect, TextureDimension, TextureFormat, TextureUsages, TextureView,
-            TextureViewDescriptor, TextureViewDimension, TextureDescriptor,
+            TextureAspect, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+            TextureView, TextureViewDescriptor, TextureViewDimension,
         },
         renderer::RenderDevice,
         texture::FallbackImage,
@@ -118,7 +118,10 @@ impl Plugin for AtmospherePipelinePlugin {
             .insert_resource(atmosphere)
             .insert_resource(settings)
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
-            .add_system_to_stage(RenderStage::Prepare, prepare_changed_settings.after(PrepareAssetLabel::AssetPrepare))
+            .add_system_to_stage(
+                RenderStage::Prepare,
+                prepare_changed_settings.after(PrepareAssetLabel::AssetPrepare),
+            )
             .add_system_to_stage(RenderStage::Queue, queue_bind_group);
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
@@ -170,21 +173,22 @@ const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = TextureV
     array_layer_count: NonZeroU32::new(6),
 };
 
-const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR:  fn(u32) -> TextureDescriptor<'static> = |res| TextureDescriptor {
-    label: Some("atmosphere_image_texture"),
-    size: Extent3d {
-        width: res.clone(),
-        height: res.clone(),
-        depth_or_array_layers: 6,
-    },
-    mip_level_count: 1,
-    sample_count: 1,
-    dimension: TextureDimension::D2,
-    format: TextureFormat::Rgba16Float,
-    usage: TextureUsages::COPY_DST
-    | TextureUsages::STORAGE_BINDING
-    | TextureUsages::TEXTURE_BINDING
-};
+const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'static> =
+    |res| TextureDescriptor {
+        label: Some("atmosphere_image_texture"),
+        size: Extent3d {
+            width: res.clone(),
+            height: res.clone(),
+            depth_or_array_layers: 6,
+        },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: TextureDimension::D2,
+        format: TextureFormat::Rgba16Float,
+        usage: TextureUsages::COPY_DST
+            | TextureUsages::STORAGE_BINDING
+            | TextureUsages::TEXTURE_BINDING,
+    };
 
 // Whenever settings changed, the texture view needs to be updated to use the new texture
 fn prepare_changed_settings(

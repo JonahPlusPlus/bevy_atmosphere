@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
     render::{
         camera::{CameraProjection, Projection},
-        render_resource::{Extent3d},
+        render_resource::Extent3d,
         view::RenderLayers,
     },
 };
@@ -12,7 +12,7 @@ use bevy::{
 use crate::{
     pipeline::*,
     settings::AtmosphereSettings,
-    skybox::{SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE, AtmosphereSkyBoxMaterial},
+    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
 /// Label for the startup system that prepares skyboxes
@@ -53,8 +53,7 @@ impl Plugin for AtmospherePlugin {
             atmosphere_init.label(ATMOSPHERE_INIT),
         );
 
-        app
-            .add_system(atmosphere_cancel_rotation)
+        app.add_system(atmosphere_cancel_rotation)
             .add_system(atmosphere_settings_changed);
     }
 }
@@ -98,9 +97,7 @@ fn atmosphere_init(
             })
             .with_children(|c| {
                 let mut child = c.spawn_bundle(MaterialMeshBundle {
-                    mesh: mesh_assets.add(crate::skybox::mesh(
-                        projection.far(),
-                    )),
+                    mesh: mesh_assets.add(crate::skybox::mesh(projection.far())),
                     material: material.0.clone(),
                     ..default()
                 });

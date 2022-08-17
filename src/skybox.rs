@@ -4,9 +4,7 @@ use bevy::{
     reflect::TypeUuid,
     render::{
         mesh::{Indices, Mesh, MeshVertexBufferLayout, PrimitiveTopology},
-        render_resource::{
-            AsBindGroup, RenderPipelineDescriptor, ShaderRef,
-        },
+        render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderRef},
     },
 };
 
@@ -45,9 +43,10 @@ impl Material for SkyBoxMaterial {
 
 /// Generates an inverted box mesh with face UVs that fit inside a `pipeline::SIZE` square with a 1 pixel border.
 pub fn mesh(far: f32) -> Mesh {
-    let size = (far * f32::sqrt(0.5)) - 1.0; // sqrt(0.5) is the ratio between squares separated by a circle
-                                             // where one lies on the outside of the circle (edges) and the other lies on the inside of the circle (corners)
-                                             // this is necessary since while the faces of the skybox may be seen, the corners and edges probably won't, since they don't lie on the radius of the far plane
+    let size = (far * f32::sqrt(0.5)) - 1.0;
+    // sqrt(0.5) is the ratio between squares separated by a circle
+    // where one lies on the outside of the circle (edges) and the other lies on the inside of the circle (corners)
+    // this is necessary since while the faces of the skybox may be seen, the corners and edges probably won't, since they don't lie on the radius of the far plane
     let norm = f32::sqrt(1. / 3.); // component of normalized (1, 1, 1)
     let (vertices, indices) = (
         &[

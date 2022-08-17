@@ -3,9 +3,7 @@ use bevy_atmosphere::prelude::*;
 
 fn main() {
     App::new()
-        .insert_resource(AtmosphereSettings {
-            resolution: 8
-        })
+        .insert_resource(AtmosphereSettings { resolution: 8 })
         // .insert_resource(Atmosphere {
         //     sun_position: Vec3::new(0.0, 0.0, 1.0),
         //     ..default()

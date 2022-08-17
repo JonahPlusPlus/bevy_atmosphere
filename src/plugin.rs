@@ -12,7 +12,7 @@ use bevy::{
 use crate::{
     pipeline::*,
     settings::AtmosphereSettings,
-    skybox::{SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
+    skybox::{SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE, AtmosphereSkyBoxMaterial},
 };
 
 /// Label for the startup system that prepares skyboxes
@@ -34,6 +34,18 @@ impl Plugin for AtmospherePlugin {
         app.add_plugin(MaterialPlugin::<SkyBoxMaterial>::default());
 
         app.add_plugin(AtmospherePipelinePlugin);
+
+        {
+            let image_handle = {
+                let image = app.world.resource::<AtmosphereImage>();
+                image.handle.clone()
+            };
+            let mut material_assets = app.world.resource_mut::<Assets<SkyBoxMaterial>>();
+            let material = material_assets.add(SkyBoxMaterial {
+                sky_texture: image_handle,
+            });
+            app.insert_resource(AtmosphereSkyBoxMaterial(material));
+        }
 
         #[cfg(feature = "init")]
         app.add_startup_system_to_stage(
@@ -67,15 +79,10 @@ pub struct AtmosphereSkyBox;
 fn atmosphere_init(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut material_assets: ResMut<Assets<SkyBoxMaterial>>,
-    image: Res<AtmosphereImage>,
+    material: Res<AtmosphereSkyBoxMaterial>,
     atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
 ) {
     // Spawn atmosphere skyboxes
-    let skybox_material_handle = material_assets.add(SkyBoxMaterial {
-        sky_texture: image.handle.clone(),
-    });
-
     debug!(
         "Found '{}' `AtmosphereCamera`s",
         atmosphere_cameras.iter().len()
@@ -94,7 +101,7 @@ fn atmosphere_init(
                     mesh: mesh_assets.add(crate::skybox::mesh(
                         projection.far(),
                     )),
-                    material: skybox_material_handle.clone(),
+                    material: material.0.clone(),
                     ..default()
                 });
 
@@ -125,10 +132,13 @@ fn atmosphere_cancel_rotation(
     }
 }
 
+// Whenever settings are changed, resize the image to the appropriate size
 fn atmosphere_settings_changed(
     mut image_assets: ResMut<Assets<Image>>,
+    mut material_assets: ResMut<Assets<SkyBoxMaterial>>,
     atmosphere_image: Res<AtmosphereImage>,
     settings: Option<Res<AtmosphereSettings>>,
+    material: Res<AtmosphereSkyBoxMaterial>,
 ) {
     if let Some(settings) = settings {
         if settings.is_changed() {
@@ -139,6 +149,7 @@ fn atmosphere_settings_changed(
                     depth_or_array_layers: 6,
                 };
                 image.resize(size);
+                let _ = material_assets.get_mut(&material.0);
             }
         }
     }

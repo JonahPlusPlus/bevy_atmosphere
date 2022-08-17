@@ -10,6 +10,9 @@ use bevy::{
     },
 };
 
+/// The material used by all skyboxes.
+pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
+
 pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 04511926918914205353);
 
@@ -40,7 +43,7 @@ impl Material for SkyBoxMaterial {
     }
 }
 
-/// Generates an inverted box mesh with face UVs that fit inside a `pipeline::SIZE` square with a 1 pixel border
+/// Generates an inverted box mesh with face UVs that fit inside a `pipeline::SIZE` square with a 1 pixel border.
 pub fn mesh(far: f32) -> Mesh {
     let size = (far * f32::sqrt(0.5)) - 1.0; // sqrt(0.5) is the ratio between squares separated by a circle
                                              // where one lies on the outside of the circle (edges) and the other lies on the inside of the circle (corners)

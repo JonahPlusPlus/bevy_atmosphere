@@ -186,6 +186,7 @@ const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR:  fn(u32) -> TextureDescriptor<'static
     | TextureUsages::TEXTURE_BINDING
 };
 
+// Whenever settings changed, the texture view needs to be updated to use the new texture
 fn prepare_changed_settings(
     mut atmosphere_image: ResMut<AtmosphereImage>,
     gpu_images: Res<RenderAssets<Image>>,

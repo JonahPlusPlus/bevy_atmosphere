@@ -4,14 +4,12 @@ use bevy::{
     prelude::*,
     render::{
         camera::{CameraProjection, Projection},
-        render_resource::Extent3d,
         view::RenderLayers,
     },
 };
 
 use crate::{
     pipeline::*,
-    settings::AtmosphereSettings,
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
@@ -53,8 +51,7 @@ impl Plugin for AtmospherePlugin {
             atmosphere_init.label(ATMOSPHERE_INIT),
         );
 
-        app.add_system(atmosphere_cancel_rotation)
-            .add_system(atmosphere_settings_changed);
+        app.add_system(atmosphere_cancel_rotation);
     }
 }
 
@@ -125,32 +122,6 @@ fn atmosphere_cancel_rotation(
             transform.rotation = parent_rotation.inverse();
         } else {
             debug!("Did not get transform of skybox parent");
-        }
-    }
-}
-
-// Whenever settings are changed, resize the image to the appropriate size
-fn atmosphere_settings_changed(
-    mut image_assets: ResMut<Assets<Image>>,
-    mut material_assets: ResMut<Assets<SkyBoxMaterial>>,
-    mut atmosphere_image: ResMut<AtmosphereImage>,
-    settings: Option<Res<AtmosphereSettings>>,
-    material: Res<AtmosphereSkyBoxMaterial>,
-) {
-    if let Some(settings) = settings {
-        if settings.is_changed() {
-            #[cfg(feature = "trace")]
-            let _atmosphere_settings_changed_executed_span = info_span!("atmosphere_settings_changed_executed").entered();
-            if let Some(image) = image_assets.get_mut(&atmosphere_image.handle) {
-                let size = Extent3d {
-                    width: settings.resolution,
-                    height: settings.resolution,
-                    depth_or_array_layers: 6,
-                };
-                image.resize(size);
-                let _ = material_assets.get_mut(&material.0);
-                atmosphere_image.array_view = None;
-            }
         }
     }
 }

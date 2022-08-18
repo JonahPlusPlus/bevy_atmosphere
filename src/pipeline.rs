@@ -22,7 +22,7 @@ use bevy::{
     },
 };
 
-use crate::{resource::Atmosphere, settings::AtmosphereSettings};
+use crate::{resource::Atmosphere, settings::AtmosphereSettings, skybox::{SkyBoxMaterial, AtmosphereSkyBoxMaterial}};
 
 pub const ATMOSPHERE_MAIN_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 05132991701789555342);
@@ -112,6 +112,8 @@ impl Plugin for AtmospherePipelinePlugin {
 
         app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
 
+        app.add_system(atmosphere_settings_changed);
+
         let render_app = app.sub_app_mut(RenderApp);
         render_app
             .init_resource::<AtmospherePipeline>()
@@ -129,6 +131,32 @@ impl Plugin for AtmospherePipelinePlugin {
         render_graph
             .add_node_edge(NAME, bevy::render::main_graph::node::CAMERA_DRIVER)
             .unwrap();
+    }
+}
+
+// Whenever settings are changed, resize the image to the appropriate size
+fn atmosphere_settings_changed(
+    mut image_assets: ResMut<Assets<Image>>,
+    mut material_assets: ResMut<Assets<SkyBoxMaterial>>,
+    mut atmosphere_image: ResMut<AtmosphereImage>,
+    settings: Option<Res<AtmosphereSettings>>,
+    material: Res<AtmosphereSkyBoxMaterial>,
+) {
+    if let Some(settings) = settings {
+        if settings.is_changed() {
+            #[cfg(feature = "trace")]
+            let _atmosphere_settings_changed_executed_span = info_span!("atmosphere_settings_changed_executed").entered();
+            if let Some(image) = image_assets.get_mut(&atmosphere_image.handle) {
+                let size = Extent3d {
+                    width: settings.resolution,
+                    height: settings.resolution,
+                    depth_or_array_layers: 6,
+                };
+                image.resize(size);
+                let _ = material_assets.get_mut(&material.0);
+                atmosphere_image.array_view = None;
+            }
+        }
     }
 }
 

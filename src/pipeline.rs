@@ -47,7 +47,11 @@ pub struct AtmosphereImage {
     pub array_view: Option<TextureView>,
 }
 
-#[derive(Clone, Debug)]
+/// Signals the pipeline (inside [RenderApp]) to render the atmosphere
+#[derive(Debug, Clone, Copy)]
+pub struct AtmosphereUpdateEvent;
+
+#[derive(Debug, Clone)]
 struct AtmosphereBindGroups(pub BindGroup, pub BindGroup);
 
 /// A [Plugin] that creates the compute pipeline for rendering a procedural sky cubemap texture.
@@ -119,10 +123,14 @@ impl Plugin for AtmospherePipelinePlugin {
             .init_resource::<AtmospherePipeline>()
             .insert_resource(atmosphere)
             .insert_resource(settings)
+            .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
+            .add_system_to_stage(RenderStage::Prepare, Events::<AtmosphereUpdateEvent>::update_system)
             .add_system_to_stage(
                 RenderStage::Prepare,
-                prepare_atmosphere_assets.after(PrepareAssetLabel::AssetPrepare),
+                prepare_atmosphere_assets
+                    .label(PrepareAssetLabel::PostAssetPrepare)
+                    .after(PrepareAssetLabel::AssetPrepare),
             )
             .add_system_to_stage(RenderStage::Queue, queue_bind_group);
 
@@ -145,7 +153,7 @@ fn atmosphere_settings_changed(
     if let Some(settings) = settings {
         if settings.is_changed() {
             #[cfg(feature = "trace")]
-            let _atmosphere_settings_changed_executed_span = info_span!("atmosphere_settings_changed_executed").entered();
+            let _atmosphere_settings_changed_executed_span = info_span!("executed", name="bevy_atmosphere::pipeline::atmosphere_settings_changed").entered();
             if let Some(image) = image_assets.get_mut(&atmosphere_image.handle) {
                 let size = Extent3d {
                     width: settings.resolution,
@@ -155,6 +163,8 @@ fn atmosphere_settings_changed(
                 image.resize(size);
                 let _ = material_assets.get_mut(&material.0);
                 atmosphere_image.array_view = None;
+                #[cfg(feature = "trace")]
+                trace!("Resized image to {:?}", size);
             }
         }
     }
@@ -220,15 +230,26 @@ const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'static>
 
 // Whenever settings changed, the texture view needs to be updated to use the new texture
 fn prepare_atmosphere_assets(
+    mut update_events: ResMut<Events<AtmosphereUpdateEvent>>,
     mut atmosphere_image: ResMut<AtmosphereImage>,
     gpu_images: Res<RenderAssets<Image>>,
+    atmosphere: Res<Atmosphere>,
 ) {
+    let mut update = || update_events.send(AtmosphereUpdateEvent);
+
     if atmosphere_image.array_view.is_none() {
         #[cfg(feature = "trace")]
-        let _prepare_atmosphere_assets_executed_span = info_span!("prepare_atmosphere_assets_executed").entered();
+        let _prepare_atmosphere_assets_executed_span = info_span!("executed", name="bevy_atmosphere::pipeline::prepare_atmosphere_assets").entered();
         let texture = &gpu_images[&atmosphere_image.handle].texture;
         let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
         atmosphere_image.array_view = Some(view.clone());
+        update();
+        #[cfg(feature = "trace")]
+        trace!("Created new 2D array texture view from atmosphere texture of size {:?}", &gpu_images[&atmosphere_image.handle].size);
+    }
+
+    if atmosphere.is_changed() {
+        update();
     }
 }
 
@@ -353,6 +374,8 @@ impl render_graph::Node for AtmosphereNode {
                 if let CachedPipelineState::Ok(_) =
                     pipeline_cache.get_compute_pipeline_state(pipeline.update_pipeline)
                 {
+                    let mut event_writer = world.resource_mut::<Events<AtmosphereUpdateEvent>>();
+                    event_writer.send(AtmosphereUpdateEvent);
                     self.state = AtmosphereState::Update;
                 }
             }
@@ -366,12 +389,11 @@ impl render_graph::Node for AtmosphereNode {
         render_context: &mut bevy::render::renderer::RenderContext,
         world: &World,
     ) -> Result<(), render_graph::NodeRunError> {
+        let update_events = world.resource::<Events<AtmosphereUpdateEvent>>();
         match self.state {
             AtmosphereState::Loading => {}
             AtmosphereState::Update => {
-                if world.is_resource_changed::<Atmosphere>()
-                    || world.is_resource_changed::<AtmosphereSettings>()
-                {
+                if !update_events.is_empty() {
                     let bind_groups = world.resource::<AtmosphereBindGroups>();
                     let pipeline_cache = world.resource::<PipelineCache>();
                     let pipeline = world.resource::<AtmospherePipeline>();

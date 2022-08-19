@@ -3,7 +3,7 @@ use bevy_atmosphere::prelude::*;
 
 fn main() {
     App::new()
-        .insert_resource(AtmosphereSettings { resolution: 8 })
+        .insert_resource(AtmosphereSettings { resolution: 16 })
         // .insert_resource(Atmosphere {
         //     sun_position: Vec3::new(0.0, 0.0, 1.0),
         //     ..default()
@@ -25,28 +25,28 @@ fn setup(mut commands: Commands) {
 
 fn change_resolution(mut settings: ResMut<AtmosphereSettings>, keys: Res<Input<KeyCode>>) {
     if keys.just_pressed(KeyCode::Key1) {
-        settings.resolution = 8;
-        info!("Changed resolution to 8");
+        change(settings.as_mut(), 8);
     } else if keys.just_pressed(KeyCode::Key2) {
-        settings.resolution = 16;
-        info!("Changed resolution to 16");
+        change(settings.as_mut(), 16);
     } else if keys.just_pressed(KeyCode::Key3) {
-        settings.resolution = 32;
-        info!("Changed resolution to 32");
+        change(settings.as_mut(), 32);
     } else if keys.just_pressed(KeyCode::Key4) {
-        settings.resolution = 64;
-        info!("Changed resolution to 64");
+        change(settings.as_mut(), 64);
     } else if keys.just_pressed(KeyCode::Key5) {
-        settings.resolution = 128;
-        info!("Changed resolution to 128");
+        change(settings.as_mut(), 128);
     } else if keys.just_pressed(KeyCode::Key6) {
-        settings.resolution = 256;
-        info!("Changed resolution to 256");
+        change(settings.as_mut(), 256);
     } else if keys.just_pressed(KeyCode::Key7) {
-        settings.resolution = 512;
-        info!("Changed resolution to 512");
+        change(settings.as_mut(), 512);
     } else if keys.just_pressed(KeyCode::Key8) {
-        settings.resolution = 1024;
-        info!("Changed resolution to 1024");
+        change(settings.as_mut(), 1024);
     }
+}
+
+// A separate `change` fn makes it easier to debug
+fn change(settings: &mut AtmosphereSettings, resolution: u32) {
+    #[cfg(feature = "trace")] // bevy_atmosphere offers the "trace" feature for when you debug in tracy
+    let _change_resolution_executed_span = info_span!("executed", name="settings::change_resolution").entered();
+    settings.resolution = resolution;
+    info!("Changed resolution to {resolution}");
 }

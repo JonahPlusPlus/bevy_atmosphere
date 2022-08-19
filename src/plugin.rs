@@ -79,12 +79,13 @@ fn atmosphere_init(
     atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
 ) {
     // Spawn atmosphere skyboxes
-    debug!(
+    info!(
         "Found '{}' `AtmosphereCamera`s",
         atmosphere_cameras.iter().len()
     );
 
     for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
+        #[cfg(feature = "trace")]
         trace!("Adding skybox to camera entity (ID:{:?})", camera);
         commands
             .entity(camera)

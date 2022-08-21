@@ -2,6 +2,9 @@
 unmaintained = "deny"
 yanked = "deny"
 notice = "deny"
+ignore = [
+    "RUSTSEC-2021-0139" # ignore ansi_term until there is a replacement
+]
 
 [licenses]
 copyleft = "deny"

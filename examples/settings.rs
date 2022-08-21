@@ -45,8 +45,10 @@ fn change_resolution(mut settings: ResMut<AtmosphereSettings>, keys: Res<Input<K
 
 // A separate `change` fn makes it easier to debug
 fn change(settings: &mut AtmosphereSettings, resolution: u32) {
-    #[cfg(feature = "trace")] // bevy_atmosphere offers the "trace" feature for when you debug in tracy
-    let _change_resolution_executed_span = info_span!("executed", name="settings::change_resolution").entered();
+    #[cfg(feature = "trace")]
+    // bevy_atmosphere offers the "trace" feature for when you debug in tracy
+    let _change_resolution_executed_span =
+        info_span!("executed", name = "settings::change_resolution").entered();
     settings.resolution = resolution;
     info!("Changed resolution to {resolution}");
 }

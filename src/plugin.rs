@@ -1,3 +1,5 @@
+//! Provides a plugin for making skyboxes with procedural sky textures.
+
 use bevy::{
     asset::load_internal_asset,
     pbr::{NotShadowCaster, NotShadowReceiver},

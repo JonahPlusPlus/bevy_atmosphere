@@ -1,3 +1,7 @@
+//! Provides types and logic for a compute pipeline that renders the procedural sky texture.
+//!
+//! It's possible to use [AtmospherePipelinePlugin] with your own custom code to render to custom targets.
+
 use std::{borrow::Cow, num::NonZeroU32};
 
 use bevy::{
@@ -22,14 +26,21 @@ use bevy::{
     },
 };
 
-use crate::{resource::Atmosphere, settings::AtmosphereSettings, skybox::{SkyBoxMaterial, AtmosphereSkyBoxMaterial}};
+use crate::{
+    resource::Atmosphere,
+    settings::AtmosphereSettings,
+    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial},
+};
 
+/// Handle for shader for texture compute pipeline.
 pub const ATMOSPHERE_MAIN_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 05132991701789555342);
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5132991701789555342);
+/// Handle for shader that holds math (atmosphere simulation).
 pub const ATMOSPHERE_MATH_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 07843425155352921761);
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7843425155352921761);
+/// Handle for shader that holds types ([Atmosphere] binding).
 pub const ATMOSPHERE_TYPES_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 09615256157423613453);
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 9615256157423613453);
 
 pub const NAME: &str = "bevy_atmosphere";
 pub const WORKGROUP_SIZE: u32 = 8;
@@ -125,7 +136,10 @@ impl Plugin for AtmospherePipelinePlugin {
             .insert_resource(settings)
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
-            .add_system_to_stage(RenderStage::Prepare, Events::<AtmosphereUpdateEvent>::update_system)
+            .add_system_to_stage(
+                RenderStage::Prepare,
+                Events::<AtmosphereUpdateEvent>::update_system,
+            )
             .add_system_to_stage(
                 RenderStage::Prepare,
                 prepare_atmosphere_assets
@@ -153,8 +167,15 @@ fn atmosphere_settings_changed(
     if let Some(settings) = settings {
         if settings.is_changed() {
             #[cfg(feature = "trace")]
-            let _atmosphere_settings_changed_executed_span = info_span!("executed", name="bevy_atmosphere::pipeline::atmosphere_settings_changed").entered();
+            let _atmosphere_settings_changed_executed_span = info_span!(
+                "executed",
+                name = "bevy_atmosphere::pipeline::atmosphere_settings_changed"
+            )
+            .entered();
             if let Some(image) = image_assets.get_mut(&atmosphere_image.handle) {
+                if settings.resolution % 8 != 0 {
+                    warn!("Resolution is not a multiple of 8, issues may be encountered");
+                }
                 let size = Extent3d {
                     width: settings.resolution,
                     height: settings.resolution,
@@ -178,13 +199,13 @@ fn extract_atmosphere_resources(
 ) {
     if let Some(atmosphere) = &*main_atmosphere {
         if atmosphere.is_changed() {
-            *render_atmosphere = Atmosphere::extract_resource(&*atmosphere);
+            *render_atmosphere = Atmosphere::extract_resource(atmosphere);
         }
     }
 
     if let Some(settings) = &*main_settings {
         if settings.is_changed() {
-            *render_settings = AtmosphereSettings::extract_resource(&*settings);
+            *render_settings = AtmosphereSettings::extract_resource(settings);
         }
     }
 }
@@ -215,8 +236,8 @@ const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'static>
     |res| TextureDescriptor {
         label: Some("atmosphere_image_texture"),
         size: Extent3d {
-            width: res.clone(),
-            height: res.clone(),
+            width: res,
+            height: res,
             depth_or_array_layers: 6,
         },
         mip_level_count: 1,
@@ -239,13 +260,20 @@ fn prepare_atmosphere_assets(
 
     if atmosphere_image.array_view.is_none() {
         #[cfg(feature = "trace")]
-        let _prepare_atmosphere_assets_executed_span = info_span!("executed", name="bevy_atmosphere::pipeline::prepare_atmosphere_assets").entered();
+        let _prepare_atmosphere_assets_executed_span = info_span!(
+            "executed",
+            name = "bevy_atmosphere::pipeline::prepare_atmosphere_assets"
+        )
+        .entered();
         let texture = &gpu_images[&atmosphere_image.handle].texture;
         let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
-        atmosphere_image.array_view = Some(view.clone());
+        atmosphere_image.array_view = Some(view);
         update();
         #[cfg(feature = "trace")]
-        trace!("Created new 2D array texture view from atmosphere texture of size {:?}", &gpu_images[&atmosphere_image.handle].size);
+        trace!(
+            "Created new 2D array texture view from atmosphere texture of size {:?}",
+            &gpu_images[&atmosphere_image.handle].size
+        );
     }
 
     if atmosphere.is_changed() {
@@ -286,7 +314,7 @@ fn queue_bind_group(
         layout: &pipeline.associated_bind_group_layout,
         entries: &[BindGroupEntry {
             binding: 0,
-            resource: BindingResource::TextureView(&view),
+            resource: BindingResource::TextureView(view),
         }],
     });
 
@@ -306,7 +334,7 @@ impl FromWorld for AtmospherePipeline {
     fn from_world(world: &mut World) -> Self {
         let render_device = world.resource::<RenderDevice>();
 
-        let atmosphere_bind_group_layout = Atmosphere::bind_group_layout(&render_device);
+        let atmosphere_bind_group_layout = Atmosphere::bind_group_layout(render_device);
         let associated_bind_group_layout =
             render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                 label: Some("bevy_atmosphere_associated_bind_group_layout"),

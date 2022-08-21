@@ -12,7 +12,7 @@ use bevy::{
 pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
 pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 04511926918914205353);
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 4511926918914205353);
 
 #[derive(AsBindGroup, TypeUuid, Debug, Clone)]
 #[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]

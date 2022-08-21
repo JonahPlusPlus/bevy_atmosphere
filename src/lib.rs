@@ -24,13 +24,21 @@
 //! To change the sky's appearance, use the [Atmosphere](crate::resource::Atmosphere) resource
 //! ```no_run
 //! Atmosphere {
-//!     // changes the sky color from Rayleigh scattering
+//!     // changes the sky color using Rayleigh scattering
 //!     rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6),
 //!     ..default()
 //! }
 //! ```
 //!
-//! To see more examples, view the ["examples"](https://www.github.com/JonahPlusPlus/examples) directory
+//! Use [AtmosphereSettings](crate::settings::AtmosphereSettings) to change how the sky is rendered
+//! ```no_run
+//! AtmosphereSettings {
+//!     // changes the resolution (should be a multiple of 8)
+//!     resolutions: 512
+//! }
+//! ```
+//!
+//! To see more examples, view the ["examples"](https://www.github.com/JonahPlusPlus/bevy_atmosphere/examples) directory
 
 pub mod pipeline;
 pub mod plugin;

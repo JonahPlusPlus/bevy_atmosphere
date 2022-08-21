@@ -16,7 +16,7 @@ use crate::{
 };
 
 /// Label for the startup system that prepares skyboxes.
-/// 
+///
 /// Enabled/Disabled via the "init" feature.
 pub const ATMOSPHERE_INIT: &str = "ATMOSPHERE_INIT";
 

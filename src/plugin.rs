@@ -15,10 +15,12 @@ use crate::{
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
-/// Label for the startup system that prepares skyboxes
+/// Label for the startup system that prepares skyboxes.
+/// 
+/// Enabled/Disabled via the "init" feature.
 pub const ATMOSPHERE_INIT: &str = "ATMOSPHERE_INIT";
 
-/// A [Plugin] that adds the prerequisites for a procedural sky
+/// A [Plugin] that adds the prerequisites for a procedural sky.
 #[derive(Debug, Clone, Copy)]
 pub struct AtmospherePlugin;
 
@@ -57,19 +59,19 @@ impl Plugin for AtmospherePlugin {
     }
 }
 
-/// Marker for a `Camera` that receives a skybox
+/// Marker for a [Camera] that receives a skybox.
 ///
-/// When added before the `ATMOSPHERE_INIT` stage, a skybox will be added
-/// This behaviour can be disabled by turning off the "automatic" feature
+/// When added before the [ATMOSPHERE_INIT] stage, a skybox will be added.
+/// This behaviour can be disabled by turning off the "init" feature.
 ///
-/// `Some(u8)` specifies the `RenderLayers` for the skybox to be on
-/// `None` doesn't add the `RenderLayers` component
+/// `Some(u8)` specifies the [RenderLayers] for the skybox to be on.
+/// `None` doesn't add the [RenderLayers] component.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereCamera(pub Option<u8>);
 
-/// Marker for skyboxes
+/// Marker for skybox entities.
 ///
-/// Automatically added to skyboxes generated in the `ATMOSPHERE_INIT` stage
+/// Automatically added to skyboxes generated in the [ATMOSPHERE_INIT] stage.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;
 

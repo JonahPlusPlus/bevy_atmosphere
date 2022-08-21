@@ -3,10 +3,6 @@ use bevy_atmosphere::prelude::*;
 
 fn main() {
     App::new()
-        .insert_resource(Atmosphere {
-            mie_direction: 10.5,
-            ..default()
-        })
         .add_plugins(DefaultPlugins)
         .add_plugin(AtmospherePlugin)
         .add_startup_system(setup)

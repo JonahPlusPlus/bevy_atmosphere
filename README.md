@@ -1,30 +1,35 @@
 # bevy_atmosphere
+[![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere) [![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/)
 
-### A procedural sky plugin for bevy
+## A procedural sky plugin for the [Bevy game engine](https://bevyengine.org/).
 
-[![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere) [![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/) 
+Uses Rayleigh and Mie scattering to simulate a realistic sky.
 
-### Example
+## ["basic" Example](/examples/basic.rs)
+
 ```rust
 use bevy::prelude::*;
-use bevy_atmosphere::*;
+use bevy_atmosphere::prelude::*;
+
 fn main() {
     App::new()
-        .insert_resource(bevy_atmosphere::AtmosphereMat::default()) // Default Earth sky
         .add_plugins(DefaultPlugins)
-        .add_plugin(bevy_atmosphere::AtmospherePlugin {
-            dynamic: false,  // Set to false since we aren't changing the sky's appearance
-            sky_radius: 10.0,
-        })
+        .add_plugin(AtmospherePlugin)
         .add_startup_system(setup)
         .run();
 }
+
 fn setup(mut commands: Commands) {
-    commands.spawn_bundle(PerspectiveCameraBundle::default());
+    commands
+        .spawn_bundle(Camera3dBundle::default())
+        .insert(AtmosphereCamera(None));
 }
 ```
 
-## Change Log
+## 0.4 Change Log
 
-* v0.3.1: Changed default radius from 10 to 100 (larger values can reduce visual artifacts)
-* v0.3.0: Updated to bevy v0.7
+* To change the sky simulation parameters, you would add/update an `Atmosphere` resource with custom values.
+* The plugin doesn't just pick the first camera, but can be used on select cameras using the `AtmosphereCamera` component, which holds an optional render layer for the spawned skybox to be on.
+* The plugin will automatically create skyboxes for atmosphere cameras during the `ATMOSPHERE_INIT` startup stage, which can be disabled by turning off the "automatic" feature.
+* Created skyboxes now have the `AtmosphereSkyBox` component. Only skyboxes with the component and that have a parent with `AtmosphereCamera` will have their rotation corrected.
+* To change the resolution, you can add an `AtmosphereSettings` resource and set the `resolution` field (which should be a multiple of 8). This could be used as part of quality settings in games.

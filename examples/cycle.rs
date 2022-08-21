@@ -6,7 +6,7 @@ fn main() {
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
-            bevy::utils::Duration::from_millis(100), // Update our atmosphere every 100ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
+            bevy::utils::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
             true,
         )))
         .add_plugins(DefaultPlugins)
@@ -33,18 +33,18 @@ fn daylight_cycle(
 ) {
     timer.0.tick(time.delta());
 
-    let mut pos = atmosphere.sun_position;
-    let t = time.time_since_startup().as_millis() as f32 / 2000.0;
-    pos.y = t.sin();
-    pos.z = t.cos();
-    atmosphere.sun_position = pos;
+    if timer.0.finished() {
+        let mut pos = atmosphere.sun_position;
+        let t = time.time_since_startup().as_millis() as f32 / 2000.0;
+        pos.y = t.sin();
+        pos.z = t.cos();
+        atmosphere.sun_position = pos;
 
-    if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
-        light_trans.rotation = Quat::from_rotation_x(-pos.y.atan2(pos.z));
-        directional.illuminance = t.sin().max(0.0).powf(2.0) * 100000.0;
+        if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
+            light_trans.rotation = Quat::from_rotation_x(-pos.y.atan2(pos.z));
+            directional.illuminance = t.sin().max(0.0).powf(2.0) * 100000.0;
+        }
     }
-
-    if timer.0.finished() {}
 }
 
 // Simple environment

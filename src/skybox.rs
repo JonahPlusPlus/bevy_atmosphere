@@ -1,3 +1,5 @@
+//! Provides types and data needed for rendering a skybox.
+
 use bevy::{
     pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
@@ -8,15 +10,18 @@ use bevy::{
     },
 };
 
-/// The material used by all skyboxes.
+/// A [Handle] to the created [SkyBoxMaterial].
 pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
+/// [Handle] for shader for the [SkyBoxMaterial].
 pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 4511926918914205353);
 
+/// The [Material] that renders skyboxes.
 #[derive(AsBindGroup, TypeUuid, Debug, Clone)]
 #[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]
 pub struct SkyBoxMaterial {
+    /// [Handle] to the [AtmosphereImage](crate::pipeline::AtmosphereImage)
     #[texture(0, dimension = "cube")]
     #[sampler(1)]
     pub sky_texture: Handle<Image>,
@@ -41,7 +46,7 @@ impl Material for SkyBoxMaterial {
     }
 }
 
-/// Generates an inverted box mesh with face UVs that fit inside a `pipeline::SIZE` square with a 1 pixel border.
+/// Generates an inverted box mesh that fits inside [Projection::far](bevy::render::camera::Projection).
 pub fn mesh(far: f32) -> Mesh {
     let size = (far * f32::sqrt(0.5)) - 1.0;
     // sqrt(0.5) is the ratio between squares separated by a circle

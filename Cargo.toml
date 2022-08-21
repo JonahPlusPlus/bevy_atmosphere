@@ -8,10 +8,6 @@ license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/bevy_atmosphere"
 homepage = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
-autobins = false
-autoexamples = false
-autotests = false
-autobenches = false
 
 [dependencies]
 bevy = { version = "0.8", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }

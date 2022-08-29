@@ -18,8 +18,8 @@ bevy_flycam = "~0.8.1"
 bevy = { version = "0.8", default-features = false, features = ["bevy_core_pipeline", "x11"] }
 
 [features]
-default = ["init", "dither"]
-init = [] # enables ATMOSPHERE_INIT
+default = ["detection", "dither"]
+detection = [] # enables camera detection (disable to add skyboxes manually)
 dither = [] # enables dithering (disable for banding)
 trace = ["bevy/trace_tracy"]
 

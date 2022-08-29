@@ -15,11 +15,6 @@ use crate::{
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
-/// Label for the startup system that prepares skyboxes.
-///
-/// Enabled/Disabled via the "init" feature.
-pub const ATMOSPHERE_INIT: &str = "ATMOSPHERE_INIT";
-
 /// A [Plugin] that adds the prerequisites for a procedural sky.
 #[derive(Debug, Clone, Copy)]
 pub struct AtmospherePlugin;
@@ -49,11 +44,8 @@ impl Plugin for AtmospherePlugin {
             app.insert_resource(AtmosphereSkyBoxMaterial(material));
         }
 
-        #[cfg(feature = "init")]
-        app.add_startup_system_to_stage(
-            StartupStage::PostStartup,
-            atmosphere_init.label(ATMOSPHERE_INIT),
-        );
+        #[cfg(feature = "detection")]
+        app.add_system(atmosphere_add);
 
         app.add_system(atmosphere_cancel_rotation);
     }
@@ -75,15 +67,16 @@ pub struct AtmosphereCamera(pub Option<u8>);
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;
 
-#[cfg(feature = "init")]
-fn atmosphere_init(
+// Adds a skybox when a camera receives the `AtmosphereCamera` component
+#[cfg(feature = "detection")]
+fn atmosphere_add(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
     material: Res<AtmosphereSkyBoxMaterial>,
-    atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
+    atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera), Added<AtmosphereCamera>>,
 ) {
-    // Spawn atmosphere skyboxes
-    info!(
+    #[cfg(feature = "trace")]
+    trace!(
         "Found '{}' `AtmosphereCamera`s",
         atmosphere_cameras.iter().len()
     );

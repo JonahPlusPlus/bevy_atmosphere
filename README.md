@@ -1,3 +1,4 @@
+![bevy_atmosphere logo](/assets/logo.svg)
 # bevy_atmosphere
 [![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere) [![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/)
 

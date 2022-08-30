@@ -51,8 +51,6 @@ fn change(mut commands: Commands, resolution: u32) {
     // bevy_atmosphere offers the "trace" feature for when you debug in tracy
     let _change_resolution_executed_span =
         info_span!("executed", name = "settings::change_resolution").entered();
-    commands.insert_resource(AtmosphereSettings {
-        resolution
-    });
+    commands.insert_resource(AtmosphereSettings { resolution });
     info!("Changed resolution to {resolution}");
 }

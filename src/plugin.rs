@@ -67,7 +67,7 @@ pub struct AtmosphereCamera(pub Option<u8>);
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;
 
-// Adds a skybox when a camera receives the `AtmosphereCamera` component
+// Adds a skybox when the `AtmosphereCamera` component is added
 #[cfg(feature = "detection")]
 fn atmosphere_add(
     mut commands: Commands,
@@ -75,12 +75,6 @@ fn atmosphere_add(
     material: Res<AtmosphereSkyBoxMaterial>,
     atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera), Added<AtmosphereCamera>>,
 ) {
-    #[cfg(feature = "trace")]
-    trace!(
-        "Found '{}' `AtmosphereCamera`s",
-        atmosphere_cameras.iter().len()
-    );
-
     for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
         #[cfg(feature = "trace")]
         trace!("Adding skybox to camera entity (ID:{:?})", camera);

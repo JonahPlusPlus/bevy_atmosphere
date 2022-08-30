@@ -11,7 +11,6 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 
 [dependencies]
 bevy = { version = "0.8", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
-radsort = "0.1"
 
 [dev-dependencies]
 bevy_flycam = "~0.8.1"
@@ -22,6 +21,10 @@ default = ["detection", "dither"]
 detection = [] # enables camera detection (disable to add skyboxes manually)
 dither = [] # enables dithering (disable for banding)
 trace = ["bevy/trace_tracy"]
+
+[[example]]
+name = "atmosphere"
+path = "examples/atmosphere.rs"
 
 [[example]]
 name = "basic"

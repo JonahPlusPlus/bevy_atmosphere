@@ -33,3 +33,10 @@ fn setup(mut commands: Commands) {
 * The plugin will automatically create skyboxes for atmosphere cameras during the `ATMOSPHERE_INIT` startup stage, which can be disabled by turning off the "automatic" feature.
 * Created skyboxes now have the `AtmosphereSkyBox` component. Only skyboxes with the component and that have a parent with `AtmosphereCamera` will have their rotation corrected.
 * To change the resolution, you can add an `AtmosphereSettings` resource and set the `resolution` field (which should be a multiple of 8). This could be used as part of quality settings in games.
+
+### 0.4.1 Patch
+* Removed `ATMOSPHERE_INIT` stage and "init" feature.
+* Added new "detection" feature that checks for new `AtmosphereCamera` components each frame, instead of just at startup. (Removal detection will be added in a future release)
+* Removed unnecessary "radsort" dependency.
+* Made removing `Atmosphere` and `AtmosphereSettings` resources set back to default.
+* `settings` example now shows removing `AtmosphereSettings`.

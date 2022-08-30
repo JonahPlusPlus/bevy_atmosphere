@@ -165,6 +165,7 @@ fn atmosphere_settings_changed(
     mut image_assets: ResMut<Assets<Image>>,
     mut material_assets: ResMut<Assets<SkyBoxMaterial>>,
     mut atmosphere_image: ResMut<AtmosphereImage>,
+    mut settings_existed: Local<bool>,
     settings: Option<Res<AtmosphereSettings>>,
     material: Res<AtmosphereSkyBoxMaterial>,
 ) {
@@ -192,25 +193,66 @@ fn atmosphere_settings_changed(
                 trace!("Resized image to {:?}", size);
             }
         }
+        *settings_existed = true;
+    } else {
+        if *settings_existed {
+            #[cfg(feature = "trace")]
+            let _atmosphere_settings_changed_executed_span = info_span!(
+                "executed",
+                name = "bevy_atmosphere::pipeline::atmosphere_settings_changed"
+            )
+            .entered();
+            if let Some(image) = image_assets.get_mut(&atmosphere_image.handle) {
+                let resolution = AtmosphereSettings::default().resolution;
+                if resolution % 8 != 0 {
+                    warn!("Resolution is not a multiple of 8, issues may be encountered");
+                }
+                let size = Extent3d {
+                    width: resolution,
+                    height: resolution,
+                    depth_or_array_layers: 6,
+                };
+                image.resize(size);
+                let _ = material_assets.get_mut(&material.0); // `get_mut` tells the material to update
+                atmosphere_image.array_view = None; // drop the previous texture view
+                #[cfg(feature = "trace")]
+                trace!("Resized image to {:?}", size);
+            }
+        }
+        *settings_existed = false;
     }
 }
 
 fn extract_atmosphere_resources(
     main_atmosphere: Extract<Option<Res<Atmosphere>>>,
     mut render_atmosphere: ResMut<Atmosphere>,
+    mut atmosphere_existed: Local<bool>,
     main_settings: Extract<Option<Res<AtmosphereSettings>>>,
     mut render_settings: ResMut<AtmosphereSettings>,
+    mut settings_existed: Local<bool>,
 ) {
     if let Some(atmosphere) = &*main_atmosphere {
         if atmosphere.is_changed() {
             *render_atmosphere = Atmosphere::extract_resource(atmosphere);
         }
+        *atmosphere_existed = true;
+    } else {
+        if *atmosphere_existed {
+            *render_atmosphere = Atmosphere::extract_resource(&Atmosphere::default());
+        }
+        *atmosphere_existed = false;
     }
 
     if let Some(settings) = &*main_settings {
         if settings.is_changed() {
             *render_settings = AtmosphereSettings::extract_resource(settings);
         }
+        *settings_existed = true;
+    } else {
+        if *settings_existed {
+            *render_settings = AtmosphereSettings::extract_resource(&AtmosphereSettings::default());
+        }
+        *settings_existed = false;
     }
 }
 

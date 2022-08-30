@@ -1,5 +1,11 @@
 # examples
 
+## [atmosphere.rs](atmosphere.rs)
+
+![atmosphere example image](images/atmosphere-example.png)
+
+Demonstrates using `Atmosphere` to update the sky simulation. The above image is from preset 2.
+
 ## [basic.rs](basic.rs)
 
 ![basic example image](images/basic-example.png)

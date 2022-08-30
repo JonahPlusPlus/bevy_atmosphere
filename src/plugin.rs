@@ -62,7 +62,7 @@ impl Plugin for AtmospherePlugin {
 pub struct AtmosphereCamera(pub Option<u8>);
 
 /// Marker for skybox entities.
-/// 
+///
 /// Added for skybox generated when a [`AtmosphereCamera`] is detected by the "detection" feature.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;

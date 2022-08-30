@@ -1,4 +1,4 @@
-//! Provides the [Atmosphere] resource, a type that controls the appearance of the sky.
+//! Provides the [`Atmosphere`] resource, a type that controls the appearance of the sky.
 
 use bevy::{
     prelude::*,

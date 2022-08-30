@@ -1,4 +1,4 @@
-//! Provides [AtmosphereSettings] resource, a type that controls how the sky is rendered.
+//! Provides [`AtmosphereSettings`] resource, a type that controls how the sky is rendered.
 
 use bevy::render::extract_resource::ExtractResource;
 

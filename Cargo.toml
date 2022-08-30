@@ -1,27 +1,31 @@
 [package]
 name = "bevy_atmosphere"
 description = "A procedural sky plugin for bevy"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 authors = ["JonahPlusPlus <33059163+JonahPlusPlus@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/bevy_atmosphere"
 homepage = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
+exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
 bevy = { version = "0.8", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
-radsort = "0.1"
 
 [dev-dependencies]
 bevy_flycam = "~0.8.1"
 bevy = { version = "0.8", default-features = false, features = ["bevy_core_pipeline", "x11"] }
 
 [features]
-default = ["init", "dither"]
-init = [] # enables ATMOSPHERE_INIT
+default = ["detection", "dither"]
+detection = [] # enables camera detection (disable to add skyboxes manually)
 dither = [] # enables dithering (disable for banding)
 trace = ["bevy/trace_tracy"]
+
+[[example]]
+name = "atmosphere"
+path = "examples/atmosphere.rs"
 
 [[example]]
 name = "basic"

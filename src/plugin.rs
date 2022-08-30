@@ -1,4 +1,4 @@
-//! Provides a plugin for making skyboxes with procedural sky textures.
+//! Provides a [`Plugin`] for making skyboxes with procedural sky textures.
 
 use bevy::{
     asset::load_internal_asset,
@@ -15,12 +15,7 @@ use crate::{
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
-/// Label for the startup system that prepares skyboxes.
-///
-/// Enabled/Disabled via the "init" feature.
-pub const ATMOSPHERE_INIT: &str = "ATMOSPHERE_INIT";
-
-/// A [Plugin] that adds the prerequisites for a procedural sky.
+/// A [`Plugin`] that adds the prerequisites for a procedural sky.
 #[derive(Debug, Clone, Copy)]
 pub struct AtmospherePlugin;
 
@@ -49,45 +44,37 @@ impl Plugin for AtmospherePlugin {
             app.insert_resource(AtmosphereSkyBoxMaterial(material));
         }
 
-        #[cfg(feature = "init")]
-        app.add_startup_system_to_stage(
-            StartupStage::PostStartup,
-            atmosphere_init.label(ATMOSPHERE_INIT),
-        );
+        #[cfg(feature = "detection")]
+        app.add_system(atmosphere_insert);
 
         app.add_system(atmosphere_cancel_rotation);
     }
 }
 
-/// Marker for a [Camera] that receives a skybox.
+/// Marker for a [`Camera`] that receives a skybox.
 ///
-/// When added before the [ATMOSPHERE_INIT] stage, a skybox will be added.
-/// This behaviour can be disabled by turning off the "init" feature.
+/// When added, a skybox will be created as a child.
+/// This behaviour can be disabled by turning off the "detection" feature.
 ///
-/// `Some(u8)` specifies the [RenderLayers] for the skybox to be on.
-/// `None` doesn't add the [RenderLayers] component.
+/// `Some(u8)` specifies the [`RenderLayers`] for the skybox to be on.
+/// `None` doesn't add the [`RenderLayers`] component.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereCamera(pub Option<u8>);
 
 /// Marker for skybox entities.
 ///
-/// Automatically added to skyboxes generated in the [ATMOSPHERE_INIT] stage.
+/// Added for skybox generated when a [`AtmosphereCamera`] is detected by the "detection" feature.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;
 
-#[cfg(feature = "init")]
-fn atmosphere_init(
+/// Inserts a skybox when the [`AtmosphereCamera`] component is added.
+#[cfg(feature = "detection")]
+fn atmosphere_insert(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
     material: Res<AtmosphereSkyBoxMaterial>,
-    atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera)>,
+    atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera), Added<AtmosphereCamera>>,
 ) {
-    // Spawn atmosphere skyboxes
-    info!(
-        "Found '{}' `AtmosphereCamera`s",
-        atmosphere_cameras.iter().len()
-    );
-
     for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
         #[cfg(feature = "trace")]
         trace!("Adding skybox to camera entity (ID:{:?})", camera);
@@ -116,7 +103,7 @@ fn atmosphere_init(
     }
 }
 
-// Cancels the rotation of the camera
+/// Cancels the rotation of the camera.
 fn atmosphere_cancel_rotation(
     mut atmosphere_sky_boxes: Query<(&mut Transform, &Parent), With<AtmosphereSkyBox>>,
     atmosphere_cameras: Query<&GlobalTransform, With<AtmosphereCamera>>,

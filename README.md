@@ -1,9 +1,11 @@
-# bevy_atmosphere
-[![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere) [![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/)
+# [![bevy_atmosphere logo](/assets/logo.svg)](https://github.com/JonahPlusPlus/bevy_atmosphere)
+[![Crates.io](https://img.shields.io/crates/v/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere)
+[![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/JonahPlusPlus/bevy_atmosphere#license)
+[![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere)
+[![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/)
+[![Rust](https://github.com/bevyengine/bevy/workflows/CI/badge.svg)](https://github.com/bevyengine/bevy/actions)
 
-## A procedural sky plugin for the [Bevy game engine](https://bevyengine.org/).
-
-Uses Rayleigh and Mie scattering to simulate a realistic sky.
+A procedural sky plugin for the [Bevy game engine](https://bevyengine.org/).
 
 ## ["basic" Example](/examples/basic.rs)
 
@@ -26,6 +28,10 @@ fn setup(mut commands: Commands) {
 }
 ```
 
+## License
+
+bevy_atmosphere is dual-licensed under MIT and Apache-2.0! That means you can choose to use `bevy_atmosphere` under either for your project.
+
 ## 0.4 Change Log
 
 * To change the sky simulation parameters, you would add/update an `Atmosphere` resource with custom values.
@@ -33,3 +39,11 @@ fn setup(mut commands: Commands) {
 * The plugin will automatically create skyboxes for atmosphere cameras during the `ATMOSPHERE_INIT` startup stage, which can be disabled by turning off the "automatic" feature.
 * Created skyboxes now have the `AtmosphereSkyBox` component. Only skyboxes with the component and that have a parent with `AtmosphereCamera` will have their rotation corrected.
 * To change the resolution, you can add an `AtmosphereSettings` resource and set the `resolution` field (which should be a multiple of 8). This could be used as part of quality settings in games.
+
+### 0.4.1 Patch
+* Removed `ATMOSPHERE_INIT` stage and "init" feature.
+* Added new "detection" feature that checks for new `AtmosphereCamera` components each frame, instead of just at startup. (Removal detection will be added in a future release)
+* Removed unnecessary "radsort" dependency.
+* Made removing `Atmosphere` and `AtmosphereSettings` resources set back to default.
+* `settings` example now shows removing `AtmosphereSettings`.
+* Added files to `package.exclude` of `Cargo.toml`, in order to reduce package size.

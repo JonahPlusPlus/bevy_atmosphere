@@ -23,7 +23,7 @@
 //! }
 //! ```
 //!
-//! To change the sky's appearance, use the [Atmosphere](crate::resource::Atmosphere) resource.
+//! To change the sky's appearance, use the [`Atmosphere`](crate::resource::Atmosphere) resource.
 //! ```no_run
 //! # use bevy::utils::default;
 //! # use bevy::math::Vec3;
@@ -37,7 +37,7 @@
 //! # ;
 //! ```
 //!
-//! Use the [AtmosphereSettings](crate::settings::AtmosphereSettings) resource to change how the sky is rendered.
+//! Use the [`AtmosphereSettings`](crate::settings::AtmosphereSettings) resource to change how the sky is rendered.
 //! ```no_run
 //! # use bevy_atmosphere::settings::AtmosphereSettings;
 //! # let _ =

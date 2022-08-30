@@ -7,6 +7,13 @@
 
 A procedural sky plugin for the [Bevy game engine](https://bevyengine.org/).
 
+### 🚧 Warning: Under Development 🚧
+
+v0.4 breaks compatibility with WebGL by using a compute shader.
+WebGPU should resolve this when shipped.
+
+If you need to test a web build, you can try enabling your browser's respective experiment flag for WebGPU.
+
 ## ["basic" Example](/examples/basic.rs)
 
 ```rust

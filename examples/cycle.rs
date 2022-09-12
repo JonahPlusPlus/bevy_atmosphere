@@ -34,14 +34,11 @@ fn daylight_cycle(
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let mut pos = atmosphere.sun_position;
         let t = time.time_since_startup().as_millis() as f32 / 2000.0;
-        pos.y = t.sin();
-        pos.z = t.cos();
-        atmosphere.sun_position = pos;
+        atmosphere.sun_position = Vec3::new(0., t.sin(), t.cos());
 
         if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
-            light_trans.rotation = Quat::from_rotation_x(-pos.y.atan2(pos.z));
+            light_trans.rotation = Quat::from_rotation_x(-t.sin().atan2(t.cos()));
             directional.illuminance = t.sin().max(0.0).powf(2.0) * 100000.0;
         }
     }

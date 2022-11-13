@@ -14,7 +14,7 @@ exclude = ["/assets/", "/examples/", "/.github/"]
 bevy = { version = "0.9", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
 
 [dev-dependencies]
-bevy_flycam = { git = "https://github.com/BlackPhlox/bevy_flycam", branch = "0.9"} # Use this temporarily until merged into https://github.com/sburris0/bevy_flycam
+bevy_flycam = "0.9"
 bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
 
 [features]

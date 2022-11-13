@@ -12,10 +12,11 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn_bundle(Camera3dBundle::default())
-        .insert(AtmosphereCamera(None))
-        .insert(bevy_flycam::FlyCam);
+    commands.spawn((
+        Camera3dBundle::default(),
+        AtmosphereCamera(None),
+        bevy_flycam::FlyCam,
+    ));
 }
 
 fn change_atmosphere(mut commands: Commands, keys: Res<Input<KeyCode>>) {

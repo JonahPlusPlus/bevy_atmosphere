@@ -80,21 +80,21 @@ fn atmosphere_insert(
         trace!("Adding skybox to camera entity (ID:{:?})", camera);
         commands
             .entity(camera)
-            .insert_bundle(VisibilityBundle {
+            .insert(VisibilityBundle {
                 visibility: Visibility { is_visible: true },
                 ..default()
             })
             .with_children(|c| {
-                let mut child = c.spawn_bundle(MaterialMeshBundle {
-                    mesh: mesh_assets.add(crate::skybox::mesh(projection.far())),
-                    material: material.0.clone(),
-                    ..default()
-                });
-
-                child
-                    .insert(AtmosphereSkyBox)
-                    .insert(NotShadowCaster)
-                    .insert(NotShadowReceiver);
+                let mut child = c.spawn((
+                    MaterialMeshBundle {
+                        mesh: mesh_assets.add(crate::skybox::mesh(projection.far())),
+                        material: material.0.clone(),
+                        ..default()
+                    },
+                    AtmosphereSkyBox,
+                    NotShadowCaster,
+                    NotShadowReceiver,
+                ));
 
                 if let AtmosphereCamera(Some(render_layer)) = atmosphere_camera {
                     child.insert(RenderLayers::layer(*render_layer));

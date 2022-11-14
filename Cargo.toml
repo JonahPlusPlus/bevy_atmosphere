@@ -11,11 +11,11 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
-bevy = { version = "0.8", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
+bevy = { version = "0.9", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
 
 [dev-dependencies]
 bevy_flycam = "~0.8.1"
-bevy = { version = "0.8", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
+bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
 
 [features]
 default = ["detection", "dither"]

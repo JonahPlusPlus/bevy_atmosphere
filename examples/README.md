@@ -4,7 +4,7 @@
 
 ![atmosphere example image](images/atmosphere-example.png)
 
-Demonstrates using `Atmosphere` to update the sky simulation. The above image is from preset 2.
+Demonstrates using `Atmosphere` to update the sky simulation. Use the number keys to switch presets. (The above is Preset 2)
 
 ## [basic.rs](basic.rs)
 
@@ -18,6 +18,12 @@ The most simple usage of bevy_atmosphere. It uses the default `Atmosphere`, whic
 
 A daylight cycle in the default `ATmosphere`, updating every 50ms.
 
+## [detection.rs](detection.rs)
+
+![detection example image](images/detection-example.gif)
+
+Demonstrates adding and removing the skybox with the `detection` feature. Use `LMouse` to add and `RMouse` to remove.
+
 ## [splitscreen.rs](splitscreen.rs)
 
 ![splitscreen example image](images/splitscreen-example.png)
@@ -28,4 +34,4 @@ A split-screen application, demonstrating the flexibility for local multiplayer 
 
 ![settings example image](images/settings-example.png)
 
-Demonstrates using `AtmosphereSettings` to update the resolution on the fly, similar to how an in-game quality settings menu could operate.
+Demonstrates using `AtmosphereSettings` to update the resolution on the fly, similar to how an in-game quality settings menu could operate. Use the number keys to switch presets.

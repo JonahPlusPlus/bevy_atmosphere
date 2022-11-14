@@ -34,8 +34,8 @@ fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, 
     p.y = min(p.y, rsi(r, r0, r_planet).x);
     let i_step_size = (p.y - p.x) / f32(ISTEPS);
 
-    // Initialize the primary ray time.
-    var i_time = 0.0;
+    // Initialize the primary ray depth.
+    var i_depth = 0.0;
 
     // Initialize accumulators for Rayleigh and Mie scattering.
     var total_rlh = vec3<f32>(0f, 0f, 0f);
@@ -55,7 +55,7 @@ fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, 
     // Sample the primary ray.
     for (var i = 0u; i < ISTEPS; i++) {
         // Calculate the primary ray sample position.
-        let i_pos = r0 + r * (i_time + i_step_size * 0.5);
+        let i_pos = r0 + r * (i_depth + i_step_size * 0.5);
 
         // Calculate the height of the sample.
         let i_height = length(i_pos) - r_planet;
@@ -71,8 +71,8 @@ fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, 
         // Calculate the step size of the secondary ray.
         let j_step_size = rsi(p_sun, i_pos, r_atmos).y / f32(JSTEPS);
 
-        // Initialize the secondary ray time.
-        var j_time = 0f;
+        // Initialize the secondary ray depth.
+        var j_depth = 0f;
 
         // Initialize optical depth accumulators for the secondary ray.
         var j_od_rlh = 0f;
@@ -82,7 +82,7 @@ fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, 
         for (var j = 0u; j < JSTEPS; j++) {
 
             // Calculate the secondary ray sample position.
-            let j_pos = i_pos + p_sun * (j_time + j_step_size * 0.5);
+            let j_pos = i_pos + p_sun * (j_depth + j_step_size * 0.5);
 
             // Calculate the height of the sample.
             let j_height = length(j_pos) - r_planet;
@@ -91,8 +91,8 @@ fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, 
             j_od_rlh += exp(-j_height / sh_rlh) * j_step_size;
             j_od_mie += exp(-j_height / sh_mie) * j_step_size;
 
-            // Increment the secondary ray time.
-            j_time += j_step_size;
+            // Increment the secondary ray depth.
+            j_depth += j_step_size;
         }
 
         // Calculate attenuation.
@@ -102,8 +102,8 @@ fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, 
         total_rlh += od_step_rlh * attn;
         total_mie += od_step_mie * attn;
 
-        // Increment the primary ray time.
-        i_time += i_step_size;
+        // Increment the primary ray depth.
+        i_depth += i_step_size;
     }
 
     // Calculate and return the final color.

@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
+use bevy_spectator::*;
 
 fn main() {
     App::new()
         .insert_resource(AtmosphereSettings { resolution: 16 })
         .add_plugins(DefaultPlugins)
         .add_plugin(AtmospherePlugin)
-        .add_plugin(bevy_flycam::NoCameraPlayerPlugin)
+        .add_plugin(SpectatorPlugin)
         .add_startup_system(setup)
         .add_system(change_resolution)
         .run();
@@ -14,9 +15,11 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     commands
-        .spawn_bundle(Camera3dBundle::default())
-        .insert(AtmosphereCamera(None))
-        .insert(bevy_flycam::FlyCam);
+        .spawn((
+            Camera3dBundle::default(),
+            AtmosphereCamera(None),
+            Spectator
+        ));
 }
 
 // Change the resolution when the user presses a number key

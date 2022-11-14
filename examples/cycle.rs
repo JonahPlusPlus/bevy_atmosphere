@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
+use bevy_spectator::*;
 
 fn main() {
     App::new()
@@ -7,10 +8,10 @@ fn main() {
         .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
             bevy::utils::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
-            true,
+            TimerMode::Repeating,
         )))
         .add_plugins(DefaultPlugins)
-        .add_plugin(bevy_flycam::NoCameraPlayerPlugin) // Simple movement for this example
+        .add_plugin(SpectatorPlugin) // Simple movement for this example
         .add_plugin(AtmospherePlugin) // Default AtmospherePlugin
         .add_startup_system(setup_environment)
         .add_system(daylight_cycle)
@@ -22,6 +23,7 @@ fn main() {
 struct Sun;
 
 // Timer for updating the daylight cycle (updating the atmosphere every frame is slow, so it's better to do incremental changes)
+#[derive(Resource)]
 struct CycleTimer(Timer);
 
 // We can edit the Atmosphere resource and it will be updated automatically
@@ -34,7 +36,7 @@ fn daylight_cycle(
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let t = time.time_since_startup().as_millis() as f32 / 2000.0;
+        let t = time.elapsed_seconds_wrapped() as f32 / 2.0;
         atmosphere.sun_position = Vec3::new(0., t.sin(), t.cos());
 
         if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
@@ -52,20 +54,22 @@ fn setup_environment(
 ) {
     // Our Sun
     commands
-        .spawn_bundle(DirectionalLightBundle {
-            ..Default::default()
-        })
-        .insert(Sun); // Marks the light as Sun
+        .spawn((
+            DirectionalLightBundle {
+                ..Default::default()
+            },
+            Sun // Marks the light as Sun
+        ));
 
     // Simple transform shape just for reference
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
         material: materials.add(StandardMaterial::from(Color::rgb(0.8, 0.8, 0.8))),
         ..Default::default()
     });
 
     // X axis
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
         material: materials.add(StandardMaterial::from(Color::rgb(0.8, 0.0, 0.0))),
         transform: Transform::from_xyz(1., 0., 0.),
@@ -73,7 +77,7 @@ fn setup_environment(
     });
 
     // Y axis
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
         material: materials.add(StandardMaterial::from(Color::rgb(0.0, 0.8, 0.0))),
         transform: Transform::from_xyz(0., 1., 0.),
@@ -81,7 +85,7 @@ fn setup_environment(
     });
 
     // Z axis
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
         material: materials.add(StandardMaterial::from(Color::rgb(0.0, 0.0, 0.8))),
         transform: Transform::from_xyz(0., 0., 1.),
@@ -90,11 +94,13 @@ fn setup_environment(
 
     // Spawn our camera
     commands
-        .spawn_bundle(Camera3dBundle {
-            transform: Transform::from_xyz(5., 0., 5.),
-            ..default()
-        })
-        .insert(AtmosphereCamera(None)) // Marks camera as having an atmosphere that isn't on a specific render layer
-        // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
-        .insert(bevy_flycam::FlyCam); // Marks camera as flycam (specific to bevy_flycam)
+        .spawn((
+            Camera3dBundle {
+                transform: Transform::from_xyz(5., 0., 5.),
+                ..default()
+            },
+            AtmosphereCamera(None),// Marks camera as having an atmosphere that isn't on a specific render layer
+            // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
+            Spectator// Marks camera as spectator (specific to bevy_spectator)
+        ));
 }

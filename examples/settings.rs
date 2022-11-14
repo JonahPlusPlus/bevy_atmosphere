@@ -50,8 +50,8 @@ fn change_resolution(mut commands: Commands, keys: Res<Input<KeyCode>>) {
 
 // A separate `change` fn makes it easier to debug in tracy.
 fn change(mut commands: Commands, resolution: u32) {
-    #[cfg(feature = "trace")]
-    // bevy_atmosphere offers the "trace" feature for when you debug in tracy
+    #[cfg(feature = "bevy/trace")]
+    // enabling "bevy/trace" (via "bevy/trace_chrome" or "bevy/trace_tracy") allows you to debug bevy_atmosphere
     let _change_resolution_executed_span =
         info_span!("executed", name = "settings::change_resolution").entered();
     commands.insert_resource(AtmosphereSettings { resolution });

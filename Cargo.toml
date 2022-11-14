@@ -22,7 +22,6 @@ default = ["detection", "dither", "procedural"]
 detection = [] # enables camera detection (disable to add skyboxes manually)
 dither = [] # enables dithering (disable for banding)
 procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
-trace = ["bevy/trace_tracy"]
 
 [[example]]
 name = "atmosphere"
@@ -35,6 +34,10 @@ path = "examples/basic.rs"
 [[example]]
 name = "cycle"
 path = "examples/cycle.rs"
+
+[[example]]
+name = "detection"
+path = "examples/detection.rs"
 
 [[example]]
 name = "settings"

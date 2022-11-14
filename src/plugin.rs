@@ -31,9 +31,9 @@ impl Plugin for AtmospherePlugin {
         app.add_plugin(MaterialPlugin::<SkyBoxMaterial>::default());
 
         #[cfg(feature = "procedural")]
-        app.add_plugin(AtmospherePipelinePlugin);
-
         {
+            app.add_plugin(AtmospherePipelinePlugin);
+
             let image_handle = {
                 let image = app.world.resource::<AtmosphereImage>();
                 image.handle.clone()
@@ -46,7 +46,14 @@ impl Plugin for AtmospherePlugin {
         }
 
         #[cfg(feature = "detection")]
-        app.add_system(atmosphere_insert);
+        {
+            app.add_system_set_to_stage(
+                CoreStage::PostUpdate,
+                SystemSet::new()
+                    .with_system(atmosphere_insert)
+                    .with_system(atmosphere_remove)
+            );
+        }
 
         app.add_system(atmosphere_cancel_rotation);
     }
@@ -77,7 +84,7 @@ fn atmosphere_insert(
     atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera), Added<AtmosphereCamera>>,
 ) {
     for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
-        #[cfg(feature = "trace")]
+        #[cfg(feature = "bevy/trace")]
         trace!("Adding skybox to camera entity (ID:{:?})", camera);
         commands
             .entity(camera)
@@ -101,6 +108,34 @@ fn atmosphere_insert(
                     child.insert(RenderLayers::layer(*render_layer));
                 }
             });
+    }
+}
+
+/// Removes the skybox when the [`AtmosphereCamera`] component is removed.
+#[cfg(feature = "detection")]
+fn atmosphere_remove(
+    mut commands: Commands,
+    parents: Query<&Children>,
+    atmosphere_skyboxes: Query<Entity, With<AtmosphereSkyBox>>,
+    atmosphere_cameras: RemovedComponents<AtmosphereCamera>,
+) {
+    for camera in &atmosphere_cameras {
+        #[cfg(feature = "bevy/trace")]
+        trace!("Removing skybox from camera entity (ID:{:?})", camera);
+        let Ok(children) = parents.get(camera) else {
+            error!("Failed to get skybox children entities from camera entity.");
+            continue;
+        };
+
+        for child in children {
+            let Ok(skybox_entity) = atmosphere_skyboxes.get(*child) else {
+                #[cfg(feature = "bevy/trace")]
+                trace!("Child wasn't found in skybox entities.");
+                continue;
+            };
+
+            commands.entity(skybox_entity).despawn();
+        }
     }
 }
 

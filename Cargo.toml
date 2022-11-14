@@ -18,9 +18,8 @@ bevy_spectator = "0.1"
 bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
 
 [features]
-default = ["detection", "dither", "procedural"]
+default = ["detection", "procedural"]
 detection = [] # enables camera detection (disable to add skyboxes manually)
-dither = [] # enables dithering (disable for banding)
 procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
 
 [[example]]

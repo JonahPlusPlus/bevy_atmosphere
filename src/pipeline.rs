@@ -412,10 +412,7 @@ impl FromWorld for AtmospherePipeline {
                 associated_bind_group_layout.clone(),
             ]),
             shader,
-            shader_defs: vec![
-                #[cfg(feature = "dither")]
-                String::from("DITHER"),
-            ],
+            shader_defs: vec![],
             entry_point: Cow::from("main"),
         });
 

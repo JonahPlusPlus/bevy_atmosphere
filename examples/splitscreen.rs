@@ -51,38 +51,36 @@ fn setup(
     });
 
     // spawn left screen camera
-    commands
-        .spawn((
-            Camera3dBundle {
-                transform: Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
-                ..default()
-            },
-            RenderLayers::from_layers(&[0, 1]), // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
-            AtmosphereCamera(Some(1)),
-            LeftCamera
-        ));
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
+            ..default()
+        },
+        RenderLayers::from_layers(&[0, 1]), // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
+        AtmosphereCamera(Some(1)),
+        LeftCamera,
+    ));
 
     // spawn right screen camera
-    commands
-        .spawn((
-            Camera3dBundle {
-                transform: Transform::from_xyz(100.0, 50.0, 150.0).looking_at(Vec3::ZERO, Vec3::Y),
-                camera: Camera {
-                    // Renders the right camera after the left camera, which has a default priority of 0
-                    priority: 1,
-                    ..default()
-                },
-                camera_3d: Camera3d {
-                    // dont clear on the second camera because the first camera already cleared the window
-                    clear_color: ClearColorConfig::None,
-                    ..default()
-                },
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(100.0, 50.0, 150.0).looking_at(Vec3::ZERO, Vec3::Y),
+            camera: Camera {
+                // Renders the right camera after the left camera, which has a default priority of 0
+                priority: 1,
                 ..default()
             },
-            RenderLayers::from_layers(&[0, 2]),
-            AtmosphereCamera(Some(2)),
-            RightCamera
-        ));
+            camera_3d: Camera3d {
+                // dont clear on the second camera because the first camera already cleared the window
+                clear_color: ClearColorConfig::None,
+                ..default()
+            },
+            ..default()
+        },
+        RenderLayers::from_layers(&[0, 2]),
+        AtmosphereCamera(Some(2)),
+        RightCamera,
+    ));
 }
 
 #[derive(Component)]

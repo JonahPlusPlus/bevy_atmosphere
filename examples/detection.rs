@@ -14,11 +14,7 @@ fn main() {
 struct PrimaryCamera;
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn((
-            Camera3dBundle::default(),
-            PrimaryCamera,
-        ));
+    commands.spawn((Camera3dBundle::default(), PrimaryCamera));
 }
 
 fn update(
@@ -32,7 +28,9 @@ fn update(
     };
 
     if mouse.just_pressed(MouseButton::Left) {
-        commands.entity(primary_camera).insert(AtmosphereCamera(None));
+        commands
+            .entity(primary_camera)
+            .insert(AtmosphereCamera(None));
         info!("Added `AtmosphereCamera`!");
     } else if mouse.just_pressed(MouseButton::Right) {
         commands.entity(primary_camera).remove::<AtmosphereCamera>();

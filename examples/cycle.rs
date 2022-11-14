@@ -53,13 +53,12 @@ fn setup_environment(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // Our Sun
-    commands
-        .spawn((
-            DirectionalLightBundle {
-                ..Default::default()
-            },
-            Sun // Marks the light as Sun
-        ));
+    commands.spawn((
+        DirectionalLightBundle {
+            ..Default::default()
+        },
+        Sun, // Marks the light as Sun
+    ));
 
     // Simple transform shape just for reference
     commands.spawn(PbrBundle {
@@ -93,14 +92,13 @@ fn setup_environment(
     });
 
     // Spawn our camera
-    commands
-        .spawn((
-            Camera3dBundle {
-                transform: Transform::from_xyz(5., 0., 5.),
-                ..default()
-            },
-            AtmosphereCamera(None),// Marks camera as having an atmosphere that isn't on a specific render layer
-            // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
-            Spectator// Marks camera as spectator (specific to bevy_spectator)
-        ));
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(5., 0., 5.),
+            ..default()
+        },
+        AtmosphereCamera(None), // Marks camera as having an atmosphere that isn't on a specific render layer
+        // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
+        Spectator, // Marks camera as spectator (specific to bevy_spectator)
+    ));
 }

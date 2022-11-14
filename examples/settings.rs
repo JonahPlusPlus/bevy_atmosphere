@@ -14,12 +14,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn((
-            Camera3dBundle::default(),
-            AtmosphereCamera(None),
-            Spectator
-        ));
+    commands.spawn((Camera3dBundle::default(), AtmosphereCamera(None), Spectator));
 }
 
 // Change the resolution when the user presses a number key

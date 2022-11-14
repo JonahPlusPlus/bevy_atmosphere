@@ -51,7 +51,7 @@ impl Plugin for AtmospherePlugin {
                 CoreStage::PostUpdate,
                 SystemSet::new()
                     .with_system(atmosphere_insert)
-                    .with_system(atmosphere_remove)
+                    .with_system(atmosphere_remove),
             );
         }
 
@@ -101,7 +101,7 @@ fn atmosphere_insert(
                     },
                     AtmosphereSkyBox,
                     NotShadowCaster,
-                    NotShadowReceiver
+                    NotShadowReceiver,
                 ));
 
                 if let AtmosphereCamera(Some(render_layer)) = atmosphere_camera {

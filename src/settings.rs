@@ -1,6 +1,6 @@
 //! Provides [`AtmosphereSettings`] resource, a type that controls how the sky is rendered.
 
-use bevy::{render::extract_resource::ExtractResource, prelude::Resource};
+use bevy::{prelude::Resource, render::extract_resource::ExtractResource};
 
 /// Provides settings for how the sky is rendered.
 #[derive(Resource, ExtractResource, Debug, Clone, Copy)]

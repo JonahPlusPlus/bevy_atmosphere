@@ -13,11 +13,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((
-        Camera3dBundle::default(),
-        AtmosphereCamera(None),
-        Spectator
-    ));
+    commands.spawn((Camera3dBundle::default(), AtmosphereCamera(None), Spectator));
 }
 
 fn change_atmosphere(mut commands: Commands, keys: Res<Input<KeyCode>>) {

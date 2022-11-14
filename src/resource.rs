@@ -17,7 +17,7 @@ use bevy::{
 ///
 /// Mie scattering is caused by light passing through particles of similar size to the wavelength.
 /// It is the cause for the sky getting lighter toward the horizon.
-#[derive(AsBindGroup, ShaderType, ExtractResource, Debug, Clone, Copy)]
+#[derive(AsBindGroup, ShaderType, Resource, ExtractResource, Debug, Clone, Copy)]
 #[uniform(0, Atmosphere)]
 pub struct Atmosphere {
     /// Ray Origin (Default: `(0.0, 6372e3, 0.0)`).

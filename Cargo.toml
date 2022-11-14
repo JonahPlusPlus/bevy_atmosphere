@@ -11,16 +11,17 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
-bevy = { version = "0.8", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
+bevy = { version = "0.9", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
 
 [dev-dependencies]
-bevy_flycam = "~0.8.1"
-bevy = { version = "0.8", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
+bevy_spectator = "0.1"
+bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
 
 [features]
-default = ["detection", "dither"]
+default = ["detection", "dither", "procedural"]
 detection = [] # enables camera detection (disable to add skyboxes manually)
 dither = [] # enables dithering (disable for banding)
+procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
 trace = ["bevy/trace_tracy"]
 
 [[example]]

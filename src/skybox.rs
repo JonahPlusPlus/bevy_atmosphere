@@ -11,6 +11,7 @@ use bevy::{
 };
 
 /// A [`Handle`] to the created [`SkyBoxMaterial`].
+#[derive(Resource)]
 pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
 /// [`Handle`] for shader for the [`SkyBoxMaterial`].

@@ -12,36 +12,52 @@ exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
 bevy = { version = "0.9", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
+bevy_atmosphere_macros = { path = "bevy_atmosphere_macros", version = "0.1" }
+cfg-if = "1.0"
 
 [dev-dependencies]
 bevy_spectator = "0.1"
 bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
 
 [features]
-default = ["detection", "procedural"]
+default = ["basic", "nishita"]
+basic = ["detection", "procedural"] # a convenient way to enable basic features
 detection = [] # enables camera detection (disable to add skyboxes manually)
 procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
+# models
+nishita = [] # enables the nishita model
 
 [[example]]
 name = "atmosphere"
 path = "examples/atmosphere.rs"
+required-features = ["default"]
 
 [[example]]
 name = "basic"
 path = "examples/basic.rs"
+required-features = ["default"]
 
 [[example]]
 name = "cycle"
 path = "examples/cycle.rs"
+required-features = ["default"]
 
 [[example]]
 name = "detection"
 path = "examples/detection.rs"
+required-features = ["default"]
 
 [[example]]
 name = "settings"
 path = "examples/settings.rs"
+required-features = ["default"]
 
 [[example]]
 name = "splitscreen"
 path = "examples/splitscreen.rs"
+required-features = ["default"]
+
+[[example]]
+name = "substantive"
+path = "examples/substantive.rs"
+required-features = ["detection"]

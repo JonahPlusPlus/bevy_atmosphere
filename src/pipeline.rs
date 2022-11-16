@@ -13,7 +13,7 @@ use bevy::{
         render_asset::{PrepareAssetLabel, RenderAssets},
         render_graph::{self, RenderGraph},
         render_resource::{
-            AsBindGroup, BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
+            BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
             BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
             CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
             ComputePipelineDescriptor, Extent3d, PipelineCache, ShaderStages, StorageTextureAccess,
@@ -102,7 +102,7 @@ impl Plugin for AtmospherePipelinePlugin {
         };
 
         let atmosphere = match app.world.get_resource::<Atmosphere>() {
-            Some(s) => *s,
+            Some(a) => a.clone(),
             None => default(),
         };
 
@@ -135,9 +135,9 @@ impl Plugin for AtmospherePipelinePlugin {
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app
-            .init_resource::<AtmospherePipeline>()
             .insert_resource(atmosphere)
             .insert_resource(settings)
+            .init_resource::<AtmospherePipeline>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
             .add_system_to_stage(
@@ -270,7 +270,7 @@ pub const ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = Textu
 };
 
 /// For creating a [`TextureView`] with [`TextureViewDimension::D2Array`].
-const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = TextureViewDescriptor {
+pub const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = TextureViewDescriptor {
     label: Some("atmosphere_image_cube_view"),
     format: Some(TextureFormat::Rgba16Float),
     dimension: Some(TextureViewDimension::D2Array),
@@ -282,7 +282,7 @@ const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = TextureV
 };
 
 /// For creating a [`Texture`](bevy::render::render_resource::Texture) with 6 layers.
-const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'static> =
+pub const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'static> =
     |res| TextureDescriptor {
         label: Some("atmosphere_image_texture"),
         size: Extent3d {
@@ -344,7 +344,7 @@ fn queue_atmosphere_bind_group(
     let view = atmosphere_image.array_view.as_ref().expect("prepare_changed_settings should have took care of making AtmosphereImage.array_value Some(TextureView)");
 
     let atmosphere = match atmosphere {
-        Some(a) => *a,
+        Some(a) => a.clone(),
         None => default(),
     };
 
@@ -357,8 +357,7 @@ fn queue_atmosphere_bind_group(
         )
         .unwrap_or_else(|_| {
             panic!("Failed to get as bind group");
-        })
-        .bind_group;
+        });
 
     let associated_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
         label: Some("bevy_atmosphere_associated_bind_group"),
@@ -384,9 +383,10 @@ struct AtmospherePipeline {
 
 impl FromWorld for AtmospherePipeline {
     fn from_world(world: &mut World) -> Self {
+        let atmosphere = world.resource::<Atmosphere>();
         let render_device = world.resource::<RenderDevice>();
 
-        let atmosphere_bind_group_layout = Atmosphere::bind_group_layout(render_device);
+        let atmosphere_bind_group_layout = atmosphere.bind_group_layout(render_device);
         let associated_bind_group_layout =
             render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                 label: Some("bevy_atmosphere_associated_bind_group_layout"),

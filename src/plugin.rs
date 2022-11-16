@@ -31,17 +31,18 @@ impl Plugin for AtmospherePlugin {
         app.add_plugin(MaterialPlugin::<SkyBoxMaterial>::default());
 
         #[cfg(feature = "procedural")]
-        {
-            app.add_plugin(AtmospherePipelinePlugin);
+        app.add_plugin(AtmospherePipelinePlugin);
 
+        {
             let image_handle = {
-                let image = app.world.resource::<AtmosphereImage>();
+                let image = app.world.get_resource::<AtmosphereImage>().expect("`AtmosphereImage` missing! If the `procedural` feature is disabled, add the resource before `AtmospherePlugin`");
                 image.handle.clone()
             };
             let mut material_assets = app.world.resource_mut::<Assets<SkyBoxMaterial>>();
             let material = material_assets.add(SkyBoxMaterial {
                 sky_texture: image_handle,
             });
+            
             app.insert_resource(AtmosphereSkyBoxMaterial(material));
         }
 

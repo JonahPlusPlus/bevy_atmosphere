@@ -494,9 +494,9 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
                 };
 
                 let type_registry = app.world.resource_mut::<#app_path::AppTypeRegistry>();
-                let type_registry = type_registry.write();
+                let mut type_registry = type_registry.write();
 
-                let mut registration = Self::get_type_registration();
+                let mut registration = <Self as #reflect_path::GetTypeRegistration>::get_type_registration();
                 registration.insert(data);
                 type_registry.add_registration(registration);
             }

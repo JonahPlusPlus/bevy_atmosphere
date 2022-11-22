@@ -29,9 +29,6 @@ impl Plugin for AtmospherePlugin {
             Shader::from_wgsl
         );
 
-        #[cfg(feature = "nishita")]
-        app.add_atmosphere_model::<crate::model::nishita::Nishita>();
-
         app.add_plugin(MaterialPlugin::<SkyBoxMaterial>::default());
 
         #[cfg(feature = "procedural")]
@@ -61,6 +58,9 @@ impl Plugin for AtmospherePlugin {
         }
 
         app.add_system(atmosphere_cancel_rotation);
+
+        #[cfg(feature = "nishita")]
+        app.add_atmosphere_model::<crate::model::nishita::Nishita>();
     }
 }
 

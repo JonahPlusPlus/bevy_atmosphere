@@ -133,12 +133,16 @@ impl Plugin for AtmospherePipelinePlugin {
 
         app.add_system(atmosphere_settings_changed);
 
+
+        let type_registry = app.world.resource::<AppTypeRegistry>();
+        let pipeline = AtmospherePipeline::new(&atmosphere, type_registry).expect("Failed to create pipeline");
+
         let render_app = app.sub_app_mut(RenderApp);
         render_app
             .insert_resource(atmosphere)
             .insert_resource(settings)
+            .insert_resource(pipeline)
             .init_resource::<AtmosphereImageBindGroupLayout>()
-            .init_resource::<AtmospherePipeline>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
             .add_system_to_stage(
@@ -372,8 +376,6 @@ fn queue_atmosphere_bind_group(
     ));
 }
 
-type AtmospherePipelineSystemState<'a> = (Res<'a, AppTypeRegistry>, Res<'a, Atmosphere>);
-
 #[derive(Resource)]
 struct AtmospherePipeline {
     atmosphere_bind_group_layout: BindGroupLayout,
@@ -381,8 +383,7 @@ struct AtmospherePipeline {
 }
 
 impl AtmospherePipeline {
-    fn new<'a>(state: AtmospherePipelineSystemState<'a>) -> Option<Self> {
-        let (type_registry, atmosphere) = state;
+    fn new(atmosphere: &Atmosphere,type_registry: &AppTypeRegistry) -> Option<Self> {
         let model = atmosphere.model();
         let binding = type_registry.read();
         let type_data = binding.get_type_data::<AtmosphereModelMetadata>(model.type_id())?;
@@ -391,16 +392,6 @@ impl AtmospherePipeline {
             atmosphere_bind_group_layout: type_data.bind_group_layout.clone(),
             update_pipeline: type_data.pipeline,
         })
-    }
-}
-
-impl FromWorld for AtmospherePipeline {
-    fn from_world(world: &mut World) -> Self {
-        let mut state: SystemState<AtmospherePipelineSystemState> = SystemState::new(world);
-
-        let state = state.get_mut(world);
-
-        Self::new(state).expect("Failed to create `AtmospherePipeline`")
     }
 }
 

@@ -46,12 +46,6 @@ pub struct AtmosphereModelMetadata {
     pub pipeline: CachedComputePipelineId,
 }
 
-impl TypeData for AtmosphereModelMetadata {
-    fn clone_type_data(&self) -> Box<dyn TypeData> {
-        Box::new(self.clone())
-    }
-}
-
 pub trait RegisterAtmosphereModel: GetTypeRegistration {
     fn id() -> u64;
 

@@ -12,10 +12,10 @@ use bevy_atmosphere::prelude::*;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
-        .insert_resource(Atmosphere {
+        .insert_resource(Atmosphere::new(Nishita {
             rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6), // Change rayleigh coefficient to change color
             ..default()
-        })
+        }))
         .add_plugins(DefaultPlugins)
         .add_plugin(AtmospherePlugin)
         .add_startup_system(setup)

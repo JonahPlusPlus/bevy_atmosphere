@@ -14,7 +14,7 @@ pub(crate) fn bevy_atmosphere_path() -> syn::Path {
     }
 }
 
-#[proc_macro_derive(AtmosphereModel)]
+#[proc_macro_derive(AtmosphereModel, attributes(external, internal, uniform, texture, sampler))]
 pub fn derive_atmosphere_model(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 

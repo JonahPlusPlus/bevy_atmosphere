@@ -1,4 +1,16 @@
-#define_import_path bevy_atmosphere::math
+
+struct Atmosphere {
+    ray_origin: vec3<f32>,
+    sun_position: vec3<f32>,
+    sun_intensity: f32,
+    planet_radius: f32,
+    atmosphere_radius: f32,
+    rayleigh_coefficient: vec3<f32>,
+    rayleigh_scale_height: f32,
+    mie_coefficient: f32,
+    mie_scale_height: f32,
+    mie_direction: f32,
+}
 
 let PI: f32 = 3.141592653589793;
 let ISTEPS: u32 = 16u;
@@ -108,4 +120,62 @@ fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, 
 
     // Calculate and return the final color.
     return i_sun * (p_rlh * k_rlh * total_rlh + p_mie * k_mie * total_mie);
+}
+
+@group(0) @binding(0)
+var<uniform> atmosphere: Atmosphere;
+
+@group(1) @binding(0)
+var image: texture_storage_2d_array<rgba16float, write>;
+
+@compute @workgroup_size(8, 8, 1)
+fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_workgroups) num_workgroups: vec3<u32>) {
+    let size = textureDimensions(image).x;
+    let scale = f32(size)/2f;
+    
+    let dir = vec2<f32>((f32(invocation_id.x)/scale) - 1f, (f32(invocation_id.y)/scale) - 1f);
+
+    var ray: vec3<f32>;
+    
+    switch invocation_id.z {
+        case 0u {
+            ray = vec3<f32>(1f, -dir.y, -dir.x); // +X
+        }
+        case 1u {
+            ray = vec3<f32>(-1f, -dir.y, dir.x);// -X
+        }
+        case 2u {
+            ray = vec3<f32>(dir.x, 1f, dir.y); // +Y
+        }
+        case 3u {
+            ray = vec3<f32>(dir.x, -1f, -dir.y);// -Y
+        }
+        case 4u {
+            ray = vec3<f32>(dir.x, -dir.y, 1f); // +Z
+        }
+        default {
+            ray = vec3<f32>(-dir.x, -dir.y, -1f);// -Z
+        }
+    }
+
+    let render = render_atmosphere(
+        ray, 
+        atmosphere.ray_origin,
+        atmosphere.sun_position,
+        atmosphere.sun_intensity,
+        atmosphere.planet_radius,
+        atmosphere.atmosphere_radius,
+        atmosphere.rayleigh_coefficient,
+        atmosphere.mie_coefficient,
+        atmosphere.rayleigh_scale_height,
+        atmosphere.mie_scale_height,
+        atmosphere.mie_direction,
+    );
+
+    textureStore(
+        image,
+        vec2<i32>(invocation_id.xy),
+        i32(invocation_id.z),
+        vec4<f32>(render, 1.0)
+    );
 }

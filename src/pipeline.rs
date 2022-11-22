@@ -2,12 +2,10 @@
 //!
 //! It's possible to use [`AtmospherePipelinePlugin`] with your own custom code to render to custom targets.
 
-use std::{borrow::Cow, num::NonZeroU32};
+use std::{borrow::Cow, num::NonZeroU32, ops::{Deref, DerefMut}, any::Any};
 
 use bevy::{
-    asset::load_internal_asset,
     prelude::*,
-    reflect::TypeUuid,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         render_asset::{PrepareAssetLabel, RenderAssets},
@@ -23,24 +21,14 @@ use bevy::{
         renderer::RenderDevice,
         texture::FallbackImage,
         Extract, RenderApp, RenderStage,
-    },
+    }, ecs::system::SystemState,
 };
 
 use crate::{
     resource::Atmosphere,
     settings::AtmosphereSettings,
-    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial},
+    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial}, model::AtmosphereModelMetadata,
 };
-
-/// [`Handle`] for shader for texture compute pipeline.
-pub const ATMOSPHERE_MAIN_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5132991701789555342);
-/// [`Handle`] for shader that holds math (atmosphere simulation).
-pub const ATMOSPHERE_MATH_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7843425155352921761);
-/// [`Handle`] for shader that holds types ([`Atmosphere`] binding).
-pub const ATMOSPHERE_TYPES_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 9615256157423613453);
 
 /// Name of the compute pipeline [`render_graph::Node`].
 pub const NAME: &str = "bevy_atmosphere";
@@ -62,6 +50,30 @@ pub struct AtmosphereImage {
     pub array_view: Option<TextureView>,
 }
 
+#[derive(Resource, Debug, Clone)]
+pub struct AtmosphereImageBindGroupLayout(pub BindGroupLayout);
+
+impl FromWorld for AtmosphereImageBindGroupLayout {
+    fn from_world(world: &mut World) -> Self {
+        let render_device = world.resource::<RenderDevice>();
+
+        Self(render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+            label: Some("bevy_atmosphere_image_bind_group_layout"),
+            entries: &[BindGroupLayoutEntry {
+                // AtmosphereImage
+                binding: 0,
+                visibility: ShaderStages::COMPUTE,
+                ty: BindingType::StorageTexture {
+                    access: StorageTextureAccess::WriteOnly,
+                    format: TextureFormat::Rgba16Float,
+                    view_dimension: TextureViewDimension::D2Array,
+                },
+                count: None,
+            }],
+        }))
+    }
+}
+
 /// Signals the pipeline (inside [`RenderApp`]) to render the atmosphere.
 #[derive(Debug, Clone, Copy)]
 pub struct AtmosphereUpdateEvent;
@@ -75,27 +87,6 @@ pub struct AtmospherePipelinePlugin;
 
 impl Plugin for AtmospherePipelinePlugin {
     fn build(&self, app: &mut App) {
-        load_internal_asset!(
-            app,
-            ATMOSPHERE_TYPES_SHADER_HANDLE,
-            "shaders/types.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            ATMOSPHERE_MATH_SHADER_HANDLE,
-            "shaders/math.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            ATMOSPHERE_MAIN_SHADER_HANDLE,
-            "shaders/main.wgsl",
-            Shader::from_wgsl
-        );
-
         let settings = match app.world.get_resource::<AtmosphereSettings>() {
             Some(s) => *s,
             None => default(),
@@ -132,11 +123,12 @@ impl Plugin for AtmospherePipelinePlugin {
         app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
 
         app.add_system(atmosphere_settings_changed);
-
+        
         let render_app = app.sub_app_mut(RenderApp);
         render_app
             .insert_resource(atmosphere)
             .insert_resource(settings)
+            .init_resource::<AtmosphereImageBindGroupLayout>()
             .init_resource::<AtmospherePipeline>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
@@ -339,6 +331,7 @@ fn queue_atmosphere_bind_group(
     render_device: Res<RenderDevice>,
     fallback_image: Res<FallbackImage>,
     pipeline: Res<AtmospherePipeline>,
+    image_bind_group_layout: Res<AtmosphereImageBindGroupLayout>,
     atmosphere: Option<Res<Atmosphere>>,
 ) {
     let view = atmosphere_image.array_view.as_ref().expect("prepare_changed_settings should have took care of making AtmosphereImage.array_value Some(TextureView)");
@@ -348,20 +341,17 @@ fn queue_atmosphere_bind_group(
         None => default(),
     };
 
-    let atmosphere_bind_group = atmosphere
+    let atmosphere_bind_group = atmosphere.model()
         .as_bind_group(
             &pipeline.atmosphere_bind_group_layout,
             &render_device,
             &gpu_images,
             &fallback_image,
-        )
-        .unwrap_or_else(|_| {
-            panic!("Failed to get as bind group");
-        });
+        );
 
-    let associated_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
-        label: Some("bevy_atmosphere_associated_bind_group"),
-        layout: &pipeline.associated_bind_group_layout,
+    let image_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
+        label: Some("bevy_atmosphere_image_bind_group"),
+        layout: &image_bind_group_layout.0,
         entries: &[BindGroupEntry {
             binding: 0,
             resource: BindingResource::TextureView(view),
@@ -370,57 +360,42 @@ fn queue_atmosphere_bind_group(
 
     commands.insert_resource(AtmosphereBindGroups(
         atmosphere_bind_group,
-        associated_bind_group,
+        image_bind_group,
     ));
 }
+
+type AtmospherePipelineSystemState<'a> = (
+    Res<'a, AppTypeRegistry>,
+    Res<'a, Atmosphere>,
+);
 
 #[derive(Resource)]
 struct AtmospherePipeline {
     atmosphere_bind_group_layout: BindGroupLayout,
-    associated_bind_group_layout: BindGroupLayout,
     update_pipeline: CachedComputePipelineId,
+}
+
+impl AtmospherePipeline {
+    fn new<'a>(state: AtmospherePipelineSystemState<'a>) -> Option<Self> {
+        let (type_registry, atmosphere) = state;
+        let model = atmosphere.model();
+        let binding = type_registry.read();
+        let type_data = binding.get_type_data::<AtmosphereModelMetadata>(model.type_id())?;
+
+        Some(Self {
+            atmosphere_bind_group_layout: type_data.bind_group_layout.clone(),
+            update_pipeline: type_data.pipeline,
+        })
+    }
 }
 
 impl FromWorld for AtmospherePipeline {
     fn from_world(world: &mut World) -> Self {
-        let atmosphere = world.resource::<Atmosphere>();
-        let render_device = world.resource::<RenderDevice>();
+        let mut state: SystemState<AtmospherePipelineSystemState> = SystemState::new(world);
 
-        let atmosphere_bind_group_layout = atmosphere.bind_group_layout(render_device);
-        let associated_bind_group_layout =
-            render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-                label: Some("bevy_atmosphere_associated_bind_group_layout"),
-                entries: &[BindGroupLayoutEntry {
-                    // AtmosphereImage
-                    binding: 0,
-                    visibility: ShaderStages::COMPUTE,
-                    ty: BindingType::StorageTexture {
-                        access: StorageTextureAccess::WriteOnly,
-                        format: TextureFormat::Rgba16Float,
-                        view_dimension: TextureViewDimension::D2Array,
-                    },
-                    count: None,
-                }],
-            });
-        let shader = ATMOSPHERE_MAIN_SHADER_HANDLE.typed();
-        let mut pipeline_cache = world.resource_mut::<PipelineCache>();
+        let state = state.get_mut(world);
 
-        let update_pipeline = pipeline_cache.queue_compute_pipeline(ComputePipelineDescriptor {
-            label: Some(Cow::from("bevy_atmosphere_compute_pipeline")),
-            layout: Some(vec![
-                atmosphere_bind_group_layout.clone(),
-                associated_bind_group_layout.clone(),
-            ]),
-            shader,
-            shader_defs: vec![],
-            entry_point: Cow::from("main"),
-        });
-
-        Self {
-            atmosphere_bind_group_layout,
-            associated_bind_group_layout,
-            update_pipeline,
-        }
+        Self::new(state).expect("Failed to create `AtmospherePipeline`")
     }
 }
 

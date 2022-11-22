@@ -12,13 +12,15 @@ const UNIFORM_ATTRIBUTE_NAME: Symbol = Symbol("uniform");
 const TEXTURE_ATTRIBUTE_NAME: Symbol = Symbol("texture");
 const SAMPLER_ATTRIBUTE_NAME: Symbol = Symbol("sampler");
 
+const EXTERNAL_ATTRIBUTE_NAME: Symbol = Symbol("external");
+const INTERNAL_ATTRIBUTE_NAME: Symbol = Symbol("internal");
+
 #[derive(Copy, Clone, Debug)]
 enum BindingType {
     Uniform,
     Texture,
     Sampler,
 }
-
 
 #[derive(Clone)]
 enum BindingState<'a> {
@@ -33,12 +35,30 @@ enum BindingState<'a> {
     },
 }
 
+#[derive(PartialEq, Clone, Debug)]
+enum ShaderPathType {
+    None,
+    External(String),
+    Internal(String),
+}
+
 pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
     let manifest = BevyManifest::default();
     let atmosphere_path = super::bevy_atmosphere_path();
     let render_path = manifest.get_path("bevy_render");
     let asset_path = manifest.get_path("bevy_asset");
+    let app_path = manifest.get_path("bevy_app");
+    let reflect_path = manifest.get_path("bevy_reflect");
 
+    let id = {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        ast.ident.hash(&mut hasher);
+        hasher.finish()
+    };
+
+    let mut shader_path = ShaderPathType::None;
     let mut binding_states: Vec<BindingState> = Vec::new();
     let mut binding_impls = Vec::new();
     let mut bind_group_entries = Vec::new();
@@ -90,9 +110,60 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
                     binding_states.resize(required_len, BindingState::Free);
                 }
                 binding_states[binding_index as usize] = BindingState::OccupiedConvertedUniform;
+            } else if let Some(attr_ident) = attr.path.get_ident() {
+                if attr_ident == EXTERNAL_ATTRIBUTE_NAME {
+                    if shader_path != ShaderPathType::None {
+                        return Err(Error::new_spanned(
+                            attr,
+                            format!("Shader path already set")
+                        ));
+                    }
+
+                    let lit_str = get_shader_path_attr(attr)?;
+
+                    shader_path = ShaderPathType::External(lit_str);
+                } else if attr_ident == INTERNAL_ATTRIBUTE_NAME {
+                    if shader_path != ShaderPathType::None {
+                        return Err(Error::new_spanned(
+                            attr,
+                            format!("Shader path already set")
+                        ));
+                    }
+
+                    let lit_str = get_shader_path_attr(attr)?;
+
+                    shader_path = ShaderPathType::Internal(lit_str);
+                }
             }
         }
     }
+
+    let shader_path_impl = match shader_path {
+        ShaderPathType::None => panic!("Expected `external` or `internal` attribute"),
+        ShaderPathType::External(s) => quote! {
+            {
+                let asset_server = app.world.resource::<AssetServer>();
+
+                asset_server.load(#s)
+            }
+        },
+        ShaderPathType::Internal(s) => quote! {
+            {
+                use bevy::reflect::TypeUuid;
+                let handle = #asset_path::HandleUntyped::weak_from_u64(#render_path::render_resource::Shader::TYPE_UUID, Self::id());
+
+                let internal_handle = handle.clone();
+                #asset_path::load_internal_asset!(
+                    app,
+                    internal_handle,
+                    concat!(env!("CARGO_MANIFEST_DIR"), "/src/", #s),
+                    Shader::from_wgsl
+                );
+
+                handle.typed()
+            }
+        },
+    };
 
     let fields = match &ast.data {
         Data::Struct(DataStruct {
@@ -254,6 +325,7 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
         }
     }
 
+
     // Produce impls for fields with uniform bindings
     let struct_name = &ast.ident;
     let mut field_struct_impls = Vec::new();
@@ -342,7 +414,7 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
             }
         }
     }
-
+    
     let generics = ast.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
@@ -357,6 +429,8 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
                 images: &#render_path::render_asset::RenderAssets<#render_path::texture::Image>,
                 fallback_image: &#render_path::texture::FallbackImage,
             ) -> #render_path::render_resource::BindGroup {
+                let bindings = vec![#(#binding_impls,)*];
+
                 let bind_group = {
                     let descriptor = #render_path::render_resource::BindGroupDescriptor {
                         entries: &[#(#bind_group_entries,)*],
@@ -365,19 +439,73 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
                     };
                     render_device.create_bind_group(&descriptor)
                 };
-
                 bind_group
-            }
-
-            fn bind_group_layout(&self, render_device: &#render_path::renderer::RenderDevice) -> #render_path::render_resource::BindGroupLayout {
-                render_device.create_bind_group_layout(&#render_path::render_resource::BindGroupLayoutDescriptor {
-                    entries: &[#(#binding_layouts,)*],
-                    label: None,
-                })
             }
 
             fn clone_dynamic(&self) -> Box<dyn AtmosphereModel> {
                 Box::new((*self).clone())
+            }
+
+            fn as_reflect(&self) -> &dyn Reflect {
+                self
+            }
+
+            fn as_reflect_mut(&mut self) -> &mut dyn Reflect {
+                self
+            }
+
+            fn dyn_id(&self) -> u64 {
+                #id
+            }
+        }
+
+        impl #impl_generics #atmosphere_path::model::RegisterAtmosphereModel for #struct_name #ty_generics #where_clause {
+            fn id() -> u64 {
+                #id
+            }
+
+            fn register(app: &mut App) {
+                use std::borrow::Cow;
+
+                let handle = #shader_path_impl;
+
+                let render_app = app.sub_app_mut(#render_path::RenderApp);
+                let render_device = render_app.world.resource::<#render_path::renderer::RenderDevice>();
+                let #atmosphere_path::pipeline::AtmosphereImageBindGroupLayout(image_bind_group_layout) = render_app.world.resource::<#atmosphere_path::pipeline::AtmosphereImageBindGroupLayout>().clone();
+
+                let bind_group_layout = Self::bind_group_layout(render_device);
+
+                let mut pipeline_cache = render_app.world.resource_mut::<#render_path::render_resource::PipelineCache>();
+                
+                let pipeline = pipeline_cache.queue_compute_pipeline(#render_path::render_resource::ComputePipelineDescriptor {
+                    label: Some(Cow::from("bevy_atmosphere_compute_pipeline")),
+                    layout: Some(vec![
+                        bind_group_layout.clone(),
+                        image_bind_group_layout,
+                    ]),
+                    shader: handle,
+                    shader_defs: vec![],
+                    entry_point: Cow::from("main"),
+                });
+
+                let data = #atmosphere_path::model::AtmosphereModelMetadata {
+                    bind_group_layout,
+                    pipeline,
+                };
+
+                let type_registry = app.world.resource_mut::<#app_path::AppTypeRegistry>();
+                let type_registry = type_registry.write();
+
+                let registration = Self::get_type_registration();
+                registration.insert(data);
+                type_registry.add_registration(registration);
+            }
+
+            fn bind_group_layout(render_device: &#render_path::renderer::RenderDevice) -> #render_path::render_resource::BindGroupLayout {
+                render_device.create_bind_group_layout(&#render_path::render_resource::BindGroupLayoutDescriptor {
+                    entries: &[#(#binding_layouts,)*],
+                    label: None,
+                })
             }
         }
     }))
@@ -411,6 +539,11 @@ struct BindingIndexOptions {
     meta_list: Punctuated<NestedMeta, Token![,]>,
 }
 
+/// Represents the arguments for the `external` and `internal` binding attributes
+struct ShaderPathMeta {
+    lit_str: syn::LitStr
+}
+
 impl Parse for BindingMeta {
     fn parse(input: ParseStream) -> Result<Self> {
         if input.peek2(Token![,]) {
@@ -441,6 +574,14 @@ impl Parse for UniformBindingMeta {
     }
 }
 
+impl Parse for ShaderPathMeta {
+    fn parse(input: ParseStream) -> Result<Self> {
+        Ok(Self {
+            lit_str: input.parse()?
+        })
+    }
+}
+
 fn get_uniform_binding_attr(attr: &syn::Attribute) -> Result<(u32, Ident)> {
     let uniform_binding_meta = attr.parse_args_with(UniformBindingMeta::parse)?;
 
@@ -461,6 +602,14 @@ fn get_binding_nested_attr(attr: &syn::Attribute) -> Result<(u32, Vec<NestedMeta
             meta_list,
         }) => Ok((lit_int.base10_parse()?, meta_list.into_iter().collect())),
     }
+}
+
+fn get_shader_path_attr(attr: &syn::Attribute) -> Result<String> {
+    let shader_path_meta = attr.parse_args_with(ShaderPathMeta::parse)?;
+
+    let lit_str = shader_path_meta.lit_str.value();
+
+    Ok(lit_str)
 }
 
 #[derive(Default)]

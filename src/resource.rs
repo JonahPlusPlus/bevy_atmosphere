@@ -3,11 +3,11 @@
 use bevy::{
     prelude::*,
     render::{
-        extract_resource::ExtractResource, render_resource::{BindGroup, BindGroupLayout, AsBindGroupError}, renderer::RenderDevice, render_asset::RenderAssets, texture::FallbackImage,
+        extract_resource::ExtractResource, render_resource::{BindGroup, BindGroupLayout, AsBindGroupError, PreparedBindGroup}, renderer::RenderDevice, render_asset::RenderAssets, texture::FallbackImage,
     },
 };
 
-use crate::model::{AtmosphereModel, nishita::Nishita};
+use crate::model::AtmosphereModel;
 
 /// Controls the appearance of the atmosphere.
 ///
@@ -32,18 +32,24 @@ impl Atmosphere {
         Self(Box::new(model))
     }
 
-    pub fn as_bind_group(
-        &self,
-        layout: &BindGroupLayout,
-        render_device: &RenderDevice,
-        images: &RenderAssets<Image>,
-        fallback_image: &FallbackImage,
-    ) -> Result<BindGroup, AsBindGroupError> {
-        Ok(self.0.as_bind_group(layout, render_device, images, fallback_image))
+    pub fn model(&self) -> &Box<dyn AtmosphereModel> {
+        &self.0
     }
 
-    pub fn bind_group_layout(&self, render_device: &RenderDevice) -> BindGroupLayout {
-        self.0.bind_group_layout(render_device)
+    pub fn model_mut(&mut self) -> &mut Box<dyn AtmosphereModel> {
+        &mut self.0
+    }
+
+    pub fn model_id(&self) -> u64 {
+        self.0.dyn_id()
+    }
+
+    pub fn to<T: AtmosphereModel>(&self) -> Option<&T> {
+        AtmosphereModel::as_reflect(&*self.0).downcast_ref()
+    }
+
+    pub fn to_mut<T: AtmosphereModel>(&mut self) -> Option<&mut T> {
+        AtmosphereModel::as_reflect_mut(&mut *self.0).downcast_mut()
     }
 }
 
@@ -51,10 +57,15 @@ cfg_if::cfg_if! {
     if #[cfg(feature = "nishita")] {
         impl Default for Atmosphere {
             fn default() -> Self {
+                use crate::model::nishita::Nishita;
                 Self(Box::new(Nishita::default()))
             }
         }
     } else {
-        compile_error!("Enable at least one atmospheric model!")
+        impl Default for Atmosphere {
+            fn default() -> Self {
+                panic!("Enable at least one atmospheric model!");
+            }
+        }
     }
 }

@@ -12,7 +12,7 @@ use bevy::{
 
 use crate::{
     pipeline::*,
-    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
+    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE}, model::AddAtmosphereModel,
 };
 
 /// A [`Plugin`] that adds the prerequisites for a procedural sky.
@@ -27,6 +27,9 @@ impl Plugin for AtmospherePlugin {
             "shaders/skybox.wgsl",
             Shader::from_wgsl
         );
+
+        #[cfg(feature = "nishita")]
+        app.add_atmosphere_model::<crate::model::nishita::Nishita>();
 
         app.add_plugin(MaterialPlugin::<SkyBoxMaterial>::default());
 

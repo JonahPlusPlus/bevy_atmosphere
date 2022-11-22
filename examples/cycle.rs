@@ -33,6 +33,10 @@ fn daylight_cycle(
     mut timer: ResMut<CycleTimer>,
     time: Res<Time>,
 ) {
+    let Some(atmosphere) = atmosphere.to_mut::<Nishita>() else {
+        error!("Wrong model!");
+        return;
+    };
     timer.0.tick(time.delta());
 
     if timer.0.finished() {

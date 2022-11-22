@@ -1,9 +1,12 @@
 use bevy::prelude::*;
+use bevy::render::render_resource::{ShaderType, AsBindGroup};
 use bevy_atmosphere_macros::AtmosphereModel;
 
 use super::AtmosphereModel;
 
-#[derive(AtmosphereModel, Debug, Clone, Copy)]
+#[derive(AtmosphereModel, ShaderType, Reflect, Debug, Clone, Copy)]
+#[uniform(0, Nishita)]
+#[internal("shaders/nishita.wgsl")]
 pub struct Nishita {
 /// Ray Origin (Default: `(0.0, 6372e3, 0.0)`).
     ///
@@ -66,5 +69,11 @@ impl Default for Nishita {
             mie_scale_height: 1.2e3,
             mie_direction: 0.758,
         }
+    }
+}
+
+impl From<&Nishita> for Nishita {
+    fn from(nishita: &Nishita) -> Self {
+        nishita.clone()
     }
 }

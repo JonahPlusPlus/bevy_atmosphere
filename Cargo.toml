@@ -56,8 +56,3 @@ required-features = ["default"]
 name = "splitscreen"
 path = "examples/splitscreen.rs"
 required-features = ["default"]
-
-[[example]]
-name = "substantive"
-path = "examples/substantive.rs"
-required-features = ["detection"]

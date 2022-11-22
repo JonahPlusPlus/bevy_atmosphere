@@ -2,9 +2,15 @@
 //!
 //! It's possible to use [`AtmospherePipelinePlugin`] with your own custom code to render to custom targets.
 
-use std::{borrow::Cow, num::NonZeroU32, ops::{Deref, DerefMut}, any::Any};
+use std::{
+    any::Any,
+    borrow::Cow,
+    num::NonZeroU32,
+    ops::{Deref, DerefMut},
+};
 
 use bevy::{
+    ecs::system::SystemState,
     prelude::*,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
@@ -21,13 +27,14 @@ use bevy::{
         renderer::RenderDevice,
         texture::FallbackImage,
         Extract, RenderApp, RenderStage,
-    }, ecs::system::SystemState,
+    },
 };
 
 use crate::{
+    model::AtmosphereModelMetadata,
     resource::Atmosphere,
     settings::AtmosphereSettings,
-    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial}, model::AtmosphereModelMetadata,
+    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial},
 };
 
 /// Name of the compute pipeline [`render_graph::Node`].
@@ -57,20 +64,22 @@ impl FromWorld for AtmosphereImageBindGroupLayout {
     fn from_world(world: &mut World) -> Self {
         let render_device = world.resource::<RenderDevice>();
 
-        Self(render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            label: Some("bevy_atmosphere_image_bind_group_layout"),
-            entries: &[BindGroupLayoutEntry {
-                // AtmosphereImage
-                binding: 0,
-                visibility: ShaderStages::COMPUTE,
-                ty: BindingType::StorageTexture {
-                    access: StorageTextureAccess::WriteOnly,
-                    format: TextureFormat::Rgba16Float,
-                    view_dimension: TextureViewDimension::D2Array,
-                },
-                count: None,
-            }],
-        }))
+        Self(
+            render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+                label: Some("bevy_atmosphere_image_bind_group_layout"),
+                entries: &[BindGroupLayoutEntry {
+                    // AtmosphereImage
+                    binding: 0,
+                    visibility: ShaderStages::COMPUTE,
+                    ty: BindingType::StorageTexture {
+                        access: StorageTextureAccess::WriteOnly,
+                        format: TextureFormat::Rgba16Float,
+                        view_dimension: TextureViewDimension::D2Array,
+                    },
+                    count: None,
+                }],
+            }),
+        )
     }
 }
 
@@ -123,7 +132,7 @@ impl Plugin for AtmospherePipelinePlugin {
         app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
 
         app.add_system(atmosphere_settings_changed);
-        
+
         let render_app = app.sub_app_mut(RenderApp);
         render_app
             .insert_resource(atmosphere)
@@ -341,13 +350,12 @@ fn queue_atmosphere_bind_group(
         None => default(),
     };
 
-    let atmosphere_bind_group = atmosphere.model()
-        .as_bind_group(
-            &pipeline.atmosphere_bind_group_layout,
-            &render_device,
-            &gpu_images,
-            &fallback_image,
-        );
+    let atmosphere_bind_group = atmosphere.model().as_bind_group(
+        &pipeline.atmosphere_bind_group_layout,
+        &render_device,
+        &gpu_images,
+        &fallback_image,
+    );
 
     let image_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
         label: Some("bevy_atmosphere_image_bind_group"),
@@ -364,10 +372,7 @@ fn queue_atmosphere_bind_group(
     ));
 }
 
-type AtmospherePipelineSystemState<'a> = (
-    Res<'a, AppTypeRegistry>,
-    Res<'a, Atmosphere>,
-);
+type AtmospherePipelineSystemState<'a> = (Res<'a, AppTypeRegistry>, Res<'a, Atmosphere>);
 
 #[derive(Resource)]
 struct AtmospherePipeline {

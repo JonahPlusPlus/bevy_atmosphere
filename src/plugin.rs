@@ -11,8 +11,9 @@ use bevy::{
 };
 
 use crate::{
+    model::AddAtmosphereModel,
     pipeline::*,
-    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE}, model::AddAtmosphereModel,
+    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
 /// A [`Plugin`] that adds the prerequisites for a procedural sky.
@@ -45,7 +46,7 @@ impl Plugin for AtmospherePlugin {
             let material = material_assets.add(SkyBoxMaterial {
                 sky_texture: image_handle,
             });
-            
+
             app.insert_resource(AtmosphereSkyBoxMaterial(material));
         }
 

@@ -3,7 +3,11 @@
 use bevy::{
     prelude::*,
     render::{
-        extract_resource::ExtractResource, render_resource::{BindGroup, BindGroupLayout, AsBindGroupError, PreparedBindGroup}, renderer::RenderDevice, render_asset::RenderAssets, texture::FallbackImage,
+        extract_resource::ExtractResource,
+        render_asset::RenderAssets,
+        render_resource::{AsBindGroupError, BindGroup, BindGroupLayout, PreparedBindGroup},
+        renderer::RenderDevice,
+        texture::FallbackImage,
     },
 };
 

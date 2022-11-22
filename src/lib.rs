@@ -62,7 +62,7 @@ pub mod prelude {
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
     pub use crate::resource::Atmosphere;
     pub use crate::settings::AtmosphereSettings;
-    
+
     #[cfg(feature = "nishita")]
     pub use crate::model::nishita::Nishita;
 }

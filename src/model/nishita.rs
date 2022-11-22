@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy::render::render_resource::{ShaderType, AsBindGroup};
+use bevy::render::render_resource::{AsBindGroup, ShaderType};
 use bevy_atmosphere_macros::AtmosphereModel;
 
 use super::AtmosphereModel;
@@ -8,7 +8,7 @@ use super::AtmosphereModel;
 #[uniform(0, Nishita)]
 #[internal("shaders/nishita.wgsl")]
 pub struct Nishita {
-/// Ray Origin (Default: `(0.0, 6372e3, 0.0)`).
+    /// Ray Origin (Default: `(0.0, 6372e3, 0.0)`).
     ///
     /// Controls orientation of the sky and height of the sun.
     /// It can be thought of as the up-axis and values should be somewhere between planet radius and atmosphere radius (with a bias towards lower values).

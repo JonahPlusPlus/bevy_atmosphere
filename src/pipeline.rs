@@ -134,14 +134,13 @@ impl Plugin for AtmospherePipelinePlugin {
         app.add_system(atmosphere_settings_changed);
 
 
-        let type_registry = app.world.resource::<AppTypeRegistry>();
-        let pipeline = AtmospherePipeline::new(&atmosphere, type_registry).expect("Failed to create pipeline");
+        let type_registry = app.world.resource::<AppTypeRegistry>().clone();
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app
             .insert_resource(atmosphere)
             .insert_resource(settings)
-            .insert_resource(pipeline)
+            .insert_resource(AtmosphereTypeRegistry(type_registry))
             .init_resource::<AtmosphereImageBindGroupLayout>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
@@ -343,7 +342,7 @@ fn queue_atmosphere_bind_group(
     atmosphere_image: Res<AtmosphereImage>,
     render_device: Res<RenderDevice>,
     fallback_image: Res<FallbackImage>,
-    pipeline: Res<AtmospherePipeline>,
+    type_registry: Res<AtmosphereTypeRegistry>,
     image_bind_group_layout: Res<AtmosphereImageBindGroupLayout>,
     atmosphere: Option<Res<Atmosphere>>,
 ) {
@@ -354,8 +353,14 @@ fn queue_atmosphere_bind_group(
         None => default(),
     };
 
-    let atmosphere_bind_group = atmosphere.model().as_bind_group(
-        &pipeline.atmosphere_bind_group_layout,
+    let bind_group_layout = {
+        let type_registry = type_registry.read();
+        let data: &AtmosphereModelMetadata = type_registry.get_type_data(atmosphere.type_id()).expect("Failed to get type data");
+        data.bind_group_layout.clone()
+    };
+
+    let atmosphere_bind_group = atmosphere.as_bind_group(
+        &bind_group_layout,
         &render_device,
         &gpu_images,
         &fallback_image,
@@ -377,21 +382,13 @@ fn queue_atmosphere_bind_group(
 }
 
 #[derive(Resource)]
-struct AtmospherePipeline {
-    atmosphere_bind_group_layout: BindGroupLayout,
-    update_pipeline: CachedComputePipelineId,
-}
+struct AtmosphereTypeRegistry(AppTypeRegistry);
 
-impl AtmospherePipeline {
-    fn new(atmosphere: &Atmosphere,type_registry: &AppTypeRegistry) -> Option<Self> {
-        let model = atmosphere.model();
-        let binding = type_registry.read();
-        let type_data = binding.get_type_data::<AtmosphereModelMetadata>(model.type_id())?;
+impl Deref for AtmosphereTypeRegistry {
+    type Target = AppTypeRegistry;
 
-        Some(Self {
-            atmosphere_bind_group_layout: type_data.bind_group_layout.clone(),
-            update_pipeline: type_data.pipeline,
-        })
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -414,13 +411,19 @@ impl Default for AtmosphereNode {
 
 impl render_graph::Node for AtmosphereNode {
     fn update(&mut self, world: &mut World) {
-        let pipeline = world.resource::<AtmospherePipeline>();
-        let pipeline_cache = world.resource::<PipelineCache>();
-
         match self.state {
             AtmosphereState::Loading => {
+                let atmosphere = world.resource::<Atmosphere>();
+                let type_registry = world.resource::<AtmosphereTypeRegistry>();
+                let pipeline_cache = world.resource::<PipelineCache>();
+                let pipeline = {
+                    let type_registry = type_registry.read();
+                    let data: &AtmosphereModelMetadata = type_registry.get_type_data(atmosphere.type_id()).expect("Failed to get type data");
+                    data.pipeline
+                };
+
                 if let CachedPipelineState::Ok(_) =
-                    pipeline_cache.get_compute_pipeline_state(pipeline.update_pipeline)
+                    pipeline_cache.get_compute_pipeline_state(pipeline)
                 {
                     let mut event_writer = world.resource_mut::<Events<AtmosphereUpdateEvent>>();
                     event_writer.send(AtmosphereUpdateEvent);
@@ -443,10 +446,17 @@ impl render_graph::Node for AtmosphereNode {
             AtmosphereState::Update => {
                 if !update_events.is_empty() {
                     // only run when there are update events available
+                    let atmosphere = world.resource::<Atmosphere>();
                     let bind_groups = world.resource::<AtmosphereBindGroups>();
                     let pipeline_cache = world.resource::<PipelineCache>();
-                    let pipeline = world.resource::<AtmospherePipeline>();
+                    let type_registry = world.resource::<AtmosphereTypeRegistry>();
                     let settings = world.resource::<AtmosphereSettings>();
+
+                    let pipeline = {
+                        let type_registry = type_registry.read();
+                        let data: &AtmosphereModelMetadata = type_registry.get_type_data(atmosphere.type_id()).expect("Failed to get type data");
+                        data.pipeline
+                    };
 
                     let mut pass =
                         render_context
@@ -459,7 +469,7 @@ impl render_graph::Node for AtmosphereNode {
                     pass.set_bind_group(1, &bind_groups.1, &[]);
 
                     let update_pipeline = pipeline_cache
-                        .get_compute_pipeline(pipeline.update_pipeline)
+                        .get_compute_pipeline(pipeline)
                         .unwrap();
                     pass.set_pipeline(update_pipeline);
                     pass.dispatch_workgroups(

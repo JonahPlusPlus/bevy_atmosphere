@@ -30,8 +30,6 @@ pub trait AtmosphereModel: Send + Sync + std::fmt::Debug + Reflect + Any + 'stat
     fn as_reflect(&self) -> &dyn Reflect;
 
     fn as_reflect_mut(&mut self) -> &mut dyn Reflect;
-
-    fn dyn_id(&self) -> u64;
 }
 
 impl Clone for Box<dyn AtmosphereModel> {
@@ -60,6 +58,7 @@ pub trait AddAtmosphereModel {
 
 impl AddAtmosphereModel for App {
     fn add_atmosphere_model<T: RegisterAtmosphereModel>(&mut self) -> &mut App {
+        self.register_type::<T>();
         T::register(self);
 
         self

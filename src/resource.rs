@@ -36,24 +36,26 @@ impl Atmosphere {
         Self(Box::new(model))
     }
 
-    pub fn model(&self) -> &Box<dyn AtmosphereModel> {
-        &self.0
-    }
-
-    pub fn model_mut(&mut self) -> &mut Box<dyn AtmosphereModel> {
-        &mut self.0
-    }
-
-    pub fn model_id(&self) -> u64 {
-        self.0.dyn_id()
-    }
-
     pub fn to<T: AtmosphereModel>(&self) -> Option<&T> {
         AtmosphereModel::as_reflect(&*self.0).downcast_ref()
     }
 
     pub fn to_mut<T: AtmosphereModel>(&mut self) -> Option<&mut T> {
         AtmosphereModel::as_reflect_mut(&mut *self.0).downcast_mut()
+    }
+}
+
+impl std::ops::Deref for Atmosphere {
+    type Target = Box<dyn AtmosphereModel>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for Atmosphere {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 

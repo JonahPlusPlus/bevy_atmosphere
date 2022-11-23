@@ -453,10 +453,6 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
             fn as_reflect_mut(&mut self) -> &mut dyn Reflect {
                 self
             }
-
-            fn dyn_id(&self) -> u64 {
-                #id
-            }
         }
 
         impl #impl_generics #atmosphere_path::model::RegisterAtmosphereModel for #struct_name #ty_generics #where_clause {
@@ -494,11 +490,22 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
                 };
 
                 let type_registry = app.world.resource_mut::<#app_path::AppTypeRegistry>();
-                let mut type_registry = type_registry.write();
+                {
+                    let mut type_registry = type_registry.write();
 
-                let mut registration = <Self as #reflect_path::GetTypeRegistration>::get_type_registration();
-                registration.insert(data);
-                type_registry.add_registration(registration);
+                    let mut registration = type_registry.get_mut(std::any::TypeId::of::<Self>()).expect("Type not registered");
+                    registration.insert(data);
+                }
+
+                { // TODO: DEBUGGING, REMOVE THIS!
+                    let type_registry = type_registry.read();
+                    let type_data: Option<&#atmosphere_path::model::AtmosphereModelMetadata> = type_registry.get_type_data(std::any::TypeId::of::<Self>());
+                    match type_data {
+                        Some(_) => println!("Found type data"),
+                        None => println!("Failed to find type data")
+                    }
+                }
+                
             }
 
             fn bind_group_layout(render_device: &#render_path::renderer::RenderDevice) -> #render_path::render_resource::BindGroupLayout {

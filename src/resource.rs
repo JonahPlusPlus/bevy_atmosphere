@@ -1,15 +1,6 @@
 //! Provides the [`Atmosphere`] resource, a type that controls the appearance of the sky.
 
-use bevy::{
-    prelude::*,
-    render::{
-        extract_resource::ExtractResource,
-        render_asset::RenderAssets,
-        render_resource::{AsBindGroupError, BindGroup, BindGroupLayout, PreparedBindGroup},
-        renderer::RenderDevice,
-        texture::FallbackImage,
-    },
-};
+use bevy::{prelude::*, render::extract_resource::ExtractResource};
 
 use crate::model::AtmosphereModel;
 

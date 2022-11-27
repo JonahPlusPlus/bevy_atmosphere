@@ -1,17 +1,11 @@
 use std::any::Any;
-use std::borrow::Cow;
 
 use bevy::prelude::*;
-use bevy::reflect::{GetTypeRegistration, TypeData};
+use bevy::reflect::GetTypeRegistration;
 use bevy::render::render_asset::RenderAssets;
-use bevy::render::render_resource::{
-    AsBindGroup, BindGroup, BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
-    BindingType, CachedComputePipelineId, ComputePipelineDescriptor, PipelineCache, ShaderStages,
-    StorageTextureAccess, TextureFormat, TextureViewDimension,
-};
+use bevy::render::render_resource::{BindGroup, BindGroupLayout, CachedComputePipelineId};
 use bevy::render::renderer::RenderDevice;
 use bevy::render::texture::FallbackImage;
-use bevy::render::RenderApp;
 
 #[cfg(feature = "nishita")]
 pub mod nishita;

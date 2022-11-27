@@ -2,15 +2,9 @@
 //!
 //! It's possible to use [`AtmospherePipelinePlugin`] with your own custom code to render to custom targets.
 
-use std::{
-    any::Any,
-    borrow::Cow,
-    num::NonZeroU32,
-    ops::{Deref, DerefMut},
-};
+use std::{any::Any, num::NonZeroU32, ops::Deref};
 
 use bevy::{
-    ecs::system::SystemState,
     prelude::*,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
@@ -19,10 +13,9 @@ use bevy::{
         render_resource::{
             BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
             BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
-            CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
-            ComputePipelineDescriptor, Extent3d, PipelineCache, ShaderStages, StorageTextureAccess,
-            TextureAspect, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
-            TextureView, TextureViewDescriptor, TextureViewDimension,
+            CachedPipelineState, ComputePassDescriptor, Extent3d, PipelineCache, ShaderStages,
+            StorageTextureAccess, TextureAspect, TextureDescriptor, TextureDimension,
+            TextureFormat, TextureUsages, TextureView, TextureViewDescriptor, TextureViewDimension,
         },
         renderer::RenderDevice,
         texture::FallbackImage,
@@ -132,7 +125,6 @@ impl Plugin for AtmospherePipelinePlugin {
         app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
 
         app.add_system(atmosphere_settings_changed);
-
 
         let type_registry = app.world.resource::<AppTypeRegistry>().clone();
 
@@ -355,7 +347,9 @@ fn queue_atmosphere_bind_group(
 
     let bind_group_layout = {
         let type_registry = type_registry.read();
-        let data: &AtmosphereModelMetadata = type_registry.get_type_data(atmosphere.type_id()).expect("Failed to get type data");
+        let data: &AtmosphereModelMetadata = type_registry
+            .get_type_data(atmosphere.type_id())
+            .expect("Failed to get type data");
         data.bind_group_layout.clone()
     };
 
@@ -418,7 +412,9 @@ impl render_graph::Node for AtmosphereNode {
                 let pipeline_cache = world.resource::<PipelineCache>();
                 let pipeline = {
                     let type_registry = type_registry.read();
-                    let data: &AtmosphereModelMetadata = type_registry.get_type_data(atmosphere.type_id()).expect("Failed to get type data");
+                    let data: &AtmosphereModelMetadata = type_registry
+                        .get_type_data(atmosphere.type_id())
+                        .expect("Failed to get type data");
                     data.pipeline
                 };
 
@@ -454,7 +450,9 @@ impl render_graph::Node for AtmosphereNode {
 
                     let pipeline = {
                         let type_registry = type_registry.read();
-                        let data: &AtmosphereModelMetadata = type_registry.get_type_data(atmosphere.type_id()).expect("Failed to get type data");
+                        let data: &AtmosphereModelMetadata = type_registry
+                            .get_type_data(atmosphere.type_id())
+                            .expect("Failed to get type data");
                         data.pipeline
                     };
 
@@ -468,9 +466,7 @@ impl render_graph::Node for AtmosphereNode {
                     pass.set_bind_group(0, &bind_groups.0, &[]);
                     pass.set_bind_group(1, &bind_groups.1, &[]);
 
-                    let update_pipeline = pipeline_cache
-                        .get_compute_pipeline(pipeline)
-                        .unwrap();
+                    let update_pipeline = pipeline_cache.get_compute_pipeline(pipeline).unwrap();
                     pass.set_pipeline(update_pipeline);
                     pass.dispatch_workgroups(
                         settings.resolution / WORKGROUP_SIZE,

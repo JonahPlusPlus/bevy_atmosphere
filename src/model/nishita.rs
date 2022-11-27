@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy::render::render_resource::{AsBindGroup, ShaderType};
+use bevy::render::render_resource::ShaderType;
 use bevy_atmosphere_macros::AtmosphereModel;
 
 use super::AtmosphereModel;

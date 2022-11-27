@@ -45,8 +45,6 @@ pub struct AtmosphereModelMetadata {
 }
 
 pub trait RegisterAtmosphereModel: GetTypeRegistration {
-    fn id() -> u64;
-
     fn register(app: &mut App);
 
     fn bind_group_layout(render_device: &RenderDevice) -> BindGroupLayout;
@@ -58,7 +56,6 @@ pub trait AddAtmosphereModel {
 
 impl AddAtmosphereModel for App {
     fn add_atmosphere_model<T: RegisterAtmosphereModel>(&mut self) -> &mut App {
-        self.register_type::<T>();
         T::register(self);
 
         self

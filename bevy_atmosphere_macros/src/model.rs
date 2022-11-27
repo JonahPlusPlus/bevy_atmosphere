@@ -48,7 +48,6 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
     let render_path = manifest.get_path("bevy_render");
     let asset_path = manifest.get_path("bevy_asset");
     let app_path = manifest.get_path("bevy_app");
-    let reflect_path = manifest.get_path("bevy_reflect");
 
     let id = {
         use std::collections::hash_map::DefaultHasher;
@@ -150,7 +149,7 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
         ShaderPathType::Internal(s) => quote! {
             {
                 use bevy::reflect::TypeUuid;
-                let handle = #asset_path::HandleUntyped::weak_from_u64(#render_path::render_resource::Shader::TYPE_UUID, Self::id());
+                let handle = #asset_path::HandleUntyped::weak_from_u64(#render_path::render_resource::Shader::TYPE_UUID, #id);
 
                 let internal_handle = handle.clone();
                 #asset_path::load_internal_asset!(
@@ -456,12 +455,9 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
         }
 
         impl #impl_generics #atmosphere_path::model::RegisterAtmosphereModel for #struct_name #ty_generics #where_clause {
-            fn id() -> u64 {
-                #id
-            }
-
             fn register(app: &mut App) {
                 use std::borrow::Cow;
+                app.register_type::<Self>();
 
                 let handle = #shader_path_impl;
 

@@ -2,7 +2,7 @@
 //!
 //! It's possible to use [`AtmospherePipelinePlugin`] with your own custom code to render to custom targets.
 
-use std::{any::Any, num::NonZeroU32, ops::Deref};
+use std::{num::NonZeroU32, ops::Deref};
 
 use bevy::{
     prelude::*,
@@ -348,12 +348,12 @@ fn queue_atmosphere_bind_group(
     let bind_group_layout = {
         let type_registry = type_registry.read();
         let data: &AtmosphereModelMetadata = type_registry
-            .get_type_data(atmosphere.type_id())
+            .get_type_data(atmosphere.model().type_id())
             .expect("Failed to get type data");
         data.bind_group_layout.clone()
     };
 
-    let atmosphere_bind_group = atmosphere.as_bind_group(
+    let atmosphere_bind_group = atmosphere.model().as_bind_group(
         &bind_group_layout,
         &render_device,
         &gpu_images,
@@ -413,7 +413,7 @@ impl render_graph::Node for AtmosphereNode {
                 let pipeline = {
                     let type_registry = type_registry.read();
                     let data: &AtmosphereModelMetadata = type_registry
-                        .get_type_data(atmosphere.type_id())
+                        .get_type_data(atmosphere.model().type_id())
                         .expect("Failed to get type data");
                     data.pipeline
                 };
@@ -451,7 +451,7 @@ impl render_graph::Node for AtmosphereNode {
                     let pipeline = {
                         let type_registry = type_registry.read();
                         let data: &AtmosphereModelMetadata = type_registry
-                            .get_type_data(atmosphere.type_id())
+                            .get_type_data(atmosphere.model().type_id())
                             .expect("Failed to get type data");
                         data.pipeline
                     };

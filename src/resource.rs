@@ -14,7 +14,9 @@ use crate::model::AtmosphereModel;
 /// Mie scattering is caused by light passing through particles of similar size to the wavelength.
 /// It is the cause for the sky getting lighter toward the horizon.
 #[derive(Resource, ExtractResource, Debug, Clone)]
-pub struct Atmosphere(Box<dyn AtmosphereModel>);
+pub struct Atmosphere {
+    model: Box<dyn AtmosphereModel>
+}
 
 impl From<&Atmosphere> for Atmosphere {
     fn from(atmosphere: &Atmosphere) -> Self {
@@ -24,29 +26,27 @@ impl From<&Atmosphere> for Atmosphere {
 
 impl Atmosphere {
     pub fn new(model: impl AtmosphereModel + 'static) -> Self {
-        Self(Box::new(model))
+        Self {
+            model: Box::new(model)
+        }
+    }
+
+    #[inline]
+    pub fn model(&self) -> &dyn AtmosphereModel {
+        &*self.model
+    }
+
+    #[inline]
+    pub fn model_mut(&mut self) -> &mut dyn AtmosphereModel {
+        &mut *self.model
     }
 
     pub fn to<T: AtmosphereModel>(&self) -> Option<&T> {
-        AtmosphereModel::as_reflect(&*self.0).downcast_ref()
+        AtmosphereModel::as_reflect(&*self.model).downcast_ref()
     }
 
     pub fn to_mut<T: AtmosphereModel>(&mut self) -> Option<&mut T> {
-        AtmosphereModel::as_reflect_mut(&mut *self.0).downcast_mut()
-    }
-}
-
-impl std::ops::Deref for Atmosphere {
-    type Target = Box<dyn AtmosphereModel>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl std::ops::DerefMut for Atmosphere {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        AtmosphereModel::as_reflect_mut(&mut *self.model).downcast_mut()
     }
 }
 
@@ -55,7 +55,7 @@ cfg_if::cfg_if! {
         impl Default for Atmosphere {
             fn default() -> Self {
                 use crate::model::nishita::Nishita;
-                Self(Box::new(Nishita::default()))
+                Self::new(Nishita::default())
             }
         }
     } else {

@@ -20,12 +20,14 @@ bevy_spectator = "0.1"
 bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
 
 [features]
-default = ["basic", "nishita"]
-basic = ["detection", "dither", "procedural"] # a convenient way to enable basic features
+default = ["basic", "all_models"]
+basic = ["detection", "dither", "procedural"] # enables basic features
 detection = [] # enables camera detection (disable to add skyboxes manually)
 dither = [] # enables dithering (disable for banding)
 procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
 # models
+all_models = [ "gradient", "nishita"] # enables all models
+gradient = [] # enables the gradient model
 nishita = [] # enables the nishita model
 
 [[example]]
@@ -42,6 +44,11 @@ required-features = ["default"]
 name = "detection"
 path = "examples/detection.rs"
 required-features = ["default"]
+
+[[example]]
+name = "gradient"
+path = "examples/gradient.rs"
+required-features = ["default", "gradient"]
 
 [[example]]
 name = "nishita"

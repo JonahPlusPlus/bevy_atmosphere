@@ -8,7 +8,7 @@ fn main() {
         .add_plugin(AtmospherePlugin)
         .add_plugin(SpectatorPlugin)
         .add_startup_system(setup)
-        .add_system(change_atmosphere)
+        .add_system(change_nishita)
         .run();
 }
 
@@ -16,7 +16,7 @@ fn setup(mut commands: Commands) {
     commands.spawn((Camera3dBundle::default(), AtmosphereCamera(None), Spectator));
 }
 
-fn change_atmosphere(mut commands: Commands, keys: Res<Input<KeyCode>>) {
+fn change_nishita(mut commands: Commands, keys: Res<Input<KeyCode>>) {
     if keys.just_pressed(KeyCode::Key1) {
         info!("Changed to Atmosphere Preset 1 (Sunset)");
         commands.insert_resource(Atmosphere::new(Nishita {

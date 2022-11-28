@@ -10,6 +10,9 @@ use bevy::render::texture::FallbackImage;
 #[cfg(feature = "nishita")]
 pub mod nishita;
 
+#[cfg(feature = "gradient")]
+pub mod gradient;
+
 pub trait AtmosphereModel: Send + Sync + std::fmt::Debug + Reflect + Any + 'static {
     fn as_bind_group(
         &self,

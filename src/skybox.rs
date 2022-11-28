@@ -35,10 +35,14 @@ impl Material for SkyBoxMaterial {
 
     fn specialize(
         _pipeline: &MaterialPipeline<Self>,
-        _descriptor: &mut RenderPipelineDescriptor,
+        descriptor: &mut RenderPipelineDescriptor,
         _layout: &MeshVertexBufferLayout,
         _key: MaterialPipelineKey<Self>,
     ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
+        #[cfg(feature = "dither")]
+        if let Some(fragment) = &mut descriptor.fragment {
+            fragment.shader_defs.push(String::from("DITHER"));
+        }
         Ok(())
     }
 }

@@ -54,7 +54,7 @@ cfg_if::cfg_if! {
     if #[cfg(feature = "nishita")] {
         impl Default for Atmosphere {
             fn default() -> Self {
-                use crate::model::nishita::Nishita;
+                use crate::models::nishita::Nishita;
                 Self::new(Nishita::default())
             }
         }

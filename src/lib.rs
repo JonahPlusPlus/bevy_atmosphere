@@ -51,6 +51,7 @@
 //! To see more examples, view the ["examples"](https://github.com/JonahPlusPlus/bevy_atmosphere/tree/master/examples) directory.
 
 pub mod model;
+pub mod models;
 pub mod pipeline;
 pub mod plugin;
 pub mod resource;
@@ -63,6 +64,9 @@ pub mod prelude {
     pub use crate::resource::Atmosphere;
     pub use crate::settings::AtmosphereSettings;
 
-    #[cfg(feature = "nishita")]
-    pub use crate::model::nishita::Nishita;
+    #[cfg(any(doc, feature = "nishita"))]
+    pub use crate::models::nishita::Nishita;
+
+    #[cfg(any(doc, feature = "gradient"))]
+    pub use crate::models::gradient::Gradient;
 }

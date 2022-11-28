@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use bevy::render::render_resource::ShaderType;
 use bevy_atmosphere_macros::AtmosphereModel;
 
-use super::AtmosphereModel;
+use crate::model::AtmosphereModel;
 
-#[derive(AtmosphereModel, ShaderType, Reflect, Debug, Clone, Copy)]
+#[derive(AtmosphereModel, ShaderType, Reflect, Debug, Clone)]
 #[uniform(0, Nishita)]
 #[internal("shaders/nishita.wgsl")]
 pub struct Nishita {

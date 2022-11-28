@@ -59,8 +59,11 @@ impl Plugin for AtmospherePlugin {
 
         app.add_system(atmosphere_cancel_rotation);
 
+        #[cfg(feature = "gradient")]
+        app.add_atmosphere_model::<crate::models::gradient::Gradient>();
+
         #[cfg(feature = "nishita")]
-        app.add_atmosphere_model::<crate::model::nishita::Nishita>();
+        app.add_atmosphere_model::<crate::models::nishita::Nishita>();
     }
 }
 

@@ -42,7 +42,7 @@ fn render_nishita(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, r_p
 
     // Calculate the step size of the primary ray.
     var p = rsi(r, r0, r_atmos);
-    if (p.x > p.y) { return vec3<f32>(0f, 0f, 0f); }
+    if (p.x > p.y) { return vec3<f32>(0f); }
     p.y = min(p.y, rsi(r, r0, r_planet).x);
     let i_step_size = (p.y - p.x) / f32(ISTEPS);
 
@@ -50,8 +50,8 @@ fn render_nishita(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, r_p
     var i_depth = 0.0;
 
     // Initialize accumulators for Rayleigh and Mie scattering.
-    var total_rlh = vec3<f32>(0f, 0f, 0f);
-    var total_mie = vec3<f32>(0f, 0f, 0f);
+    var total_rlh = vec3<f32>(0f);
+    var total_mie = vec3<f32>(0f);
 
     // Initialize optical depth accumulators for the primary ray.
     var i_od_rlh = 0f;

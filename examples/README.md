@@ -1,11 +1,5 @@
 # examples
 
-## [atmosphere.rs](atmosphere.rs)
-
-![atmosphere example image](images/atmosphere-example.png)
-
-Demonstrates using `Atmosphere` to update the sky simulation. Use the number keys to switch presets. (The above is Preset 2)
-
 ## [basic.rs](basic.rs)
 
 ![basic example image](images/basic-example.png)
@@ -23,6 +17,12 @@ A daylight cycle in the default `ATmosphere`, updating every 50ms.
 ![detection example image](images/detection-example.gif)
 
 Demonstrates adding and removing the skybox with the `detection` feature. Use `LMouse` to add and `RMouse` to remove.
+
+## [nishita.rs](atmosphere.rs)
+
+![nishita example image](images/nishita-example.png)
+
+Demonstrates using `Nishita` model. Use the number keys to switch presets. (The above is Preset 2)
 
 ## [splitscreen.rs](splitscreen.rs)
 

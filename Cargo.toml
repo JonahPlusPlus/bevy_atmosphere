@@ -29,11 +29,6 @@ procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` f
 nishita = [] # enables the nishita model
 
 [[example]]
-name = "atmosphere"
-path = "examples/atmosphere.rs"
-required-features = ["default"]
-
-[[example]]
 name = "basic"
 path = "examples/basic.rs"
 required-features = ["default"]
@@ -46,6 +41,11 @@ required-features = ["default"]
 [[example]]
 name = "detection"
 path = "examples/detection.rs"
+required-features = ["default"]
+
+[[example]]
+name = "nishita"
+path = "examples/nishita.rs"
 required-features = ["default"]
 
 [[example]]

@@ -35,7 +35,7 @@ fn rsi(rd: vec3<f32>, r0: vec3<f32>, sr: f32) -> vec2<f32> {
     }
 }
 
-fn render_atmosphere(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, r_planet: f32, r_atmos: f32, k_rlh: vec3<f32>, k_mie: f32, sh_rlh: f32, sh_mie: f32, g: f32) -> vec3<f32> {
+fn render_nishita(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, r_planet: f32, r_atmos: f32, k_rlh: vec3<f32>, k_mie: f32, sh_rlh: f32, sh_mie: f32, g: f32) -> vec3<f32> {
     // Normalize the ray direction and sun position.
     let r = normalize(r);
     let p_sun = normalize(p_sun);
@@ -158,7 +158,7 @@ fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_wo
         }
     }
 
-    let render = render_atmosphere(
+    let render = render_nishita(
         ray, 
         nishita.ray_origin,
         nishita.sun_position,

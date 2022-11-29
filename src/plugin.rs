@@ -39,9 +39,17 @@ impl Plugin for AtmospherePlugin {
                 let image = app.world.get_resource::<AtmosphereImage>().expect("`AtmosphereImage` missing! If the `procedural` feature is disabled, add the resource before `AtmospherePlugin`");
                 image.handle.clone()
             };
+            let settings = {
+                let settings = app
+                    .world
+                    .get_resource::<crate::settings::AtmosphereSettings>();
+                settings.map(|s| s.clone()).unwrap_or_default()
+            };
             let mut material_assets = app.world.resource_mut::<Assets<SkyBoxMaterial>>();
             let material = material_assets.add(SkyBoxMaterial {
                 sky_texture: image_handle,
+                #[cfg(feature = "dithering")]
+                dithering: settings.dithering,
             });
 
             app.insert_resource(AtmosphereSkyBoxMaterial(material));
@@ -67,19 +75,20 @@ impl Plugin for AtmospherePlugin {
     }
 }
 
-/// Marker for a `Camera` that receives a skybox.
+/// A marker `Component` for a `Camera` that receives a skybox.
 ///
 /// When added, a skybox will be created as a child.
+/// When removed, that skybox will also be removed.
 /// This behaviour can be disabled by turning off the "detection" feature.
-///
-/// `Some(u8)` specifies the `RenderLayers` for the skybox to be on.
-/// `None` doesn't add the `RenderLayers` component.
-#[derive(Component, Debug, Clone, Copy)]
-pub struct AtmosphereCamera(pub Option<u8>);
+#[derive(Component, Default, Debug, Clone, Copy)]
+pub struct AtmosphereCamera {
+    /// Controls whether or not the skybox will be seen only on certain render layers.
+    pub render_layers: Option<RenderLayers>,
+}
 
-/// Marker for skybox entities.
+/// A marker `Component` for skybox entities.
 ///
-/// Added for skybox generated when a `AtmosphereCamera` is detected by the "detection" feature.
+/// Added for the skybox generated when an `AtmosphereCamera` is detected by the "detection" feature.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;
 
@@ -112,8 +121,11 @@ fn atmosphere_insert(
                     NotShadowReceiver,
                 ));
 
-                if let AtmosphereCamera(Some(render_layer)) = atmosphere_camera {
-                    child.insert(RenderLayers::layer(*render_layer));
+                if let AtmosphereCamera {
+                    render_layers: Some(render_layers),
+                } = atmosphere_camera
+                {
+                    child.insert(*render_layers);
                 }
             });
     }

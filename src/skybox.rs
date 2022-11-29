@@ -21,11 +21,21 @@ pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
 /// The `Material` that renders skyboxes.
 #[derive(AsBindGroup, TypeUuid, Debug, Clone)]
 #[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]
+#[bind_group_data(SkyBoxMaterialKey)]
 pub struct SkyBoxMaterial {
     /// [Handle] to the [AtmosphereImage](crate::pipeline::AtmosphereImage)
     #[texture(0, dimension = "cube")]
     #[sampler(1)]
     pub sky_texture: Handle<Image>,
+    #[cfg(feature = "dithering")]
+    pub dithering: bool,
+}
+
+/// Bind group data for [`SkyBoxMaterial`]
+#[derive(Copy, Clone, Hash, Eq, PartialEq)]
+pub struct SkyBoxMaterialKey {
+    #[cfg(feature = "dithering")]
+    dithering: bool,
 }
 
 impl Material for SkyBoxMaterial {
@@ -37,13 +47,25 @@ impl Material for SkyBoxMaterial {
         _pipeline: &MaterialPipeline<Self>,
         descriptor: &mut RenderPipelineDescriptor,
         _layout: &MeshVertexBufferLayout,
-        _key: MaterialPipelineKey<Self>,
+        key: MaterialPipelineKey<Self>,
     ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
-        #[cfg(feature = "dither")]
-        if let Some(fragment) = &mut descriptor.fragment {
-            fragment.shader_defs.push(String::from("DITHER"));
+        #[cfg(feature = "dithering")]
+        if key.bind_group_data.dithering {
+            if let Some(fragment) = &mut descriptor.fragment {
+                fragment.shader_defs.push(String::from("DITHER"));
+            }
         }
+
         Ok(())
+    }
+}
+
+impl From<&SkyBoxMaterial> for SkyBoxMaterialKey {
+    fn from(material: &SkyBoxMaterial) -> SkyBoxMaterialKey {
+        SkyBoxMaterialKey {
+            #[cfg(feature = "dithering")]
+            dithering: material.dithering,
+        }
     }
 }
 

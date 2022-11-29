@@ -1,4 +1,25 @@
-//! Provides the [`Atmospheric`] trait and [`struct@AtmosphereModel`] resource.
+//! Provides the [`trait@Atmospheric`] trait and [`AtmosphereModel`] resource.
+//!
+//! most models will look something like the following:
+//! ```no_run
+//! # use bevy::prelude::*;
+//! #[derive(Atmospheric, SHaderType, Reflect, Debug, Clone)]
+//! // This is shorthand for when all fields are uniform; use other `AsBindGroup` attributes if this doesn't apply
+//! #[uniform(0, MyModel)]
+//! // The `external` attribute loads external assets, while the `internal` attribute is for loading internal assets
+//! #[external("shader.wgsl")]
+//! struct MyModel {
+//!     color: Color,
+//! }
+//!
+//! // Required `#[uniform(0, MyModel)]`
+//! // (if we were using a different GPU representation, this is where we would convert to it)
+//! impl From<&MyModel> for MyModel {
+//!     fn from(model: &MyModel) -> Self {
+//!         model.clone()
+//!     }
+//! }
+//! ```
 
 use std::any::Any;
 
@@ -15,13 +36,13 @@ use bevy::{
 };
 
 /// A derive macro for implementing [`Atmospheric`]
-pub use bevy_atmosphere_macros::AtmosphereModel;
+pub use bevy_atmosphere_macros::Atmospheric;
 
 /// A trait for defining atmosphere models.
 ///
 /// Since `AsBindGroup` is not object-safe, this trait and [`RegisterAtmosphereModel`] split it into two, for dynamic and static contexts.
 ///
-/// The recommended way to use `Atmospheric` is to derive it with the [`AtmosphereModel`](derive@AtmosphereModel) macro.
+/// The recommended way to use `Atmospheric` is to derive it with the [`Atmospheric`](derive@Atmospheric) macro.
 pub trait Atmospheric: Send + Sync + std::fmt::Debug + Reflect + Any + 'static {
     fn as_bind_group(
         &self,
@@ -44,7 +65,7 @@ impl Clone for Box<dyn Atmospheric> {
     }
 }
 
-/// `TypeData` for [`Atmospheric`] models.
+/// The `TypeData` for [`Atmospheric`] models.
 #[derive(Clone)]
 pub struct AtmosphereModelMetadata {
     pub bind_group_layout: BindGroupLayout,

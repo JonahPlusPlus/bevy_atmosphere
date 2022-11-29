@@ -97,8 +97,7 @@ fn setup_environment(
             transform: Transform::from_xyz(5., 0., 5.),
             ..default()
         },
-        AtmosphereCamera(None), // Marks camera as having an atmosphere that isn't on a specific render layer
-        // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
-        Spectator, // Marks camera as spectator (specific to bevy_spectator)
+        AtmosphereCamera::default(), // Marks camera as having a skybox, by default it doesn't specify the render layers the skybox can be seen on
+        Spectator,                   // Marks camera as spectator (specific to bevy_spectator)
     ));
 }

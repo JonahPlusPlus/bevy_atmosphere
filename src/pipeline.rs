@@ -183,7 +183,10 @@ fn atmosphere_settings_changed(
                     depth_or_array_layers: 6,
                 };
                 image.resize(size);
-                let _ = material_assets.get_mut(&material.0); // `get_mut` tells the material to update
+                if let Some(mut skybox_material) = material_assets.get_mut(&material.0) {
+                    // `get_mut` tells the material to update, so it's needed anyways
+                    skybox_material.dithering = settings.dithering;
+                }
                 atmosphere_image.array_view = None; // drop the previous texture view
                 #[cfg(feature = "bevy/trace")]
                 trace!("Resized image to {:?}", size);

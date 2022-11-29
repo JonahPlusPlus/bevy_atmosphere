@@ -21,9 +21,9 @@ bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all 
 
 [features]
 default = ["basic", "all_models"]
-basic = ["detection", "dither", "procedural"] # enables basic features
+basic = ["detection", "dithering", "procedural"] # enables basic features
 detection = [] # enables camera detection (disable to add skyboxes manually)
-dither = [] # enables dithering (disable for banding)
+dithering = [] # enables dithering (disable for banding)
 procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
 # models
 all_models = [ "gradient", "nishita"] # enables all models

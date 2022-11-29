@@ -30,7 +30,7 @@ fn update(
     if mouse.just_pressed(MouseButton::Left) {
         commands
             .entity(primary_camera)
-            .insert(AtmosphereCamera(None));
+            .insert(AtmosphereCamera::default());
         info!("Added `AtmosphereCamera`!");
     } else if mouse.just_pressed(MouseButton::Right) {
         commands.entity(primary_camera).remove::<AtmosphereCamera>();

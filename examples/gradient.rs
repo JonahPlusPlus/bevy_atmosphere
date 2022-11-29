@@ -14,7 +14,11 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera3dBundle::default(), AtmosphereCamera(None), Spectator));
+    commands.spawn((
+        Camera3dBundle::default(),
+        AtmosphereCamera::default(),
+        Spectator,
+    ));
 }
 
 fn change_gradient(mut commands: Commands, keys: Res<Input<KeyCode>>) {

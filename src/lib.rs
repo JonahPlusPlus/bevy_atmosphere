@@ -1,6 +1,6 @@
 //! A procedural sky plugin for the [Bevy game engine](https://bevyengine.org/).
 //!
-//! Uses Rayleigh and Mie scattering to simulate a realistic sky.
+//! Provides a framework for creating and using atmospheric models.
 //!
 //! ## "basic" Example
 //! ```no_run

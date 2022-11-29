@@ -10,15 +10,15 @@ use bevy::{
     },
 };
 
-/// A [`Handle`] to the created [`SkyBoxMaterial`].
+/// The `Handle` for the created [`SkyBoxMaterial`].
 #[derive(Resource)]
 pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
-/// [`Handle`] for shader for the [`SkyBoxMaterial`].
+/// The `Handle` for the shader for the [`SkyBoxMaterial`].
 pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 4511926918914205353);
 
-/// The [`Material`] that renders skyboxes.
+/// The `Material` that renders skyboxes.
 #[derive(AsBindGroup, TypeUuid, Debug, Clone)]
 #[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]
 pub struct SkyBoxMaterial {
@@ -47,7 +47,7 @@ impl Material for SkyBoxMaterial {
     }
 }
 
-/// Generates an inverted box mesh that fits inside [`Projection::far`](bevy::render::camera::Projection).
+/// Generates an inverted box mesh that fits inside `Projection::far`.
 pub fn mesh(far: f32) -> Mesh {
     let size = (far * f32::sqrt(0.5)) - 1.0;
     // sqrt(0.5) is the ratio between squares separated by a circle

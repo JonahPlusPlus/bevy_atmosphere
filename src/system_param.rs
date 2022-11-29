@@ -1,8 +1,17 @@
-//! System params for easy reading/modifying of [`Atmospheric`] models.
+//! Provides system params for easy reading/modifying of [`Atmospheric`] models.
 
-use std::{marker::PhantomData, ops::{Deref, DerefMut}};
+use std::{
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
+};
 
-use bevy::{ecs::system::{SystemParam, SystemMeta, SystemParamFetch, SystemParamState, ResState, ResMutState, ReadOnlySystemParamFetch}, prelude::*};
+use bevy::{
+    ecs::system::{
+        ReadOnlySystemParamFetch, ResMutState, ResState, SystemMeta, SystemParam, SystemParamFetch,
+        SystemParamState,
+    },
+    prelude::*,
+};
 
 use crate::{model::Atmospheric, prelude::AtmosphereModel};
 
@@ -53,11 +62,18 @@ impl<'w, 's, T: Atmospheric> SystemParamFetch<'w, 's> for AtmosphereState<T> {
         world: &'w World,
         change_tick: u32,
     ) -> Self::Item {
-        let atmosphere_model = <<Res<AtmosphereModel> as SystemParam>::Fetch as SystemParamFetch>::get_param(&mut state.res_state, system_meta, world, change_tick).into_inner();
-        let value = atmosphere_model.to_ref::<T>().expect("Wrong type of `Atmospheric` model found");
-        Self::Item {
-            value,
-        }
+        let atmosphere_model =
+            <<Res<AtmosphereModel> as SystemParam>::Fetch as SystemParamFetch>::get_param(
+                &mut state.res_state,
+                system_meta,
+                world,
+                change_tick,
+            )
+            .into_inner();
+        let value = atmosphere_model
+            .to_ref::<T>()
+            .expect("Wrong type of `Atmospheric` model found");
+        Self::Item { value }
     }
 }
 
@@ -111,10 +127,17 @@ impl<'w, 's, T: Atmospheric> SystemParamFetch<'w, 's> for AtmosphereMutState<T> 
         world: &'w World,
         change_tick: u32,
     ) -> Self::Item {
-        let atmosphere_model = <<ResMut<AtmosphereModel> as SystemParam>::Fetch as SystemParamFetch>::get_param(&mut state.res_state, system_meta, world, change_tick).into_inner();
-        let value = atmosphere_model.to_mut::<T>().expect("Wrong type of `Atmospheric` model found");
-        Self::Item {
-            value,
-        }
+        let atmosphere_model =
+            <<ResMut<AtmosphereModel> as SystemParam>::Fetch as SystemParamFetch>::get_param(
+                &mut state.res_state,
+                system_meta,
+                world,
+                change_tick,
+            )
+            .into_inner();
+        let value = atmosphere_model
+            .to_mut::<T>()
+            .expect("Wrong type of `Atmospheric` model found");
+        Self::Item { value }
     }
 }

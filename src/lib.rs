@@ -23,7 +23,7 @@
 //! }
 //! ```
 //!
-//! To change the sky's appearance, use the [`Atmosphere`](crate::system_param::Atmosphere) and [`AtmosphereMut`](crate::system_param::AtmosphereMut) system params.
+//! To change the sky's appearance, use the [`Atmosphere<T>`](crate::system_param::Atmosphere) and [`AtmosphereMut<T>`](crate::system_param::AtmosphereMut) system params or the [`AtmosphereModel`](struct@crate::model::AtmosphereModel) resource.
 //! ```no_run
 //! # use bevy::utils::default;
 //! # use bevy::math::Vec3;
@@ -32,9 +32,17 @@
 //!     let sun_position = atmosphere.sun_position;
 //!     println!("Sun is at {sun_position}");
 //! }
-//! 
+//!
 //! fn write_gradient(mut atmosphere: AtmosphereMut<Gradient>) {
 //!     atmosphere.horizon = Color::RED;
+//! }
+//!
+//! fn check_model(atmosphere: Res<AtmosphereModel>) {
+//!     if let Some(nishita) = atmosphere.to_ref::<Nishita>() {
+//!         println!("Sun is at {}", nishita.sun_position);
+//!     } else {
+//!         println!("Model isn't Nishita");
+//!     }
 //! }
 //! # ;
 //! ```
@@ -52,25 +60,24 @@
 //!
 //! To see more examples, view the ["examples"](https://github.com/JonahPlusPlus/bevy_atmosphere/tree/master/examples) directory.
 
+pub mod collection;
 pub mod model;
-pub mod models;
 pub mod pipeline;
 pub mod plugin;
-pub mod resource;
 pub mod settings;
 pub mod skybox;
 pub mod system_param;
 
 pub mod prelude {
     //! `use bevy_atmosphere::prelude::*;` to import the most commonly used items.
+    pub use crate::model::{AtmosphereModel, Atmospheric};
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
-    pub use crate::resource::AtmosphereModel;
     pub use crate::settings::AtmosphereSettings;
     pub use crate::system_param::{Atmosphere, AtmosphereMut};
 
     #[cfg(any(doc, feature = "nishita"))]
-    pub use crate::models::nishita::Nishita;
+    pub use crate::collection::nishita::Nishita;
 
     #[cfg(any(doc, feature = "gradient"))]
-    pub use crate::models::gradient::Gradient;
+    pub use crate::collection::gradient::Gradient;
 }

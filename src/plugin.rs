@@ -1,4 +1,4 @@
-//! Provides a [`Plugin`] for making skyboxes with procedural sky textures.
+//! Provides a `Plugin` for making skyboxes with procedural sky textures.
 
 use bevy::{
     asset::load_internal_asset,
@@ -16,7 +16,7 @@ use crate::{
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
-/// A [`Plugin`] that adds the prerequisites for a procedural sky.
+/// A `Plugin` that adds the prerequisites for a procedural sky.
 #[derive(Debug, Clone, Copy)]
 pub struct AtmospherePlugin;
 
@@ -60,30 +60,30 @@ impl Plugin for AtmospherePlugin {
         app.add_system(atmosphere_cancel_rotation);
 
         #[cfg(feature = "gradient")]
-        app.add_atmosphere_model::<crate::models::gradient::Gradient>();
+        app.add_atmosphere_model::<crate::collection::gradient::Gradient>();
 
         #[cfg(feature = "nishita")]
-        app.add_atmosphere_model::<crate::models::nishita::Nishita>();
+        app.add_atmosphere_model::<crate::collection::nishita::Nishita>();
     }
 }
 
-/// Marker for a [`Camera`] that receives a skybox.
+/// Marker for a `Camera` that receives a skybox.
 ///
 /// When added, a skybox will be created as a child.
 /// This behaviour can be disabled by turning off the "detection" feature.
 ///
-/// `Some(u8)` specifies the [`RenderLayers`] for the skybox to be on.
-/// `None` doesn't add the [`RenderLayers`] component.
+/// `Some(u8)` specifies the `RenderLayers` for the skybox to be on.
+/// `None` doesn't add the `RenderLayers` component.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereCamera(pub Option<u8>);
 
 /// Marker for skybox entities.
 ///
-/// Added for skybox generated when a [`AtmosphereCamera`] is detected by the "detection" feature.
+/// Added for skybox generated when a `AtmosphereCamera` is detected by the "detection" feature.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;
 
-/// Inserts a skybox when the [`AtmosphereCamera`] component is added.
+/// Inserts a skybox when the `AtmosphereCamera` component is added.
 #[cfg(feature = "detection")]
 fn atmosphere_insert(
     mut commands: Commands,
@@ -119,7 +119,7 @@ fn atmosphere_insert(
     }
 }
 
-/// Removes the skybox when the [`AtmosphereCamera`] component is removed.
+/// Removes the skybox when the `AtmosphereCamera` component is removed.
 #[cfg(feature = "detection")]
 fn atmosphere_remove(
     mut commands: Commands,

@@ -1,5 +1,5 @@
+use crate::model::AtmosphereModel;
 use bevy::{prelude::*, render::render_resource::ShaderType};
-use bevy_atmosphere_macros::AtmosphereModel;
 
 /// Gradient sky model.
 #[derive(AtmosphereModel, ShaderType, Reflect, Debug, Clone)]
@@ -8,20 +8,20 @@ use bevy_atmosphere_macros::AtmosphereModel;
 pub struct Gradient {
     /// Sky Color (Default: `Color::rgb(0.29, 0.41, 0.50)`).
     /// <div style="background-color:rgb(29%, 41%, 50%); width: 10px; padding: 10px; border: 1px solid;"></div>
-    /// 
-    /// 
+    ///
+    ///
     /// The color of the top.
     pub sky: Color,
     /// Horizon Color (Default: `Color::rgb(0.48, 0.62, 0.69)`).
     /// <div style="background-color:rgb(48%, 62%, 69%); width: 10px; padding: 10px; border: 1px solid;"></div>
-    /// 
-    /// 
+    ///
+    ///
     /// The color of the sides.
     pub horizon: Color,
     /// Ground Color (Default: `Color::rgb(0.71, 0.69, 0.57)`).
     /// <div style="background-color:rgb(71%, 69%, 57%); width: 10px; padding: 10px; border: 1px solid;"></div>
-    /// 
-    /// 
+    ///
+    ///
     /// The color of the bottom.
     pub ground: Color,
 }

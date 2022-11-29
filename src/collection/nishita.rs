@@ -1,6 +1,5 @@
-use bevy::prelude::*;
-use bevy::render::render_resource::ShaderType;
-use bevy_atmosphere_macros::AtmosphereModel;
+use crate::model::AtmosphereModel;
+use bevy::{prelude::*, render::render_resource::ShaderType};
 
 /// Nishita sky model.
 #[derive(AtmosphereModel, ShaderType, Reflect, Debug, Clone)]

@@ -4,6 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere)
 [![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/)
 [![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/JonahPlusPlus/bevy_atmosphere#license)
+[![Discord](https://img.shields.io/discord/691052431525675048.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.com/channels/691052431525675048/1035260359952576603)
 
 A procedural sky plugin for the [Bevy game engine](https://bevyengine.org/).
 
@@ -34,6 +35,10 @@ fn setup(mut commands: Commands) {
         .insert(AtmosphereCamera(None));
 }
 ```
+
+## Getting Started
+
+To learn more, read the [docs](https://docs.rs/bevy_atmosphere/) or check out the [examples](/examples/).
 
 ## License
 

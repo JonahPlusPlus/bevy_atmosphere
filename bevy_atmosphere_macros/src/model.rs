@@ -420,7 +420,7 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
     Ok(TokenStream::from(quote! {
         #(#field_struct_impls)*
 
-        impl #impl_generics #atmosphere_path::model::AtmosphereModel for #struct_name #ty_generics #where_clause {
+        impl #impl_generics #atmosphere_path::model::Atmospheric for #struct_name #ty_generics #where_clause {
             fn as_bind_group(
                 &self,
                 layout: &#render_path::render_resource::BindGroupLayout,
@@ -441,7 +441,7 @@ pub fn derive_atmosphere_model(ast: syn::DeriveInput) -> Result<TokenStream> {
                 bind_group
             }
 
-            fn clone_dynamic(&self) -> Box<dyn AtmosphereModel> {
+            fn clone_dynamic(&self) -> Box<dyn #atmosphere_path::model::Atmospheric> {
                 Box::new((*self).clone())
             }
 

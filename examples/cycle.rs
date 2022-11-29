@@ -5,7 +5,7 @@ use bevy_spectator::*;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
-        .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
+        .insert_resource(AtmosphereModel::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
             bevy::utils::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
             TimerMode::Repeating,
@@ -28,15 +28,11 @@ struct CycleTimer(Timer);
 
 // We can edit the Atmosphere resource and it will be updated automatically
 fn daylight_cycle(
-    mut atmosphere: ResMut<Atmosphere>,
+    mut atmosphere: AtmosphereMut<Nishita>,
     mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,
     mut timer: ResMut<CycleTimer>,
     time: Res<Time>,
 ) {
-    let Some(atmosphere) = atmosphere.to_mut::<Nishita>() else {
-        error!("Wrong model!");
-        return;
-    };
     timer.0.tick(time.delta());
 
     if timer.0.finished() {

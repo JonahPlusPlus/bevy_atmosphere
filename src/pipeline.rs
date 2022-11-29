@@ -25,7 +25,7 @@ use bevy::{
 
 use crate::{
     model::AtmosphereModelMetadata,
-    resource::Atmosphere,
+    resource::AtmosphereModel,
     settings::AtmosphereSettings,
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial},
 };
@@ -94,7 +94,7 @@ impl Plugin for AtmospherePipelinePlugin {
             None => default(),
         };
 
-        let atmosphere = match app.world.get_resource::<Atmosphere>() {
+        let atmosphere = match app.world.get_resource::<AtmosphereModel>() {
             Some(a) => a.clone(),
             None => default(),
         };
@@ -221,8 +221,8 @@ fn atmosphere_settings_changed(
 
 /// Extracts [`Atmosphere`] and [`AtmosphereSettings`] from main world.
 fn extract_atmosphere_resources(
-    main_atmosphere: Extract<Option<Res<Atmosphere>>>,
-    mut render_atmosphere: ResMut<Atmosphere>,
+    main_atmosphere: Extract<Option<Res<AtmosphereModel>>>,
+    mut render_atmosphere: ResMut<AtmosphereModel>,
     mut atmosphere_existed: Local<bool>,
     main_settings: Extract<Option<Res<AtmosphereSettings>>>,
     mut render_settings: ResMut<AtmosphereSettings>,
@@ -230,12 +230,12 @@ fn extract_atmosphere_resources(
 ) {
     if let Some(atmosphere) = &*main_atmosphere {
         if atmosphere.is_changed() {
-            *render_atmosphere = Atmosphere::extract_resource(atmosphere);
+            *render_atmosphere = AtmosphereModel::extract_resource(atmosphere);
         }
         *atmosphere_existed = true;
     } else {
         if *atmosphere_existed {
-            *render_atmosphere = Atmosphere::extract_resource(&Atmosphere::default());
+            *render_atmosphere = AtmosphereModel::extract_resource(&AtmosphereModel::default());
         }
         *atmosphere_existed = false;
     }
@@ -300,7 +300,7 @@ fn prepare_atmosphere_assets(
     mut update_events: ResMut<Events<AtmosphereUpdateEvent>>,
     mut atmosphere_image: ResMut<AtmosphereImage>,
     gpu_images: Res<RenderAssets<Image>>,
-    atmosphere: Res<Atmosphere>,
+    atmosphere: Res<AtmosphereModel>,
 ) {
     let mut update = || update_events.send(AtmosphereUpdateEvent);
 
@@ -336,7 +336,7 @@ fn queue_atmosphere_bind_group(
     fallback_image: Res<FallbackImage>,
     type_registry: Res<AtmosphereTypeRegistry>,
     image_bind_group_layout: Res<AtmosphereImageBindGroupLayout>,
-    atmosphere: Option<Res<Atmosphere>>,
+    atmosphere: Option<Res<AtmosphereModel>>,
 ) {
     let view = atmosphere_image.array_view.as_ref().expect("prepare_changed_settings should have took care of making AtmosphereImage.array_value Some(TextureView)");
 
@@ -407,7 +407,7 @@ impl render_graph::Node for AtmosphereNode {
     fn update(&mut self, world: &mut World) {
         match self.state {
             AtmosphereState::Loading => {
-                let atmosphere = world.resource::<Atmosphere>();
+                let atmosphere = world.resource::<AtmosphereModel>();
                 let type_registry = world.resource::<AtmosphereTypeRegistry>();
                 let pipeline_cache = world.resource::<PipelineCache>();
                 let pipeline = {
@@ -442,7 +442,7 @@ impl render_graph::Node for AtmosphereNode {
             AtmosphereState::Update => {
                 if !update_events.is_empty() {
                     // only run when there are update events available
-                    let atmosphere = world.resource::<Atmosphere>();
+                    let atmosphere = world.resource::<AtmosphereModel>();
                     let bind_groups = world.resource::<AtmosphereBindGroups>();
                     let pipeline_cache = world.resource::<PipelineCache>();
                     let type_registry = world.resource::<AtmosphereTypeRegistry>();

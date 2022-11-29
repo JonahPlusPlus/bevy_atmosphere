@@ -23,16 +23,18 @@
 //! }
 //! ```
 //!
-//! To change the sky's appearance, use the [`Atmosphere`](crate::resource::Atmosphere) resource.
+//! To change the sky's appearance, use the [`Atmosphere`](crate::system_param::Atmosphere) and [`AtmosphereMut`](crate::system_param::AtmosphereMut) system params.
 //! ```no_run
 //! # use bevy::utils::default;
 //! # use bevy::math::Vec3;
-//! # use bevy_atmosphere::resource::Atmosphere;
-//! # let _ =
-//! Atmosphere {
-//!     // changes the sky color using Rayleigh scattering
-//!     rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6),
-//!     ..default()
+//! # use bevy_atmosphere::prelude::*;
+//! fn read_nishita(atmosphere: Atmosphere<Nishita>) {
+//!     let sun_position = atmosphere.sun_position;
+//!     println!("Sun is at {sun_position}");
+//! }
+//! 
+//! fn write_gradient(mut atmosphere: AtmosphereMut<Gradient>) {
+//!     atmosphere.horizon = Color::RED;
 //! }
 //! # ;
 //! ```
@@ -57,12 +59,14 @@ pub mod plugin;
 pub mod resource;
 pub mod settings;
 pub mod skybox;
+pub mod system_param;
 
 pub mod prelude {
     //! `use bevy_atmosphere::prelude::*;` to import the most commonly used items.
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
-    pub use crate::resource::Atmosphere;
+    pub use crate::resource::AtmosphereModel;
     pub use crate::settings::AtmosphereSettings;
+    pub use crate::system_param::{Atmosphere, AtmosphereMut};
 
     #[cfg(any(doc, feature = "nishita"))]
     pub use crate::models::nishita::Nishita;

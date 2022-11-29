@@ -2,8 +2,7 @@ use bevy::prelude::*;
 use bevy::render::render_resource::ShaderType;
 use bevy_atmosphere_macros::AtmosphereModel;
 
-use crate::model::AtmosphereModel;
-
+/// Nishita sky model.
 #[derive(AtmosphereModel, ShaderType, Reflect, Debug, Clone)]
 #[uniform(0, Nishita)]
 #[internal("shaders/nishita.wgsl")]

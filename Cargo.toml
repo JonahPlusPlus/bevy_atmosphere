@@ -48,7 +48,12 @@ required-features = ["default"]
 [[example]]
 name = "gradient"
 path = "examples/gradient.rs"
-required-features = ["default", "gradient"]
+required-features = ["default"]
+
+[[example]]
+name = "models"
+path = "examples/models.rs"
+required-features = ["default"]
 
 [[example]]
 name = "nishita"

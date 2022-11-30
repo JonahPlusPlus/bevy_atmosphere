@@ -3,6 +3,7 @@ use bevy_atmosphere::prelude::*;
 use bevy_spectator::*;
 
 fn main() {
+    println!("Demonstrates using the `Nishita` model\n\t- 1-9 number keys: Change preset\n\t- 0 number key: Remove `Nishita` model");
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(AtmospherePlugin)

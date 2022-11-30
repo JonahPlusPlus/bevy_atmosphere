@@ -8,8 +8,10 @@ use bevy::{
     window::{WindowId, WindowResized},
 };
 use bevy_atmosphere::prelude::*;
+use bevy_spectator::*;
 
 fn main() {
+    println!("Demonstrates using `AtmosphereCamera.render_layers` to have multiple skyboxes in the scene at once\n\t- Enter: Switch camera");
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(AtmosphereModel::new(Nishita {
@@ -18,8 +20,10 @@ fn main() {
         }))
         .add_plugins(DefaultPlugins)
         .add_plugin(AtmospherePlugin)
+        .add_plugin(SpectatorPlugin)
         .add_startup_system(setup)
         .add_system(set_camera_viewports)
+        .add_system(switch_camera)
         .run();
 }
 
@@ -28,14 +32,14 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // plane
+    // Plane
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane { size: 100.0 })),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
 
-    // light
+    // Light
     commands.spawn(DirectionalLightBundle {
         transform: Transform::from_rotation(Quat::from_euler(
             EulerRot::ZYX,
@@ -50,7 +54,7 @@ fn setup(
         ..default()
     });
 
-    // spawn left screen camera
+    // Spawn left screen camera
     commands.spawn((
         Camera3dBundle {
             transform: Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -61,9 +65,10 @@ fn setup(
             render_layers: Some(RenderLayers::layer(1)),
         },
         LeftCamera,
+        Spectator,
     ));
 
-    // spawn right screen camera
+    // Spawn right screen camera
     commands.spawn((
         Camera3dBundle {
             transform: Transform::from_xyz(100.0, 50.0, 150.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -73,7 +78,7 @@ fn setup(
                 ..default()
             },
             camera_3d: Camera3d {
-                // dont clear on the second camera because the first camera already cleared the window
+                // Don't clear on the second camera because the first camera already cleared the window
                 clear_color: ClearColorConfig::None,
                 ..default()
             },
@@ -84,6 +89,7 @@ fn setup(
             render_layers: Some(RenderLayers::layer(2)),
         },
         RightCamera,
+        Spectator,
     ));
 }
 
@@ -119,5 +125,28 @@ fn set_camera_viewports(
                 ..default()
             });
         }
+    }
+}
+
+fn switch_camera(
+    mut settings: ResMut<SpectatorSettings>,
+    keys: Res<Input<KeyCode>>,
+    left_camera: Query<Entity, (With<LeftCamera>, Without<RightCamera>)>,
+    right_camera: Query<Entity, With<RightCamera>>,
+) {
+    let left_camera = left_camera.single();
+    let right_camera = right_camera.single();
+
+    if keys.just_pressed(KeyCode::Return) {
+        if let Some(spectator) = settings.active_spectator {
+            if spectator == left_camera {
+                settings.active_spectator = Some(right_camera);
+            } else {
+                settings.active_spectator = Some(left_camera);
+            }
+        } else {
+            settings.active_spectator = Some(left_camera);
+        }
+        println!("Switched camera");
     }
 }

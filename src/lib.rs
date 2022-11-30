@@ -7,7 +7,7 @@
 //! # use bevy::utils::default;
 //! use bevy::prelude::*;
 //! use bevy_atmosphere::prelude::*;
-//!
+//! 
 //! fn main() {
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)
@@ -15,18 +15,22 @@
 //!         .add_startup_system(setup)
 //!         .run();
 //! }
-//!
+//! 
 //! fn setup(mut commands: Commands) {
-//!     commands
-//!         .spawn_bundle(Camera3dBundle::default())
-//!         .insert(AtmosphereCamera(None));
+//!     commands.spawn((Camera3dBundle::default(), AtmosphereCamera::default()));
 //! }
 //! ```
+//! 
+//! How the sky is rendered is described by an [`Atmospheric`](crate::model::Atmospheric) model.
+//! bevy_atmosphere provides a [collection of models to use](crate::collection), but you can [create your own as well](crate::model).
 //!
-//! To change the sky's appearance, use the [`Atmosphere<T>`](crate::system_param::Atmosphere) and [`AtmosphereMut<T>`](crate::system_param::AtmosphereMut) system params or the [`AtmosphereModel`](struct@crate::model::AtmosphereModel) resource.
+//! To read and modify the atmospheric model, use the [`Atmosphere<T>`](crate::system_param::Atmosphere) and
+//! [`AtmosphereMut<T>`](crate::system_param::AtmosphereMut) system params or
+//! the [`AtmosphereModel`](struct@crate::model::AtmosphereModel) resource.
 //! ```no_run
 //! # use bevy::utils::default;
 //! # use bevy::math::Vec3;
+//! # use bevy::prelude::*;
 //! # use bevy_atmosphere::prelude::*;
 //! fn read_nishita(atmosphere: Atmosphere<Nishita>) {
 //!     let sun_position = atmosphere.sun_position;
@@ -53,7 +57,9 @@
 //! # let _ =
 //! AtmosphereSettings {
 //!     // changes the resolution (should be a multiple of 8)
-//!     resolution: 1024
+//!     resolution: 1024,
+//!     // turns off dithering
+//!     dithering: false,
 //! }
 //! # ;
 //! ```
@@ -70,7 +76,7 @@ pub mod system_param;
 
 pub mod prelude {
     //! `use bevy_atmosphere::prelude::*;` to import the most commonly used items.
-    pub use crate::model::{AtmosphereModel, Atmospheric};
+    pub use crate::model::{AtmosphereModel, Atmospheric, AddAtmosphereModel};
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
     pub use crate::settings::AtmosphereSettings;
     pub use crate::system_param::{Atmosphere, AtmosphereMut};

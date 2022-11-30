@@ -43,7 +43,7 @@ impl Plugin for AtmospherePlugin {
                 let settings = app
                     .world
                     .get_resource::<crate::settings::AtmosphereSettings>();
-                settings.map(|s| s.clone()).unwrap_or_default()
+                settings.copied().unwrap_or_default()
             };
             let mut material_assets = app.world.resource_mut::<Assets<SkyBoxMaterial>>();
             let material = material_assets.add(SkyBoxMaterial {

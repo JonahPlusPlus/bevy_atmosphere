@@ -331,6 +331,7 @@ fn prepare_atmosphere_assets(
 }
 
 /// Queue the generated bind groups for the compute pipeline.
+#[allow(clippy::too_many_arguments)]
 fn queue_atmosphere_bind_group(
     mut commands: Commands,
     gpu_images: Res<RenderAssets<Image>>,

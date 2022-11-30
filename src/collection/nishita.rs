@@ -1,7 +1,9 @@
 use crate::model::Atmospheric;
 use bevy::{prelude::*, render::render_resource::ShaderType};
 
-/// Nishita sky model.
+/// The Nishita sky model.
+/// 
+/// An atmospheric model that uses Rayleigh and Mie scattering to simulate a realistic sky.
 #[derive(Atmospheric, ShaderType, Reflect, Debug, Clone)]
 #[uniform(0, Nishita)]
 #[internal("shaders/nishita.wgsl")]

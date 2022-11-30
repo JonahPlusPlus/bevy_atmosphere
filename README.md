@@ -30,9 +30,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn_bundle(Camera3dBundle::default())
-        .insert(AtmosphereCamera(None));
+    commands.spawn((Camera3dBundle::default(), AtmosphereCamera::default()));
 }
 ```
 

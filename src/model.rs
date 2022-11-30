@@ -1,12 +1,17 @@
 //! Provides the [`trait@Atmospheric`] trait and [`AtmosphereModel`] resource.
 //!
-//! most models will look something like the following:
-//! ```no_run
+//! # Examples
+//! Most models will look something like the following:
+//! ```ignore
 //! # use bevy::prelude::*;
-//! #[derive(Atmospheric, SHaderType, Reflect, Debug, Clone)]
-//! // This is shorthand for when all fields are uniform; use other `AsBindGroup` attributes if this doesn't apply
+//! # use bevy::render::render_resource::ShaderType;
+//! # use bevy_atmosphere::prelude::*;
+//! #[derive(Atmospheric, ShaderType, Reflect, Debug, Clone)]
+//! // This is shorthand for when all fields are uniform.
+//! // Use other `AsBindGroup` attributes if this doesn't apply.
 //! #[uniform(0, MyModel)]
-//! // The `external` attribute loads external assets, while the `internal` attribute is for loading internal assets
+//! // The `external` attribute loads external assets.
+//! // The `internal` attribute is for loading internal assets.
 //! #[external("shader.wgsl")]
 //! struct MyModel {
 //!     color: Color,
@@ -20,6 +25,8 @@
 //!     }
 //! }
 //! ```
+//! 
+//! It can then be registered by calling [`AddAtmosphereModel::add_atmosphere_model`].
 
 use std::any::Any;
 
@@ -35,7 +42,7 @@ use bevy::{
     },
 };
 
-/// A derive macro for implementing [`Atmospheric`]
+/// A derive macro for implementing [`Atmospheric`].
 pub use bevy_atmosphere_macros::Atmospheric;
 
 /// A trait for defining atmosphere models.
@@ -80,6 +87,20 @@ pub trait RegisterAtmosphereModel: GetTypeRegistration {
 }
 
 /// A trait for using [`RegisterAtmosphereModel`] from `App`.
+/// 
+/// # Examples
+/// ```ignore
+/// # use bevy::prelude::*;
+/// # use bevy_atmosphere::prelude::*;
+/// fn main() {
+///     App::new()
+///         .add_plugins(DefaultPlugins)
+///         .add_plugin(AtmospherePlugin)
+///		    .add_atmosphere_model::<MyModel>()
+///         .insert_resource(AtmosphereModel::new(MyModel::default()))
+///         .run();
+/// }
+/// ```
 pub trait AddAtmosphereModel {
     fn add_atmosphere_model<T: RegisterAtmosphereModel>(&mut self) -> &mut App;
 }

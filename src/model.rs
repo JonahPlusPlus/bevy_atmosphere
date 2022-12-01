@@ -170,6 +170,13 @@ cfg_if::cfg_if! {
                 Self::new(Nishita::default())
             }
         }
+    } else if #[cfg(feature = "gradient")] {
+        impl Default for AtmosphereModel {
+            fn default() -> Self {
+                use crate::collection::gradient::Gradient;
+                Self::new(Gradient::default())
+            }
+        }
     } else {
         impl Default for AtmosphereModel {
             fn default() -> Self {

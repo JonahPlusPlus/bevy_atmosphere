@@ -50,7 +50,7 @@ pub use bevy_atmosphere_macros::Atmospheric;
 /// Since `AsBindGroup` is not object-safe, this trait and [`RegisterAtmosphereModel`] split it into two, for dynamic and static contexts.
 ///
 /// The recommended way to use `Atmospheric` is to derive it with the [`Atmospheric`](derive@Atmospheric) macro.
-pub trait Atmospheric: Send + Sync + std::fmt::Debug + Reflect + Any + 'static {
+pub trait Atmospheric: Send + Sync + Reflect + Any + 'static {
     fn as_bind_group(
         &self,
         layout: &BindGroupLayout,
@@ -116,7 +116,7 @@ impl AddAtmosphereModel for App {
 /// A `Resource` that stores an [`Atmospheric`](crate::model::Atmospheric) model.
 ///
 /// Acts as a wrapper for accessing an [`Atmospheric`](crate::model::Atmospheric) model as a resource.
-#[derive(Resource, ExtractResource, Debug, Clone)]
+#[derive(Resource, ExtractResource, Clone)]
 pub struct AtmosphereModel {
     model: Box<dyn Atmospheric>,
 }

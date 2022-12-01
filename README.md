@@ -29,6 +29,10 @@ fn setup(mut commands: Commands) {
 }
 ```
 
+## ["cycle" Example](/examples/cycle.rs)
+
+![cycle example image](examples/images/cycle-example.png)
+
 ## Getting Started
 
 To learn more, read the [docs](https://docs.rs/bevy_atmosphere/) or check out the [examples](/examples/).

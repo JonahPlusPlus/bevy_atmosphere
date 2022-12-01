@@ -2,7 +2,7 @@ use crate::model::Atmospheric;
 use bevy::{prelude::*, render::render_resource::ShaderType};
 
 /// The Gradient sky model.
-/// 
+///
 /// A simple gradient for creating a stylized environment.
 #[derive(Atmospheric, ShaderType, Reflect, Debug, Clone)]
 #[uniform(0, Gradient)]

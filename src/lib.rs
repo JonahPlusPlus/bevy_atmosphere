@@ -7,7 +7,7 @@
 //! # use bevy::utils::default;
 //! use bevy::prelude::*;
 //! use bevy_atmosphere::prelude::*;
-//! 
+//!
 //! fn main() {
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)
@@ -15,12 +15,12 @@
 //!         .add_startup_system(setup)
 //!         .run();
 //! }
-//! 
+//!
 //! fn setup(mut commands: Commands) {
 //!     commands.spawn((Camera3dBundle::default(), AtmosphereCamera::default()));
 //! }
 //! ```
-//! 
+//!
 //! How the sky is rendered is described by an [`Atmospheric`](crate::model::Atmospheric) model.
 //! bevy_atmosphere provides a [collection of models to use](crate::collection), but you can [create your own as well](crate::model).
 //!
@@ -76,7 +76,7 @@ pub mod system_param;
 
 pub mod prelude {
     //! `use bevy_atmosphere::prelude::*;` to import the most commonly used items.
-    pub use crate::model::{AtmosphereModel, Atmospheric, AddAtmosphereModel};
+    pub use crate::model::{AddAtmosphereModel, AtmosphereModel, Atmospheric};
     pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
     pub use crate::settings::AtmosphereSettings;
     pub use crate::system_param::{Atmosphere, AtmosphereMut};

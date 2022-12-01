@@ -25,7 +25,7 @@
 //!     }
 //! }
 //! ```
-//! 
+//!
 //! It can then be registered by calling [`AddAtmosphereModel::add_atmosphere_model`].
 
 use std::any::Any;
@@ -87,7 +87,7 @@ pub trait RegisterAtmosphereModel: GetTypeRegistration {
 }
 
 /// A trait for using [`RegisterAtmosphereModel`] from `App`.
-/// 
+///
 /// # Examples
 /// ```ignore
 /// # use bevy::prelude::*;
@@ -96,7 +96,7 @@ pub trait RegisterAtmosphereModel: GetTypeRegistration {
 ///     App::new()
 ///         .add_plugins(DefaultPlugins)
 ///         .add_plugin(AtmospherePlugin)
-///		    .add_atmosphere_model::<MyModel>()
+///         .add_atmosphere_model::<MyModel>()
 ///         .insert_resource(AtmosphereModel::new(MyModel::default()))
 ///         .run();
 /// }

@@ -46,4 +46,4 @@ A split-screen application, demonstrating the flexibility for local multiplayer 
 
 ![settings example image](images/settings-example.png)
 
-Demonstrates using `AtmosphereSettings` to update the resolution on the fly, similar to how an in-game quality settings menu could operate. Use the number keys to switch presets.
+Demonstrates using `AtmosphereSettings` to update resolution and dithering on the fly, similar to how an in-game quality settings menu could operate. Use the number keys to switch resolution presets and the spacebar to toggle dithering.

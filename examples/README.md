@@ -18,11 +18,23 @@ A daylight cycle in the default `ATmosphere`, updating every 50ms.
 
 Demonstrates adding and removing the skybox with the `detection` feature. Use `LMouse` to add and `RMouse` to remove.
 
-## [nishita.rs](atmosphere.rs)
+## [gradient.rs](gradient.rs)
+
+![gradient example image](images/gradient-example.png)
+
+Demonstrates using `Gradient` model. Use the number keys to switch presets. (Preset 3 shown here)
+
+## [models.rs](models.rs)
+
+![models example image](images/models-example.gif)
+
+Demonstrates using the different models available. Use the letter keys to switch models.
+
+## [nishita.rs](nishita.rs)
 
 ![nishita example image](images/nishita-example.png)
 
-Demonstrates using `Nishita` model. Use the number keys to switch presets. (The above is Preset 2)
+Demonstrates using `Nishita` model. Use the number keys to switch presets. (Preset 2 shown here)
 
 ## [splitscreen.rs](splitscreen.rs)
 

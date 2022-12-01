@@ -457,6 +457,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
         impl #impl_generics #atmosphere_path::model::RegisterAtmosphereModel for #struct_name #ty_generics #where_clause {
             fn register(app: &mut App) {
                 use std::borrow::Cow;
+                use std::any::TypeId;
                 app.register_type::<Self>();
 
                 let handle = #shader_path_impl;
@@ -480,7 +481,10 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     entry_point: Cow::from("main"),
                 });
 
+                let id = TypeId::of::<Self>();
+
                 let data = #atmosphere_path::model::AtmosphereModelMetadata {
+                    id,
                     bind_group_layout,
                     pipeline,
                 };

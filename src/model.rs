@@ -28,7 +28,7 @@
 //!
 //! It can then be registered by calling [`AddAtmosphereModel::add_atmosphere_model`].
 
-use std::any::Any;
+use std::any::{Any, TypeId};
 
 use bevy::{
     prelude::*,
@@ -75,7 +75,11 @@ impl Clone for Box<dyn Atmospheric> {
 /// The `TypeData` for [`Atmospheric`] models.
 #[derive(Clone)]
 pub struct AtmosphereModelMetadata {
+    /// Used to test if the model has changed.
+    pub id: TypeId,
+    /// Used to create the `BindGroup`.
     pub bind_group_layout: BindGroupLayout,
+    /// Used to get the shader's pipeline.
     pub pipeline: CachedComputePipelineId,
 }
 

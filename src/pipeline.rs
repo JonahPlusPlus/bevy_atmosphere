@@ -239,11 +239,11 @@ fn extract_atmosphere_resources(
     mut settings_existed: Local<bool>,
 ) {
     macro_rules! cache_metadata {
-        () => {
+        ($id:ident) => {
             *cached_metadata = CachedAtmosphereModelMetadata(Some({
                 let type_registry = type_registry.read();
                 type_registry
-                    .get_type_data::<AtmosphereModelMetadata>(render_atmosphere.model().type_id())
+                    .get_type_data::<AtmosphereModelMetadata>($id)
                     .expect("Failed to get type data")
                     .clone()
             }));
@@ -253,13 +253,19 @@ fn extract_atmosphere_resources(
     if let Some(atmosphere) = &*main_atmosphere {
         if atmosphere.is_changed() {
             *render_atmosphere = AtmosphereModel::extract_resource(atmosphere);
-            cache_metadata!();
+            let id = render_atmosphere.model().type_id();
+            if let CachedAtmosphereModelMetadata(Some(metadata)) = cached_metadata.as_ref() {
+                if metadata.id != id {
+                    cache_metadata!(id);
+                }
+            }
         }
         *atmosphere_existed = true;
     } else {
         if *atmosphere_existed {
             *render_atmosphere = AtmosphereModel::extract_resource(&AtmosphereModel::default());
-            cache_metadata!();
+            let id = render_atmosphere.model().type_id();
+            cache_metadata!(id);
         }
         *atmosphere_existed = false;
     }

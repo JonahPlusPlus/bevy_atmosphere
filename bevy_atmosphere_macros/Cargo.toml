@@ -1,0 +1,22 @@
+[package]
+name = "bevy_atmosphere_macros"
+description = "Proc macros for bevy_atmosphere"
+version = "0.1.0"
+edition = "2021"
+authors = ["JonahPlusPlus <33059163+JonahPlusPlus@users.noreply.github.com>"]
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/bevy_atmosphere"
+homepage = "https://github.com/JonahPlusPlus/bevy_atmosphere"
+repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
+exclude = ["/assets/", "/examples/", "/.github/"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro-crate = "1.2.1"
+bevy_macro_utils = "0.9"
+
+syn = "1.0"
+proc-macro2 = "1.0"
+quote = "1.0"

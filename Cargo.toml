@@ -12,36 +12,60 @@ exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
 bevy = { version = "0.9", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
+bevy_atmosphere_macros = { path = "bevy_atmosphere_macros", version = "0.1" }
+cfg-if = "1.0"
 
 [dev-dependencies]
 bevy_spectator = "0.1"
 bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
 
 [features]
-default = ["detection", "procedural"]
+default = ["basic", "all_models"]
+basic = ["detection", "dithering", "procedural"] # enables basic features
 detection = [] # enables camera detection (disable to add skyboxes manually)
+dithering = [] # enables dithering (disable for banding)
 procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
-
-[[example]]
-name = "atmosphere"
-path = "examples/atmosphere.rs"
+# models
+all_models = [ "gradient", "nishita"] # enables all models
+gradient = [] # enables the gradient model
+nishita = [] # enables the nishita model
 
 [[example]]
 name = "basic"
 path = "examples/basic.rs"
+required-features = ["default"]
 
 [[example]]
 name = "cycle"
 path = "examples/cycle.rs"
+required-features = ["default"]
 
 [[example]]
 name = "detection"
 path = "examples/detection.rs"
+required-features = ["default"]
+
+[[example]]
+name = "gradient"
+path = "examples/gradient.rs"
+required-features = ["default"]
+
+[[example]]
+name = "models"
+path = "examples/models.rs"
+required-features = ["default"]
+
+[[example]]
+name = "nishita"
+path = "examples/nishita.rs"
+required-features = ["default"]
 
 [[example]]
 name = "settings"
 path = "examples/settings.rs"
+required-features = ["default"]
 
 [[example]]
 name = "splitscreen"
 path = "examples/splitscreen.rs"
+required-features = ["default"]

@@ -1,4 +1,4 @@
-//! Provides a [`Plugin`] for making skyboxes with procedural sky textures.
+//! Provides a `Plugin` for making skyboxes with procedural sky textures.
 
 use bevy::{
     asset::load_internal_asset,
@@ -11,11 +11,12 @@ use bevy::{
 };
 
 use crate::{
+    model::AddAtmosphereModel,
     pipeline::*,
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
-/// A [`Plugin`] that adds the prerequisites for a procedural sky.
+/// A `Plugin` that adds the prerequisites for a procedural sky.
 #[derive(Debug, Clone, Copy)]
 pub struct AtmospherePlugin;
 
@@ -31,17 +32,26 @@ impl Plugin for AtmospherePlugin {
         app.add_plugin(MaterialPlugin::<SkyBoxMaterial>::default());
 
         #[cfg(feature = "procedural")]
-        {
-            app.add_plugin(AtmospherePipelinePlugin);
+        app.add_plugin(AtmospherePipelinePlugin);
 
+        {
             let image_handle = {
-                let image = app.world.resource::<AtmosphereImage>();
+                let image = app.world.get_resource::<AtmosphereImage>().expect("`AtmosphereImage` missing! If the `procedural` feature is disabled, add the resource before `AtmospherePlugin`");
                 image.handle.clone()
+            };
+            let settings = {
+                let settings = app
+                    .world
+                    .get_resource::<crate::settings::AtmosphereSettings>();
+                settings.copied().unwrap_or_default()
             };
             let mut material_assets = app.world.resource_mut::<Assets<SkyBoxMaterial>>();
             let material = material_assets.add(SkyBoxMaterial {
                 sky_texture: image_handle,
+                #[cfg(feature = "dithering")]
+                dithering: settings.dithering,
             });
+
             app.insert_resource(AtmosphereSkyBoxMaterial(material));
         }
 
@@ -56,26 +66,33 @@ impl Plugin for AtmospherePlugin {
         }
 
         app.add_system(atmosphere_cancel_rotation);
+
+        #[cfg(feature = "gradient")]
+        app.add_atmosphere_model::<crate::collection::gradient::Gradient>();
+
+        #[cfg(feature = "nishita")]
+        app.add_atmosphere_model::<crate::collection::nishita::Nishita>();
     }
 }
 
-/// Marker for a [`Camera`] that receives a skybox.
+/// A marker `Component` for a `Camera` that receives a skybox.
 ///
 /// When added, a skybox will be created as a child.
+/// When removed, that skybox will also be removed.
 /// This behaviour can be disabled by turning off the "detection" feature.
-///
-/// `Some(u8)` specifies the [`RenderLayers`] for the skybox to be on.
-/// `None` doesn't add the [`RenderLayers`] component.
-#[derive(Component, Debug, Clone, Copy)]
-pub struct AtmosphereCamera(pub Option<u8>);
+#[derive(Component, Default, Debug, Clone, Copy)]
+pub struct AtmosphereCamera {
+    /// Controls whether or not the skybox will be seen only on certain render layers.
+    pub render_layers: Option<RenderLayers>,
+}
 
-/// Marker for skybox entities.
+/// A marker `Component` for skybox entities.
 ///
-/// Added for skybox generated when a [`AtmosphereCamera`] is detected by the "detection" feature.
+/// Added for the skybox generated when an `AtmosphereCamera` is detected by the "detection" feature.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct AtmosphereSkyBox;
 
-/// Inserts a skybox when the [`AtmosphereCamera`] component is added.
+/// Inserts a skybox when the `AtmosphereCamera` component is added.
 #[cfg(feature = "detection")]
 fn atmosphere_insert(
     mut commands: Commands,
@@ -104,14 +121,17 @@ fn atmosphere_insert(
                     NotShadowReceiver,
                 ));
 
-                if let AtmosphereCamera(Some(render_layer)) = atmosphere_camera {
-                    child.insert(RenderLayers::layer(*render_layer));
+                if let AtmosphereCamera {
+                    render_layers: Some(render_layers),
+                } = atmosphere_camera
+                {
+                    child.insert(*render_layers);
                 }
             });
     }
 }
 
-/// Removes the skybox when the [`AtmosphereCamera`] component is removed.
+/// Removes the skybox when the `AtmosphereCamera` component is removed.
 #[cfg(feature = "detection")]
 fn atmosphere_remove(
     mut commands: Commands,

@@ -4,17 +4,13 @@
 [![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere)
 [![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/)
 [![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/JonahPlusPlus/bevy_atmosphere#license)
+[![Discord](https://img.shields.io/discord/691052431525675048.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.com/channels/691052431525675048/1035260359952576603)
 
 A procedural sky plugin for the [Bevy game engine](https://bevyengine.org/).
 
-### 🚧 Warning: Under Development 🚧
-
-v0.4 breaks compatibility with WebGL by using a compute shader.
-WebGPU should resolve this when shipped.
-
-If you need to test a web build, you can try enabling your browser's respective experiment flag for WebGPU.
-
 ## ["basic" Example](/examples/basic.rs)
+
+![basic example image](examples/images/basic-example.png)
 
 ```rust
 use bevy::prelude::*;
@@ -29,28 +25,41 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn_bundle(Camera3dBundle::default())
-        .insert(AtmosphereCamera(None));
+    commands.spawn((Camera3dBundle::default(), AtmosphereCamera::default()));
 }
 ```
+
+## ["cycle" Example](/examples/cycle.rs)
+
+![cycle example image](examples/images/cycle-example.png)
+
+## Getting Started
+
+To learn more, read the [docs](https://docs.rs/bevy_atmosphere/) or check out the [examples](/examples/).
+
+### 🚧 Warning: Under Development 🚧
+
+Versions 0.4 and higher break compatibility with WebGL by using a compute shader for efficiency.
+WebGPU should resolve this when shipped.
+
+If you need to test a web build, you can try enabling your browser's respective experiment flag for WebGPU.
 
 ## License
 
 bevy_atmosphere is dual-licensed under MIT and Apache-2.0! That means you can choose to use `bevy_atmosphere` under either for your project.
 
-## 0.4 Change Log
+## 0.5 Change Log
 
-* To change the sky simulation parameters, you would add/update an `Atmosphere` resource with custom values.
-* The plugin doesn't just pick the first camera, but can be used on select cameras using the `AtmosphereCamera` component, which holds an optional render layer for the spawned skybox to be on.
-* The plugin will automatically create skyboxes for atmosphere cameras during the `ATMOSPHERE_INIT` startup stage, which can be disabled by turning off the "automatic" feature.
-* Created skyboxes now have the `AtmosphereSkyBox` component. Only skyboxes with the component and that have a parent with `AtmosphereCamera` will have their rotation corrected.
-* To change the resolution, you can add an `AtmosphereSettings` resource and set the `resolution` field (which should be a multiple of 8). This could be used as part of quality settings in games.
-
-### 0.4.1 Patch
-* Removed `ATMOSPHERE_INIT` stage and "init" feature.
-* Added new "detection" feature that checks for new `AtmosphereCamera` components each frame, instead of just at startup. (Removal detection will be added in a future release)
-* Removed unnecessary "radsort" dependency.
-* Made removing `Atmosphere` and `AtmosphereSettings` resources set back to default.
-* `settings` example now shows removing `AtmosphereSettings`.
-* Added files to `package.exclude` of `Cargo.toml`, in order to reduce package size.
+- Removed the `Atmosphere` resource in favor of the `Nishita` model.
+- Added the `AtmosphereModel` resource, which holds an `Atmospheric` model.
+- Added the `Atmospheric` trait and derive macro, which is used to define a model for the pipeline to render.
+- Added the `Nishita` model, which provides Rayleigh and Mie scattering.
+- Added the `Gradient` model, which provides a simple linear gradient of three colors.
+- Added the `Atmosphere` and `AtmosphereMut` system params, for working with a specific model.
+- Added `AtmosphereSettings.dithering`, which allows for enabling/disabling dithering at runtime.
+- Updated `bevy_atmosphere::prelude` to include new common types.
+- Added `AtmosphereModelMetadata`, which is used to store type data about a model.
+- Added `AddAtmosphereModel`, which is used to easily register new models from an `App`.
+- Added `RegisterAtmosphereModel`, which is used to register the model it's implemented for.
+- Added `AtmosphereImageBindGroupLayout`, which is used to store a common bind group layout for all models.
+- Added `SkyBoxMaterialKey`, which is used to pass the dithering state to the pipeline.

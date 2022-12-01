@@ -5,7 +5,7 @@ use bevy_spectator::*;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
-        .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
+        .insert_resource(AtmosphereModel::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
             bevy::utils::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
             TimerMode::Repeating,
@@ -28,7 +28,7 @@ struct CycleTimer(Timer);
 
 // We can edit the Atmosphere resource and it will be updated automatically
 fn daylight_cycle(
-    mut atmosphere: ResMut<Atmosphere>,
+    mut atmosphere: AtmosphereMut<Nishita>,
     mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,
     mut timer: ResMut<CycleTimer>,
     time: Res<Time>,
@@ -97,8 +97,7 @@ fn setup_environment(
             transform: Transform::from_xyz(5., 0., 5.),
             ..default()
         },
-        AtmosphereCamera(None), // Marks camera as having an atmosphere that isn't on a specific render layer
-        // (the default; in local multiplayer games, we need a way to hide multiple skyboxes from the players)
-        Spectator, // Marks camera as spectator (specific to bevy_spectator)
+        AtmosphereCamera::default(), // Marks camera as having a skybox, by default it doesn't specify the render layers the skybox can be seen on
+        Spectator,                   // Marks camera as spectator (specific to bevy_spectator)
     ));
 }

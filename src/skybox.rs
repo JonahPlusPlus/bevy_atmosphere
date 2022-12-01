@@ -10,22 +10,32 @@ use bevy::{
     },
 };
 
-/// A [`Handle`] to the created [`SkyBoxMaterial`].
+/// The `Handle` for the created [`SkyBoxMaterial`].
 #[derive(Resource)]
 pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
-/// [`Handle`] for shader for the [`SkyBoxMaterial`].
+/// The `Handle` for the shader for the [`SkyBoxMaterial`].
 pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 4511926918914205353);
 
-/// The [`Material`] that renders skyboxes.
+/// The `Material` that renders skyboxes.
 #[derive(AsBindGroup, TypeUuid, Debug, Clone)]
 #[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]
+#[bind_group_data(SkyBoxMaterialKey)]
 pub struct SkyBoxMaterial {
     /// [Handle] to the [AtmosphereImage](crate::pipeline::AtmosphereImage)
     #[texture(0, dimension = "cube")]
     #[sampler(1)]
     pub sky_texture: Handle<Image>,
+    #[cfg(feature = "dithering")]
+    pub dithering: bool,
+}
+
+/// Bind group data for [`SkyBoxMaterial`]
+#[derive(Copy, Clone, Hash, Eq, PartialEq)]
+pub struct SkyBoxMaterialKey {
+    #[cfg(feature = "dithering")]
+    dithering: bool,
 }
 
 impl Material for SkyBoxMaterial {
@@ -35,15 +45,31 @@ impl Material for SkyBoxMaterial {
 
     fn specialize(
         _pipeline: &MaterialPipeline<Self>,
-        _descriptor: &mut RenderPipelineDescriptor,
+        descriptor: &mut RenderPipelineDescriptor,
         _layout: &MeshVertexBufferLayout,
-        _key: MaterialPipelineKey<Self>,
+        key: MaterialPipelineKey<Self>,
     ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
+        #[cfg(feature = "dithering")]
+        if key.bind_group_data.dithering {
+            if let Some(fragment) = &mut descriptor.fragment {
+                fragment.shader_defs.push(String::from("DITHER"));
+            }
+        }
+
         Ok(())
     }
 }
 
-/// Generates an inverted box mesh that fits inside [`Projection::far`](bevy::render::camera::Projection).
+impl From<&SkyBoxMaterial> for SkyBoxMaterialKey {
+    fn from(material: &SkyBoxMaterial) -> SkyBoxMaterialKey {
+        SkyBoxMaterialKey {
+            #[cfg(feature = "dithering")]
+            dithering: material.dithering,
+        }
+    }
+}
+
+/// Generates an inverted box mesh that fits inside `Projection::far`.
 pub fn mesh(far: f32) -> Mesh {
     let size = (far * f32::sqrt(0.5)) - 1.0;
     // sqrt(0.5) is the ratio between squares separated by a circle

@@ -4,13 +4,13 @@
 
 ![basic example image](images/basic-example.png)
 
-The most simple usage of bevy_atmosphere. It uses the default `Atmosphere`, which has Earth-like parameters. Feel free to copy it as a template!
+The most simple usage of bevy_atmosphere. It uses the default `Nishita` model, which has Earth-like parameters. Feel free to copy it as a template!
 
 ## [cycle.rs](cycle.rs)
 
 ![cycle example image](images/cycle-example.png)
 
-A daylight cycle in the default `ATmosphere`, updating every 50ms.
+A daylight cycle with `Nishita`, updating every 50ms.
 
 ## [detection.rs](detection.rs)
 
@@ -40,7 +40,7 @@ Demonstrates using `Nishita` model. Use the number keys to switch presets. (Pres
 
 ![splitscreen example image](images/splitscreen-example.png)
 
-A split-screen application, demonstrating the flexibility for local multiplayer games. Uses a custom `Atmosphere` to change the sky color.
+A split-screen application, demonstrating bevy_atmosphere's flexibility for local multiplayer games.
 
 ## [settings.rs](settings.rs)
 

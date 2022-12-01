@@ -11,7 +11,7 @@ use bevy_atmosphere::prelude::*;
 use bevy_spectator::*;
 
 fn main() {
-    println!("Demonstrates using `AtmosphereCamera.render_layers` to have multiple skyboxes in the scene at once\n\t- Enter: Switch camera");
+    println!("Demonstrates using `AtmosphereCamera.render_layers` to have multiple skyboxes in the scene at once\n\t- E: Switch camera");
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(AtmosphereModel::new(Nishita {
@@ -137,7 +137,7 @@ fn switch_camera(
     let left_camera = left_camera.single();
     let right_camera = right_camera.single();
 
-    if keys.just_pressed(KeyCode::Return) {
+    if keys.just_pressed(KeyCode::E) {
         if let Some(spectator) = settings.active_spectator {
             if spectator == left_camera {
                 settings.active_spectator = Some(right_camera);

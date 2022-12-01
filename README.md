@@ -1,5 +1,5 @@
 # [![bevy_atmosphere logo](/assets/logo.svg)](https://github.com/JonahPlusPlus/bevy_atmosphere)
-[![bevy](https://img.shields.io/badge/Bevy-0.8-blue)](https://crates.io/crates/bevy/0.8.0)
+[![bevy](https://img.shields.io/badge/Bevy-0.9-blue)](https://crates.io/crates/bevy/0.9.0)
 [![Crates.io](https://img.shields.io/crates/v/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere)
 [![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere)
 [![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/)

@@ -83,6 +83,9 @@ pub struct AtmosphereUpdateEvent;
 #[derive(Resource, Debug, Clone)]
 struct AtmosphereBindGroups(pub BindGroup, pub BindGroup);
 
+#[derive(Resource, Default, Clone)]
+struct CachedAtmosphereModelMetadata(pub Option<AtmosphereModelMetadata>);
+
 /// A `Plugin` that creates the compute pipeline for rendering a procedural sky cubemap texture.
 #[derive(Debug, Clone, Copy)]
 pub struct AtmospherePipelinePlugin;
@@ -133,6 +136,7 @@ impl Plugin for AtmospherePipelinePlugin {
             .insert_resource(atmosphere)
             .insert_resource(settings)
             .insert_resource(AtmosphereTypeRegistry(type_registry))
+            .init_resource::<CachedAtmosphereModelMetadata>()
             .init_resource::<AtmosphereImageBindGroupLayout>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
@@ -223,7 +227,10 @@ fn atmosphere_settings_changed(
 }
 
 /// Extracts [`AtmosphereModel`] and [`AtmosphereSettings`] from main world.
+#[allow(clippy::too_many_arguments)]
 fn extract_atmosphere_resources(
+    type_registry: Res<AtmosphereTypeRegistry>,
+    mut cached_metadata: ResMut<CachedAtmosphereModelMetadata>,
     main_atmosphere: Extract<Option<Res<AtmosphereModel>>>,
     mut render_atmosphere: ResMut<AtmosphereModel>,
     mut atmosphere_existed: Local<bool>,
@@ -231,14 +238,28 @@ fn extract_atmosphere_resources(
     mut render_settings: ResMut<AtmosphereSettings>,
     mut settings_existed: Local<bool>,
 ) {
+    macro_rules! cache_metadata {
+        () => {
+            *cached_metadata = CachedAtmosphereModelMetadata(Some({
+                let type_registry = type_registry.read();
+                type_registry
+                    .get_type_data::<AtmosphereModelMetadata>(render_atmosphere.model().type_id())
+                    .expect("Failed to get type data")
+                    .clone()
+            }));
+        };
+    }
+
     if let Some(atmosphere) = &*main_atmosphere {
         if atmosphere.is_changed() {
             *render_atmosphere = AtmosphereModel::extract_resource(atmosphere);
+            cache_metadata!();
         }
         *atmosphere_existed = true;
     } else {
         if *atmosphere_existed {
             *render_atmosphere = AtmosphereModel::extract_resource(&AtmosphereModel::default());
+            cache_metadata!();
         }
         *atmosphere_existed = false;
     }
@@ -334,6 +355,7 @@ fn prepare_atmosphere_assets(
 #[allow(clippy::too_many_arguments)]
 fn queue_atmosphere_bind_group(
     mut commands: Commands,
+    mut cached_metadata: ResMut<CachedAtmosphereModelMetadata>,
     gpu_images: Res<RenderAssets<Image>>,
     atmosphere_image: Res<AtmosphereImage>,
     render_device: Res<RenderDevice>,
@@ -350,11 +372,18 @@ fn queue_atmosphere_bind_group(
     };
 
     let bind_group_layout = {
-        let type_registry = type_registry.read();
-        let data: &AtmosphereModelMetadata = type_registry
-            .get_type_data(atmosphere.model().type_id())
-            .expect("Failed to get type data");
-        data.bind_group_layout.clone()
+        let data = cached_metadata.clone().0.unwrap_or_else(|| {
+            let data = {
+                let type_registry = type_registry.read();
+                type_registry
+                    .get_type_data::<AtmosphereModelMetadata>(atmosphere.model().type_id())
+                    .expect("Failed to get type data")
+                    .clone()
+            };
+            *cached_metadata = CachedAtmosphereModelMetadata(Some(data.clone()));
+            data
+        });
+        data.bind_group_layout
     };
 
     let atmosphere_bind_group = atmosphere.model().as_bind_group(
@@ -411,16 +440,29 @@ impl render_graph::Node for AtmosphereNode {
     fn update(&mut self, world: &mut World) {
         match self.state {
             AtmosphereState::Loading => {
-                let atmosphere = world.resource::<AtmosphereModel>();
-                let type_registry = world.resource::<AtmosphereTypeRegistry>();
-                let pipeline_cache = world.resource::<PipelineCache>();
+                let cached_metadata = world.resource::<CachedAtmosphereModelMetadata>();
                 let pipeline = {
-                    let type_registry = type_registry.read();
-                    let data: &AtmosphereModelMetadata = type_registry
-                        .get_type_data(atmosphere.model().type_id())
-                        .expect("Failed to get type data");
+                    let data = cached_metadata.clone().0.unwrap_or_else(|| {
+                        let atmosphere = world.resource::<AtmosphereModel>();
+                        let type_registry = world.resource::<AtmosphereTypeRegistry>();
+                        let data = {
+                            let type_registry = type_registry.read();
+                            type_registry
+                                .get_type_data::<AtmosphereModelMetadata>(
+                                    atmosphere.model().type_id(),
+                                )
+                                .expect("Failed to get type data")
+                                .clone()
+                        };
+                        let mut cached_metadata =
+                            world.resource_mut::<CachedAtmosphereModelMetadata>();
+                        *cached_metadata = CachedAtmosphereModelMetadata(Some(data.clone()));
+                        data
+                    });
                     data.pipeline
                 };
+
+                let pipeline_cache = world.resource::<PipelineCache>();
 
                 if let CachedPipelineState::Ok(_) =
                     pipeline_cache.get_compute_pipeline_state(pipeline)
@@ -446,17 +488,13 @@ impl render_graph::Node for AtmosphereNode {
             AtmosphereState::Update => {
                 if !update_events.is_empty() {
                     // only run when there are update events available
-                    let atmosphere = world.resource::<AtmosphereModel>();
                     let bind_groups = world.resource::<AtmosphereBindGroups>();
                     let pipeline_cache = world.resource::<PipelineCache>();
-                    let type_registry = world.resource::<AtmosphereTypeRegistry>();
+                    let cached_metadata = world.resource::<CachedAtmosphereModelMetadata>();
                     let settings = world.resource::<AtmosphereSettings>();
 
                     let pipeline = {
-                        let type_registry = type_registry.read();
-                        let data: &AtmosphereModelMetadata = type_registry
-                            .get_type_data(atmosphere.model().type_id())
-                            .expect("Failed to get type data");
+                        let data = cached_metadata.0.clone().expect("Failed to get type data!");
                         data.pipeline
                     };
 

@@ -36,14 +36,15 @@ Demonstrates using the different models available. Use the letter keys to switch
 
 Demonstrates using `Nishita` model. Use the number keys to switch presets. (Preset 2 shown here)
 
+## [settings.rs](settings.rs)
+
+![settings example image](images/settings-example.png)
+
+Demonstrates using `AtmosphereSettings` to update resolution and dithering on the fly, similar to how an in-game quality settings menu could operate.
+Use the number keys to switch resolution presets and the spacebar to toggle dithering.
+
 ## [splitscreen.rs](splitscreen.rs)
 
 ![splitscreen example image](images/splitscreen-example.png)
 
 A split-screen application, demonstrating bevy_atmosphere's flexibility for local multiplayer games.
-
-## [settings.rs](settings.rs)
-
-![settings example image](images/settings-example.png)
-
-Demonstrates using `AtmosphereSettings` to update resolution and dithering on the fly, similar to how an in-game quality settings menu could operate. Use the number keys to switch resolution presets and the spacebar to toggle dithering.

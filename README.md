@@ -10,6 +10,8 @@ A procedural sky plugin for the [Bevy game engine](https://bevyengine.org/).
 
 ## ["basic" Example](/examples/basic.rs)
 
+![basic example image](examples/images/basic-example.png)
+
 ```rust
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;

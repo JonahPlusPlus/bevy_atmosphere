@@ -14,7 +14,7 @@ This also allows us to use the same texture for multiple local players, making i
 
 ## Rendering the Texture
 
-To do that, we need some way to render the shader to a texture.
+First, we need some way to render the shader to a texture.
 A naive approach would be to render a plane to a texture target (admittingly one of my first ideas).
 Instead, the correct approach is to employ the use of a compute shader, which can write directly to the texture.
 

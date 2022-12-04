@@ -37,7 +37,7 @@ fn setup(mut commands: Commands) {
 
 To learn more, read the [docs](https://docs.rs/bevy_atmosphere/) or check out the [examples](/examples/).
 
-For more information on the technicalities, you can check out the [technical doc](/docs/) or check out [my blog](https://jonahplusplus.dev/).
+For more information on the technicalities, you can check out the [technical docs](/docs/) or check out [my blog](https://jonahplusplus.dev/).
 
 ### 🚧 Warning: Under Development 🚧
 

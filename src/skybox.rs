@@ -6,7 +6,7 @@ use bevy::{
     reflect::TypeUuid,
     render::{
         mesh::{Indices, Mesh, MeshVertexBufferLayout, PrimitiveTopology},
-        render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderRef},
+        render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderDefVal, ShaderRef},
     },
 };
 
@@ -52,7 +52,9 @@ impl Material for SkyBoxMaterial {
         #[cfg(feature = "dithering")]
         if key.bind_group_data.dithering {
             if let Some(fragment) = &mut descriptor.fragment {
-                fragment.shader_defs.push(String::from("DITHER"));
+                fragment
+                    .shader_defs
+                    .push(ShaderDefVal::Bool(String::from("DITHER"), true));
             }
         }
 

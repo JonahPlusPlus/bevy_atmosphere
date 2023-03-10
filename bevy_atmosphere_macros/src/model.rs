@@ -112,10 +112,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
             } else if let Some(attr_ident) = attr.path.get_ident() {
                 if attr_ident == EXTERNAL_ATTRIBUTE_NAME {
                     if shader_path != ShaderPathType::None {
-                        return Err(Error::new_spanned(
-                            attr,
-                            format!("Shader path already set")
-                        ));
+                        return Err(Error::new_spanned(attr, format!("Shader path already set")));
                     }
 
                     let lit_str = get_shader_path_attr(attr)?;
@@ -123,10 +120,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     shader_path = ShaderPathType::External(lit_str);
                 } else if attr_ident == INTERNAL_ATTRIBUTE_NAME {
                     if shader_path != ShaderPathType::None {
-                        return Err(Error::new_spanned(
-                            attr,
-                            format!("Shader path already set")
-                        ));
+                        return Err(Error::new_spanned(attr, format!("Shader path already set")));
                     }
 
                     let lit_str = get_shader_path_attr(attr)?;
@@ -324,7 +318,6 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
         }
     }
 
-
     // Produce impls for fields with uniform bindings
     let struct_name = &ast.ident;
     let mut field_struct_impls = Vec::new();
@@ -413,7 +406,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
             }
         }
     }
-    
+
     let generics = ast.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
@@ -469,13 +462,14 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                 let bind_group_layout = Self::bind_group_layout(render_device);
 
                 let mut pipeline_cache = render_app.world.resource_mut::<#render_path::render_resource::PipelineCache>();
-                
+
                 let pipeline = pipeline_cache.queue_compute_pipeline(#render_path::render_resource::ComputePipelineDescriptor {
                     label: Some(Cow::from("bevy_atmosphere_compute_pipeline")),
-                    layout: Some(vec![
+                    layout: vec![
                         bind_group_layout.clone(),
                         image_bind_group_layout,
-                    ]),
+                    ],
+                    push_constant_ranges: vec![],
                     shader: handle,
                     shader_defs: vec![],
                     entry_point: Cow::from("main"),
@@ -495,7 +489,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
 
                     let mut registration = type_registry.get_mut(std::any::TypeId::of::<Self>()).expect("Type not registered");
                     registration.insert(data);
-                }                
+                }
             }
 
             fn bind_group_layout(render_device: &#render_path::renderer::RenderDevice) -> #render_path::render_resource::BindGroupLayout {
@@ -538,7 +532,7 @@ struct BindingIndexOptions {
 
 /// Represents the arguments for the `external` and `internal` binding attributes
 struct ShaderPathMeta {
-    lit_str: syn::LitStr
+    lit_str: syn::LitStr,
 }
 
 impl Parse for BindingMeta {
@@ -574,7 +568,7 @@ impl Parse for UniformBindingMeta {
 impl Parse for ShaderPathMeta {
     fn parse(input: ParseStream) -> Result<Self> {
         Ok(Self {
-            lit_str: input.parse()?
+            lit_str: input.parse()?,
         })
     }
 }

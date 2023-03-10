@@ -57,11 +57,8 @@ impl Plugin for AtmospherePlugin {
 
         #[cfg(feature = "detection")]
         {
-            app.add_system_set_to_stage(
-                CoreStage::PostUpdate,
-                SystemSet::new()
-                    .with_system(atmosphere_insert)
-                    .with_system(atmosphere_remove),
+            app.add_systems(
+                (atmosphere_insert, atmosphere_remove).in_base_set(CoreSet::PostUpdate),
             );
         }
 
@@ -106,7 +103,7 @@ fn atmosphere_insert(
         commands
             .entity(camera)
             .insert(VisibilityBundle {
-                visibility: Visibility { is_visible: true },
+                visibility: Visibility::Visible,
                 ..default()
             })
             .with_children(|c| {
@@ -137,9 +134,9 @@ fn atmosphere_remove(
     mut commands: Commands,
     parents: Query<&Children>,
     atmosphere_skyboxes: Query<Entity, With<AtmosphereSkyBox>>,
-    atmosphere_cameras: RemovedComponents<AtmosphereCamera>,
+    mut atmosphere_cameras: RemovedComponents<AtmosphereCamera>,
 ) {
-    for camera in &atmosphere_cameras {
+    for camera in atmosphere_cameras.iter() {
         #[cfg(feature = "bevy/trace")]
         trace!("Removing skybox from camera entity (ID:{:?})", camera);
         let Ok(children) = parents.get(camera) else {

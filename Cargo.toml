@@ -11,13 +11,13 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
-bevy = { version = "0.9", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"] }
-bevy_atmosphere_macros = { path = "bevy_atmosphere_macros", version = "0.1" }
+bevy = {version = "0.10", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"]}
+bevy_atmosphere_macros = {path = "bevy_atmosphere_macros", version = "0.1"}
 cfg-if = "1.0"
 
 [dev-dependencies]
-bevy_spectator = "0.1"
-bevy = { version = "0.9", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
+bevy_spectator = "0.2"
+bevy = { version = "0.10", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
 
 [features]
 default = ["basic", "all_models"]

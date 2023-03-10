@@ -5,7 +5,7 @@ use bevy::{
     core_pipeline::clear_color::ClearColorConfig,
     prelude::*,
     render::{camera::Viewport, view::RenderLayers},
-    window::{WindowId, WindowResized},
+    window::WindowResized,
 };
 use bevy_atmosphere::prelude::*;
 use bevy_spectator::*;
@@ -13,7 +13,7 @@ use bevy_spectator::*;
 fn main() {
     println!("Demonstrates using `AtmosphereCamera.render_layers` to have multiple skyboxes in the scene at once\n\t- E: Switch camera");
     App::new()
-        .insert_resource(Msaa { samples: 4 })
+        .insert_resource(Msaa::Sample4)
         .insert_resource(AtmosphereModel::new(Nishita {
             rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6), // Change rayleigh coefficient to change color
             ..default()
@@ -34,7 +34,10 @@ fn setup(
 ) {
     // Plane
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane { size: 100.0 })),
+        mesh: meshes.add(Mesh::from(shape::Plane {
+            size: 100.0,
+            subdivisions: 0,
+        })),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
@@ -74,7 +77,7 @@ fn setup(
             transform: Transform::from_xyz(100.0, 50.0, 150.0).looking_at(Vec3::ZERO, Vec3::Y),
             camera: Camera {
                 // Renders the right camera after the left camera, which has a default priority of 0
-                priority: 1,
+                order: 1,
                 ..default()
             },
             camera_3d: Camera3d {
@@ -100,7 +103,7 @@ struct LeftCamera;
 struct RightCamera;
 
 fn set_camera_viewports(
-    windows: Res<Windows>,
+    windows: Query<&Window>,
     mut resize_events: EventReader<WindowResized>,
     mut left_camera: Query<&mut Camera, (With<LeftCamera>, Without<RightCamera>)>,
     mut right_camera: Query<&mut Camera, With<RightCamera>>,
@@ -109,22 +112,20 @@ fn set_camera_viewports(
     // so then each camera always takes up half the screen.
     // A resize_event is sent when the window is first created, allowing us to reuse this system for initial setup.
     for resize_event in resize_events.iter() {
-        if resize_event.id == WindowId::primary() {
-            let window = windows.primary();
-            let mut left_camera = left_camera.single_mut();
-            left_camera.viewport = Some(Viewport {
-                physical_position: UVec2::new(0, 0),
-                physical_size: UVec2::new(window.physical_width() / 2, window.physical_height()),
-                ..default()
-            });
+        let window = windows.get(resize_event.window).unwrap();
+        let mut left_camera = left_camera.single_mut();
+        left_camera.viewport = Some(Viewport {
+            physical_position: UVec2::new(0, 0),
+            physical_size: UVec2::new(window.physical_width() / 2, window.physical_height()),
+            ..default()
+        });
 
-            let mut right_camera = right_camera.single_mut();
-            right_camera.viewport = Some(Viewport {
-                physical_position: UVec2::new(window.physical_width() / 2, 0),
-                physical_size: UVec2::new(window.physical_width() / 2, window.physical_height()),
-                ..default()
-            });
-        }
+        let mut right_camera = right_camera.single_mut();
+        right_camera.viewport = Some(Viewport {
+            physical_position: UVec2::new(window.physical_width() / 2, 0),
+            physical_size: UVec2::new(window.physical_width() / 2, window.physical_height()),
+            ..default()
+        });
     }
 }
 

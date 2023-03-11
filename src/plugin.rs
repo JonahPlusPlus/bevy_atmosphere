@@ -136,7 +136,7 @@ fn atmosphere_remove(
     atmosphere_skyboxes: Query<Entity, With<AtmosphereSkyBox>>,
     mut atmosphere_cameras: RemovedComponents<AtmosphereCamera>,
 ) {
-    for camera in atmosphere_cameras.iter() {
+    for camera in &mut atmosphere_cameras {
         #[cfg(feature = "bevy/trace")]
         trace!("Removing skybox from camera entity (ID:{:?})", camera);
         let Ok(children) = parents.get(camera) else {

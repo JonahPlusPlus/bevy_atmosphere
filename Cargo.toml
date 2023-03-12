@@ -12,7 +12,7 @@ exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
 bevy = {version = "0.10", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"]}
-bevy_atmosphere_macros = {path = "bevy_atmosphere_macros", version = "0.2"}
+bevy_atmosphere_macros = {path = "macros", version = "0.2"}
 cfg-if = "1.0"
 
 [dev-dependencies]

@@ -12,9 +12,9 @@ struct Nishita {
     mie_direction: f32,
 }
 
-let PI: f32 = 3.141592653589793;
-let ISTEPS: u32 = 16u;
-let JSTEPS: u32 = 8u;
+const PI: f32 = 3.141592653589793;
+const ISTEPS: u32 = 16u;
+const JSTEPS: u32 = 8u;
 
 fn rsi(rd: vec3<f32>, r0: vec3<f32>, sr: f32) -> vec2<f32> {
     // ray-sphere intersection that assumes
@@ -42,7 +42,7 @@ fn render_nishita(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, r_p
 
     // Calculate the step size of the primary ray.
     var p = rsi(r, r0, r_atmos);
-    if (p.x > p.y) { return vec3<f32>(0f); }
+    if p.x > p.y { return vec3<f32>(0f); }
     p.y = min(p.y, rsi(r, r0, r_planet).x);
     let i_step_size = (p.y - p.x) / f32(ISTEPS);
 
@@ -131,12 +131,12 @@ var image: texture_storage_2d_array<rgba16float, write>;
 @compute @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_workgroups) num_workgroups: vec3<u32>) {
     let size = textureDimensions(image).x;
-    let scale = f32(size)/2f;
-    
-    let dir = vec2<f32>((f32(invocation_id.x)/scale) - 1f, (f32(invocation_id.y)/scale) - 1f);
+    let scale = f32(size) / 2f;
+
+    let dir = vec2<f32>((f32(invocation_id.x) / scale) - 1f, (f32(invocation_id.y) / scale) - 1f);
 
     var ray: vec3<f32>;
-    
+
     switch invocation_id.z {
         case 0u {
             ray = vec3<f32>(1f, -dir.y, -dir.x); // +X
@@ -159,7 +159,7 @@ fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_wo
     }
 
     let render = render_nishita(
-        ray, 
+        ray,
         nishita.ray_origin,
         nishita.sun_position,
         nishita.sun_intensity,

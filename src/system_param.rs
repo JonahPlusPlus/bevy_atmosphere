@@ -1,14 +1,11 @@
 //! Provides system params for easy reading/modifying of [`Atmospheric`] models.
 
-use std::{
-    marker::PhantomData,
-    ops::{Deref, DerefMut},
-};
+use std::ops::{Deref, DerefMut};
 
 use bevy::{
-    ecs::system::{
-        ReadOnlySystemParamFetch, ResMutState, ResState, SystemMeta, SystemParam, SystemParamFetch,
-        SystemParamState,
+    ecs::{
+        component::ComponentId,
+        system::{ReadOnlySystemParam, SystemMeta, SystemParam},
     },
     prelude::*,
 };
@@ -21,7 +18,7 @@ pub struct Atmosphere<'w, T: Atmospheric> {
 }
 
 // SAFETY: Res only reads a single World resource
-unsafe impl<T: Atmospheric> ReadOnlySystemParamFetch for AtmosphereState<T> {}
+unsafe impl<T: Atmospheric> ReadOnlySystemParam for Atmosphere<'_, T> {}
 
 impl<'w, T: Atmospheric> Deref for Atmosphere<'w, T> {
     type Target = T;
@@ -31,45 +28,28 @@ impl<'w, T: Atmospheric> Deref for Atmosphere<'w, T> {
     }
 }
 
-#[doc(hidden)]
-pub struct AtmosphereState<T: Atmospheric> {
-    res_state: ResState<AtmosphereModel>,
-    _marker: PhantomData<T>,
-}
+unsafe impl<T: Atmospheric> SystemParam for Atmosphere<'_, T> {
+    type State = ComponentId;
+    type Item<'w, 's> = Atmosphere<'w, T>;
 
-impl<'w, T: Atmospheric> SystemParam for Atmosphere<'w, T> {
-    type Fetch = AtmosphereState<T>;
-}
-
-// SAFETY: Atmosphere ComponentId and ArchetypeComponentId access is applied to SystemMeta. If this Atmosphere
-// conflicts with any prior access, a panic will occur.
-unsafe impl<T: Atmospheric> SystemParamState for AtmosphereState<T> {
-    fn init(world: &mut World, system_meta: &mut SystemMeta) -> Self {
-        Self {
-            res_state: ResState::init(world, system_meta),
-            _marker: PhantomData,
-        }
+    fn init_state(world: &mut World, system_meta: &mut SystemMeta) -> Self::State {
+        Res::<AtmosphereModel>::init_state(world, system_meta)
     }
-}
-
-impl<'w, 's, T: Atmospheric> SystemParamFetch<'w, 's> for AtmosphereState<T> {
-    type Item = Atmosphere<'w, T>;
 
     #[inline]
-    unsafe fn get_param(
-        state: &'s mut Self,
+    unsafe fn get_param<'w, 's>(
+        state: &'s mut Self::State,
         system_meta: &SystemMeta,
         world: &'w World,
         change_tick: u32,
-    ) -> Self::Item {
-        let atmosphere_model =
-            <<Res<AtmosphereModel> as SystemParam>::Fetch as SystemParamFetch>::get_param(
-                &mut state.res_state,
-                system_meta,
-                world,
-                change_tick,
-            )
-            .into_inner();
+    ) -> Self::Item<'w, 's> {
+        let atmosphere_model = <Res<AtmosphereModel> as SystemParam>::get_param(
+            state,
+            system_meta,
+            world,
+            change_tick,
+        )
+        .into_inner();
         let value = atmosphere_model
             .to_ref::<T>()
             .expect("Wrong type of `Atmospheric` model found");
@@ -96,45 +76,28 @@ impl<'w, T: Atmospheric> DerefMut for AtmosphereMut<'w, T> {
     }
 }
 
-#[doc(hidden)]
-pub struct AtmosphereMutState<T: Atmospheric> {
-    res_state: ResMutState<AtmosphereModel>,
-    _marker: PhantomData<T>,
-}
+unsafe impl<T: Atmospheric> SystemParam for AtmosphereMut<'_, T> {
+    type State = ComponentId;
+    type Item<'w, 's> = AtmosphereMut<'w, T>;
 
-impl<'w, T: Atmospheric> SystemParam for AtmosphereMut<'w, T> {
-    type Fetch = AtmosphereMutState<T>;
-}
-
-// SAFETY: Atmosphere ComponentId and ArchetypeComponentId access is applied to SystemMeta. If this Atmosphere
-// conflicts with any prior access, a panic will occur.
-unsafe impl<T: Atmospheric> SystemParamState for AtmosphereMutState<T> {
-    fn init(world: &mut World, system_meta: &mut SystemMeta) -> Self {
-        Self {
-            res_state: ResMutState::init(world, system_meta),
-            _marker: PhantomData,
-        }
+    fn init_state(world: &mut World, system_meta: &mut SystemMeta) -> Self::State {
+        ResMut::<AtmosphereModel>::init_state(world, system_meta)
     }
-}
-
-impl<'w, 's, T: Atmospheric> SystemParamFetch<'w, 's> for AtmosphereMutState<T> {
-    type Item = AtmosphereMut<'w, T>;
 
     #[inline]
-    unsafe fn get_param(
-        state: &'s mut Self,
+    unsafe fn get_param<'w, 's>(
+        state: &'s mut Self::State,
         system_meta: &SystemMeta,
         world: &'w World,
         change_tick: u32,
-    ) -> Self::Item {
-        let atmosphere_model =
-            <<ResMut<AtmosphereModel> as SystemParam>::Fetch as SystemParamFetch>::get_param(
-                &mut state.res_state,
-                system_meta,
-                world,
-                change_tick,
-            )
-            .into_inner();
+    ) -> Self::Item<'w, 's> {
+        let atmosphere_model = <ResMut<AtmosphereModel> as SystemParam>::get_param(
+            state,
+            system_meta,
+            world,
+            change_tick,
+        )
+        .into_inner();
         let value = atmosphere_model
             .to_mut::<T>()
             .expect("Wrong type of `Atmospheric` model found");

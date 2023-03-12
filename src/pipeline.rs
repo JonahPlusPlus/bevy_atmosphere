@@ -8,7 +8,7 @@ use bevy::{
     prelude::*,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
-        render_asset::{PrepareAssetLabel, RenderAssets},
+        render_asset::{PrepareAssetSet, RenderAssets},
         render_graph::{self, RenderGraph},
         render_resource::{
             BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
@@ -19,7 +19,7 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::FallbackImage,
-        Extract, RenderApp, RenderStage,
+        Extract, RenderApp, RenderSet,
     },
 };
 
@@ -139,24 +139,18 @@ impl Plugin for AtmospherePipelinePlugin {
             .init_resource::<CachedAtmosphereModelMetadata>()
             .init_resource::<AtmosphereImageBindGroupLayout>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
-            .add_system_to_stage(RenderStage::Extract, extract_atmosphere_resources)
-            .add_system_to_stage(
-                RenderStage::Prepare,
-                Events::<AtmosphereUpdateEvent>::update_system,
-            )
-            .add_system_to_stage(
-                RenderStage::Prepare,
+            .add_system(extract_atmosphere_resources.in_schedule(ExtractSchedule))
+            .add_system(Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare))
+            .add_system(
                 prepare_atmosphere_assets
-                    .label(PrepareAssetLabel::PostAssetPrepare)
-                    .after(PrepareAssetLabel::AssetPrepare),
+                    .in_set(PrepareAssetSet::PostAssetPrepare)
+                    .after(PrepareAssetSet::AssetPrepare),
             )
-            .add_system_to_stage(RenderStage::Queue, queue_atmosphere_bind_group);
+            .add_system(queue_atmosphere_bind_group.in_set(RenderSet::Queue));
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
         render_graph.add_node(NAME, AtmosphereNode::default());
-        render_graph
-            .add_node_edge(NAME, bevy::render::main_graph::node::CAMERA_DRIVER)
-            .unwrap();
+        render_graph.add_node_edge(NAME, bevy::render::main_graph::node::CAMERA_DRIVER);
     }
 }
 
@@ -323,6 +317,7 @@ pub const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'sta
         usage: TextureUsages::COPY_DST
             | TextureUsages::STORAGE_BINDING
             | TextureUsages::TEXTURE_BINDING,
+        view_formats: &[TextureFormat::Rgba16Float],
     };
 
 /// Whenever settings changed, the texture view needs to be updated to use the new texture.
@@ -504,12 +499,11 @@ impl render_graph::Node for AtmosphereNode {
                         data.pipeline
                     };
 
-                    let mut pass =
-                        render_context
-                            .command_encoder
-                            .begin_compute_pass(&ComputePassDescriptor {
-                                label: Some("atmosphere_pass"),
-                            });
+                    let mut pass = render_context.command_encoder().begin_compute_pass(
+                        &ComputePassDescriptor {
+                            label: Some("atmosphere_pass"),
+                        },
+                    );
 
                     pass.set_bind_group(0, &bind_groups.0, &[]);
                     pass.set_bind_group(1, &bind_groups.1, &[]);

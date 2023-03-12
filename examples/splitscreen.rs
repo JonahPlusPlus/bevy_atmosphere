@@ -18,6 +18,11 @@ fn main() {
             rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6), // Change rayleigh coefficient to change color
             ..default()
         }))
+        .insert_resource(SpectatorSettings {
+            base_speed: 0.5,
+            alt_speed: 1.0,
+            ..default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(AtmospherePlugin)
         .add_plugin(SpectatorPlugin)
@@ -31,6 +36,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut settings: ResMut<SpectatorSettings>,
 ) {
     // Plane
     commands.spawn(PbrBundle {
@@ -54,19 +60,23 @@ fn setup(
         ..default()
     });
 
-    // Spawn left screen camera
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..default()
-        },
-        RenderLayers::from_layers(&[0, 1]), // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
-        AtmosphereCamera {
-            render_layers: Some(RenderLayers::layer(1)),
-        },
-        LeftCamera,
-        Spectator,
-    ));
+    // Spawn left screen camera and make it the default spectator
+    let left = commands
+        .spawn((
+            Camera3dBundle {
+                transform: Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
+                ..default()
+            },
+            RenderLayers::from_layers(&[0, 1]), // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
+            AtmosphereCamera {
+                render_layers: Some(RenderLayers::layer(1)),
+            },
+            LeftCamera,
+            Spectator,
+        ))
+        .id();
+
+    settings.active_spectator = Some(left);
 
     // Spawn right screen camera
     commands.spawn((

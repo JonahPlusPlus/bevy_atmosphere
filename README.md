@@ -1,5 +1,5 @@
 # [![bevy_atmosphere logo](/assets/logo.svg)](https://github.com/JonahPlusPlus/bevy_atmosphere)
-[![bevy](https://img.shields.io/badge/Bevy-0.9-blue)](https://crates.io/crates/bevy/0.9.0)
+[![bevy](https://img.shields.io/badge/Bevy-0.10-blue)](https://crates.io/crates/bevy/0.10.0)
 [![Crates.io](https://img.shields.io/crates/v/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere)
 [![Crates.io](https://img.shields.io/crates/d/bevy_atmosphere)](https://crates.io/crates/bevy_atmosphere)
 [![docs.rs](https://img.shields.io/docsrs/bevy_atmosphere)](https://docs.rs/bevy_atmosphere/)
@@ -39,29 +39,18 @@ To learn more, read the [docs](https://docs.rs/bevy_atmosphere/) or check out th
 
 For more information on the technicalities, you can check out the [technical docs](/docs/) or check out [my blog](https://jonahplusplus.dev/).
 
-### 🚧 Warning: Under Development 🚧
+### 🚧 Warning: Incompatible with WebGL 🚧
 
 Versions 0.4 and higher break compatibility with WebGL by using a compute shader for efficiency.
 WebGPU should resolve this when shipped.
 
-If you need to test a web build, you can try enabling your browser's respective experiment flag for WebGPU.
+As of writing, Bevy uses WebGL internally. A custom fork can be used to enable WebGPU in Bevy and feature flags can be used to enable WebGPU in most browsers.
 
 ## License
 
 bevy_atmosphere is dual-licensed under MIT and Apache-2.0! That means you can choose to use `bevy_atmosphere` under either for your project.
 
-## 0.5 Change Log
+## 0.6 Change Log
 
-- Removed the `Atmosphere` resource in favor of the `Nishita` model.
-- Added the `AtmosphereModel` resource, which holds an `Atmospheric` model.
-- Added the `Atmospheric` trait and derive macro, which is used to define a model for the pipeline to render.
-- Added the `Nishita` model, which provides Rayleigh and Mie scattering.
-- Added the `Gradient` model, which provides a simple linear gradient of three colors.
-- Added the `Atmosphere` and `AtmosphereMut` system params, for working with a specific model.
-- Added `AtmosphereSettings.dithering`, which allows for enabling/disabling dithering at runtime.
-- Updated `bevy_atmosphere::prelude` to include new common types.
-- Added `AtmosphereModelMetadata`, which is used to store type data about a model.
-- Added `AddAtmosphereModel`, which is used to easily register new models from an `App`.
-- Added `RegisterAtmosphereModel`, which is used to register the model it's implemented for.
-- Added `AtmosphereImageBindGroupLayout`, which is used to store a common bind group layout for all models.
-- Added `SkyBoxMaterialKey`, which is used to pass the dithering state to the pipeline.
+- Updated bevy to 0.10
+- Updated bevy_spectator to 0.2 (for examples)

@@ -139,14 +139,12 @@ impl Plugin for AtmospherePipelinePlugin {
             .init_resource::<CachedAtmosphereModelMetadata>()
             .init_resource::<AtmosphereImageBindGroupLayout>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
-            .add_system(extract_atmosphere_resources.in_schedule(ExtractSchedule))
-            .add_system(Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare))
-            .add_system(
-                prepare_atmosphere_assets
-                    .in_set(PrepareAssetSet::PostAssetPrepare)
-                    .after(PrepareAssetSet::AssetPrepare),
-            )
-            .add_system(queue_atmosphere_bind_group.in_set(RenderSet::Queue));
+            .add_systems((
+                extract_atmosphere_resources.in_schedule(ExtractSchedule),
+                Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
+                prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare),
+                queue_atmosphere_bind_group.in_set(RenderSet::Queue),
+            ));
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
         render_graph.add_node(NAME, AtmosphereNode::default());

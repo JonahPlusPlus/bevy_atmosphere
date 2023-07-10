@@ -3,7 +3,7 @@
 use bevy::{
     pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
-    reflect::TypeUuid,
+    reflect::{TypeUuid, TypePath},
     render::{
         mesh::{Indices, Mesh, MeshVertexBufferLayout, PrimitiveTopology},
         render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderDefVal, ShaderRef},
@@ -19,7 +19,7 @@ pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 4511926918914205353);
 
 /// The `Material` that renders skyboxes.
-#[derive(AsBindGroup, TypeUuid, Debug, Clone)]
+#[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone)]
 #[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]
 #[bind_group_data(SkyBoxMaterialKey)]
 pub struct SkyBoxMaterial {

@@ -29,10 +29,10 @@ impl Plugin for AtmospherePlugin {
             Shader::from_wgsl
         );
 
-        app.add_plugin(MaterialPlugin::<SkyBoxMaterial>::default());
+        app.add_plugins(MaterialPlugin::<SkyBoxMaterial>::default());
 
         #[cfg(feature = "procedural")]
-        app.add_plugin(AtmospherePipelinePlugin);
+        app.add_plugins(AtmospherePipelinePlugin);
 
         {
             let image_handle = {
@@ -57,12 +57,10 @@ impl Plugin for AtmospherePlugin {
 
         #[cfg(feature = "detection")]
         {
-            app.add_systems(
-                (atmosphere_insert, atmosphere_remove).in_base_set(CoreSet::PostUpdate),
-            );
+            app.add_systems(PostUpdate, (atmosphere_insert, atmosphere_remove));
         }
 
-        app.add_system(atmosphere_cancel_rotation);
+        app.add_systems(Update, atmosphere_cancel_rotation);
 
         #[cfg(feature = "gradient")]
         app.add_atmosphere_model::<crate::collection::gradient::Gradient>();

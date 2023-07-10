@@ -47,7 +47,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
     let atmosphere_path = super::bevy_atmosphere_path();
     let render_path = manifest.get_path("bevy_render");
     let asset_path = manifest.get_path("bevy_asset");
-    let app_path = manifest.get_path("bevy_app");
+    //let app_path = manifest.get_path("bevy_app");
 
     let id = {
         use std::collections::hash_map::DefaultHasher;
@@ -482,8 +482,8 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     bind_group_layout,
                     pipeline,
                 };
-
-                let type_registry = app.world.resource_mut::<#app_path::AppTypeRegistry>();
+                
+                let type_registry = app.world.resource_mut::<bevy::ecs::reflect::AppTypeRegistry>();
                 {
                     let mut type_registry = type_registry.write();
 

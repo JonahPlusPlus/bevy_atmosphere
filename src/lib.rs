@@ -73,6 +73,7 @@ pub mod plugin;
 pub mod settings;
 pub mod skybox;
 pub mod system_param;
+pub mod spectator;
 
 pub mod prelude {
     //! `use bevy_atmosphere::prelude::*;` to import the most commonly used items.

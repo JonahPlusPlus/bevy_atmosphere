@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
-use bevy_spectator::*;
+use bevy_atmosphere::spectator::{SpectatorPlugin, Spectator};
 
 fn main() {
     App::new()
@@ -11,10 +11,10 @@ fn main() {
             TimerMode::Repeating,
         )))
         .add_plugins(DefaultPlugins)
-        .add_plugin(SpectatorPlugin) // Simple movement for this example
-        .add_plugin(AtmospherePlugin) // Default AtmospherePlugin
-        .add_startup_system(setup_environment)
-        .add_system(daylight_cycle)
+        .add_plugins(SpectatorPlugin) // Simple movement for this example
+        .add_plugins(AtmospherePlugin) // Default AtmospherePlugin
+        .add_systems(Startup, setup_environment)
+        .add_systems(Update, daylight_cycle)
         .run();
 }
 
@@ -36,7 +36,7 @@ fn daylight_cycle(
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let t = time.elapsed_seconds_wrapped() as f32 / 2.0;
+        let t = time.elapsed_seconds_wrapped() / 2.0;
         atmosphere.sun_position = Vec3::new(0., t.sin(), t.cos());
 
         if let Some((mut light_trans, mut directional)) = query.single_mut().into() {

@@ -141,7 +141,7 @@ impl Plugin for AtmospherePipelinePlugin {
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_systems(ExtractSchedule, extract_atmosphere_resources)
             .add_systems(Render, Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare))
-            .add_systems(PostStartup, prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare))
+            .add_systems(Render, prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare))
             .add_systems(Render, queue_atmosphere_bind_group.in_set(RenderSet::Queue)
         );
 

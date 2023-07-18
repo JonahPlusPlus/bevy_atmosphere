@@ -2,7 +2,7 @@
 //!
 //! It's possible to use [`AtmospherePipelinePlugin`] with your own custom code to render to custom targets.
 
-use std::{num::NonZeroU32, ops::Deref};
+use std::ops::Deref;
 
 use bevy::{
     prelude::*,
@@ -19,7 +19,7 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::FallbackImage,
-        Extract, RenderApp, RenderSet,
+        Extract, Render, RenderApp, RenderSet,
     },
 };
 
@@ -77,7 +77,7 @@ impl FromWorld for AtmosphereImageBindGroupLayout {
 }
 
 /// Signals the pipeline (inside `RenderApp`) to render the atmosphere.
-#[derive(Debug, Clone, Copy)]
+#[derive(Event, Debug, Clone, Copy)]
 pub struct AtmosphereUpdateEvent;
 
 #[derive(Resource, Debug, Clone)]
@@ -125,9 +125,9 @@ impl Plugin for AtmospherePipelinePlugin {
             array_view: None,
         });
 
-        app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
+        app.add_plugins(ExtractResourcePlugin::<AtmosphereImage>::default());
 
-        app.add_system(atmosphere_settings_changed);
+        app.add_systems(Update, atmosphere_settings_changed);
 
         let type_registry = app.world.resource::<AppTypeRegistry>().clone();
 
@@ -139,12 +139,16 @@ impl Plugin for AtmospherePipelinePlugin {
             .init_resource::<CachedAtmosphereModelMetadata>()
             .init_resource::<AtmosphereImageBindGroupLayout>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
-            .add_systems((
-                extract_atmosphere_resources.in_schedule(ExtractSchedule),
+            .add_systems(ExtractSchedule, extract_atmosphere_resources)
+            .add_systems(
+                Render,
                 Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
+            )
+            .add_systems(
+                Render,
                 prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare),
-                queue_atmosphere_bind_group.in_set(RenderSet::Queue),
-            ));
+            )
+            .add_systems(Render, queue_atmosphere_bind_group.in_set(RenderSet::Queue));
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
         render_graph.add_node(NAME, AtmosphereNode::default());
@@ -284,7 +288,7 @@ pub const ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = Textu
     base_mip_level: 0,
     mip_level_count: None,
     base_array_layer: 0,
-    array_layer_count: NonZeroU32::new(6),
+    array_layer_count: Some(6),
 };
 
 /// For creating a `TextureView` with `TextureViewDimension::D2Array`.
@@ -296,7 +300,7 @@ pub const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = Text
     base_mip_level: 0,
     mip_level_count: None,
     base_array_layer: 0,
-    array_layer_count: NonZeroU32::new(6),
+    array_layer_count: Some(6),
 };
 
 /// For creating a `Texture` with 6 layers.

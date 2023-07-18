@@ -7,10 +7,10 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(AtmosphereModel::new(Gradient::default()))
-        .add_plugin(AtmospherePlugin)
-        .add_plugin(SpectatorPlugin)
-        .add_startup_system(setup)
-        .add_system(change_gradient)
+        .add_plugins(AtmospherePlugin)
+        .add_plugins(SpectatorPlugin)
+        .add_systems(Startup, setup)
+        .add_systems(Update, change_gradient)
         .run();
 }
 

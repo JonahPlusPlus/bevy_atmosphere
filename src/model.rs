@@ -99,7 +99,7 @@ pub trait RegisterAtmosphereModel: GetTypeRegistration {
 /// fn main() {
 ///     App::new()
 ///         .add_plugins(DefaultPlugins)
-///         .add_plugin(AtmospherePlugin)
+///         .add_plugins(AtmospherePlugin)
 ///         .add_atmosphere_model::<MyModel>()
 ///         .insert_resource(AtmosphereModel::new(MyModel::default()))
 ///         .run();

@@ -11,10 +11,10 @@ fn main() {
             TimerMode::Repeating,
         )))
         .add_plugins(DefaultPlugins)
-        .add_plugin(SpectatorPlugin) // Simple movement for this example
-        .add_plugin(AtmospherePlugin) // Default AtmospherePlugin
-        .add_startup_system(setup_environment)
-        .add_system(daylight_cycle)
+        .add_plugins(SpectatorPlugin) // Simple movement for this example
+        .add_plugins(AtmospherePlugin) // Default AtmospherePlugin
+        .add_systems(Startup, setup_environment)
+        .add_systems(Update, daylight_cycle)
         .run();
 }
 

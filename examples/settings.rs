@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
-use bevy_atmosphere::spectator::{SpectatorPlugin, Spectator};
+use bevy_spectator::{SpectatorPlugin, Spectator};
 
 fn main() {
     println!("Demonstrates using the `AtmosphereSettings` resource\n\t- Spacebar: Toggle dithering\n\t- 1-9 number keys: Change resolution\n\t- 0 number key: Remove `AtmosphereSettings` resource");

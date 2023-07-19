@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
-use bevy_atmosphere::spectator::{SpectatorPlugin, Spectator};
+use bevy_spectator::{SpectatorPlugin, Spectator};
 
 fn main() {
     println!("Demonstrates using the `Nishita` model\n\t- 1-9 number keys: Change preset\n\t- 0 number key: Remove `Nishita` model");

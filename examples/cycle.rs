@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
-use bevy_atmosphere::spectator::{SpectatorPlugin, Spectator};
+use bevy_spectator::{SpectatorPlugin, Spectator};
 
 fn main() {
     App::new()

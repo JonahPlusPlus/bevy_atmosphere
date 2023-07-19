@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
-use bevy_atmosphere::spectator::{SpectatorPlugin, Spectator};
+use bevy_spectator::{SpectatorPlugin, Spectator};
 
 fn main() {
     println!("Demonstrates using the `Gradient` model\n\t- 1-9 number keys: Change preset\n\t- 0 number key: Remove `Gradient` model");
+    
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(AtmosphereModel::new(Gradient::default()))

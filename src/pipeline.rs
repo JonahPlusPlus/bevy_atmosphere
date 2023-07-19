@@ -17,14 +17,13 @@ use bevy::{
             StorageTextureAccess, TextureAspect, TextureDescriptor, TextureDimension,
             TextureFormat, TextureUsages, TextureView, TextureViewDescriptor, TextureViewDimension,
         },
-        renderer::RenderDevice,
         texture::FallbackImage,
-        Extract, RenderApp, RenderSet, Render,
+        Extract, RenderApp, RenderSet, Render, renderer::RenderDevice,
     },
 };
 
 use crate::{
-    model::{AtmosphereModel, AtmosphereModelMetadata},
+    model::{AtmosphereModel, AtmosphereModelMetadata, AddAtmosphereModel},
     settings::AtmosphereSettings,
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial},
 };
@@ -56,7 +55,7 @@ pub struct AtmosphereImageBindGroupLayout(pub BindGroupLayout);
 impl FromWorld for AtmosphereImageBindGroupLayout {
     fn from_world(world: &mut World) -> Self {
         let render_device = world.resource::<RenderDevice>();
-
+        
         Self(
             render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                 label: Some("bevy_atmosphere_image_bind_group_layout"),
@@ -92,6 +91,7 @@ pub struct AtmospherePipelinePlugin;
 
 impl Plugin for AtmospherePipelinePlugin {
     fn build(&self, app: &mut App) {
+
         let settings = match app.world.get_resource::<AtmosphereSettings>() {
             Some(s) => *s,
             None => default(),
@@ -132,18 +132,17 @@ impl Plugin for AtmospherePipelinePlugin {
         let type_registry = app.world.resource::<AppTypeRegistry>().clone();
 
         let render_app = app.sub_app_mut(RenderApp);
+
         render_app
             .insert_resource(atmosphere)
             .insert_resource(settings)
             .insert_resource(AtmosphereTypeRegistry(type_registry))
             .init_resource::<CachedAtmosphereModelMetadata>()
-            .init_resource::<AtmosphereImageBindGroupLayout>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_systems(ExtractSchedule, extract_atmosphere_resources)
             .add_systems(Render, Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare))
             .add_systems(Render, prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare))
-            .add_systems(Render, queue_atmosphere_bind_group.in_set(RenderSet::Queue)
-        );
+            .add_systems(Render, queue_atmosphere_bind_group.in_set(RenderSet::Queue));
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
         render_graph.add_node(NAME, AtmosphereNode::default());
@@ -356,7 +355,7 @@ fn queue_atmosphere_bind_group(
     mut cached_metadata: ResMut<CachedAtmosphereModelMetadata>,
     gpu_images: Res<RenderAssets<Image>>,
     atmosphere_image: Res<AtmosphereImage>,
-    render_device: Res<RenderDevice>,
+    render_device: Res<bevy::render::renderer::RenderDevice>,
     fallback_image: Res<FallbackImage>,
     type_registry: Res<AtmosphereTypeRegistry>,
     image_bind_group_layout: Res<AtmosphereImageBindGroupLayout>,

@@ -32,7 +32,7 @@ impl Plugin for AtmospherePlugin {
         app.add_plugins(MaterialPlugin::<SkyBoxMaterial>::default());
 
         #[cfg(feature = "procedural")]
-        app.add_plugins(AtmospherePipelinePlugin);
+        build_atmosphere_pipeline(app);
 
         {
             let image_handle = {
@@ -61,6 +61,11 @@ impl Plugin for AtmospherePlugin {
         }
 
         app.add_systems(Update, atmosphere_cancel_rotation);
+    }
+
+    fn finish(&self, app: &mut App) {
+        #[cfg(feature = "procedural")]
+        finish_atmosphere_pipeline(app);
 
         #[cfg(feature = "gradient")]
         app.add_atmosphere_model::<crate::collection::gradient::Gradient>();

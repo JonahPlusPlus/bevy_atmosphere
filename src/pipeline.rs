@@ -1,6 +1,6 @@
 //! Provides types and logic for a compute pipeline that renders the procedural sky texture.
 //!
-//! It's possible to use [`AtmospherePipelinePlugin`] with your own custom code to render to custom targets.
+//! It's possible to use [`build_atmosphere_pipeline`] and [`finish_atmosphere_pipeline`] with your own custom code to render to custom targets.
 
 use std::ops::Deref;
 
@@ -86,74 +86,75 @@ struct AtmosphereBindGroups(pub BindGroup, pub BindGroup);
 #[derive(Resource, Default, Clone)]
 struct CachedAtmosphereModelMetadata(pub Option<AtmosphereModelMetadata>);
 
-/// A `Plugin` that creates the compute pipeline for rendering a procedural sky cubemap texture.
-#[derive(Debug, Clone, Copy)]
-pub struct AtmospherePipelinePlugin;
+pub fn build_atmosphere_pipeline(app: &mut App) {
+    let settings = match app.world.get_resource::<AtmosphereSettings>() {
+        Some(s) => *s,
+        None => default(),
+    };
 
-impl Plugin for AtmospherePipelinePlugin {
-    fn build(&self, app: &mut App) {
-        let settings = match app.world.get_resource::<AtmosphereSettings>() {
-            Some(s) => *s,
-            None => default(),
-        };
+    let mut image = Image::new_fill(
+        Extent3d {
+            width: settings.resolution,
+            height: settings.resolution,
+            depth_or_array_layers: 6,
+        },
+        TextureDimension::D2,
+        &[0; 4 * 4],
+        TextureFormat::Rgba16Float,
+    );
 
-        let atmosphere = match app.world.get_resource::<AtmosphereModel>() {
-            Some(a) => a.clone(),
-            None => default(),
-        };
+    image.texture_view_descriptor = Some(ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR);
 
-        let mut image = Image::new_fill(
-            Extent3d {
-                width: settings.resolution,
-                height: settings.resolution,
-                depth_or_array_layers: 6,
-            },
-            TextureDimension::D2,
-            &[0; 4 * 4],
-            TextureFormat::Rgba16Float,
-        );
+    image.texture_descriptor = ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR(settings.resolution);
 
-        image.texture_view_descriptor = Some(ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR);
+    let mut image_assets = app.world.resource_mut::<Assets<Image>>();
+    let handle = image_assets.add(image);
 
-        image.texture_descriptor = ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR(settings.resolution);
+    app.insert_resource(AtmosphereImage {
+        handle,
+        array_view: None,
+    });
 
-        let mut image_assets = app.world.resource_mut::<Assets<Image>>();
-        let handle = image_assets.add(image);
+    app.add_plugins(ExtractResourcePlugin::<AtmosphereImage>::default());
 
-        app.insert_resource(AtmosphereImage {
-            handle,
-            array_view: None,
-        });
+    app.add_systems(Update, atmosphere_settings_changed);
+}
 
-        app.add_plugins(ExtractResourcePlugin::<AtmosphereImage>::default());
+pub fn finish_atmosphere_pipeline(app: &mut App) {
+    let settings = match app.world.get_resource::<AtmosphereSettings>() {
+        Some(s) => *s,
+        None => default(),
+    };
 
-        app.add_systems(Update, atmosphere_settings_changed);
+    let atmosphere = match app.world.get_resource::<AtmosphereModel>() {
+        Some(a) => a.clone(),
+        None => default(),
+    };
 
-        let type_registry = app.world.resource::<AppTypeRegistry>().clone();
+    let type_registry = app.world.resource::<AppTypeRegistry>().clone();
 
-        let render_app = app.sub_app_mut(RenderApp);
-        render_app
-            .insert_resource(atmosphere)
-            .insert_resource(settings)
-            .insert_resource(AtmosphereTypeRegistry(type_registry))
-            .init_resource::<CachedAtmosphereModelMetadata>()
-            .init_resource::<AtmosphereImageBindGroupLayout>()
-            .init_resource::<Events<AtmosphereUpdateEvent>>()
-            .add_systems(ExtractSchedule, extract_atmosphere_resources)
-            .add_systems(
-                Render,
-                Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
-            )
-            .add_systems(
-                Render,
-                prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare),
-            )
-            .add_systems(Render, queue_atmosphere_bind_group.in_set(RenderSet::Queue));
+    let render_app = app.sub_app_mut(RenderApp);
+    render_app
+        .insert_resource(atmosphere)
+        .insert_resource(settings)
+        .insert_resource(AtmosphereTypeRegistry(type_registry))
+        .init_resource::<CachedAtmosphereModelMetadata>()
+        .init_resource::<AtmosphereImageBindGroupLayout>()
+        .init_resource::<Events<AtmosphereUpdateEvent>>()
+        .add_systems(ExtractSchedule, extract_atmosphere_resources)
+        .add_systems(
+            Render,
+            Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
+        )
+        .add_systems(
+            Render,
+            prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare),
+        )
+        .add_systems(Render, queue_atmosphere_bind_group.in_set(RenderSet::Queue));
 
-        let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
-        render_graph.add_node(NAME, AtmosphereNode::default());
-        render_graph.add_node_edge(NAME, bevy::render::main_graph::node::CAMERA_DRIVER);
-    }
+    let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
+    render_graph.add_node(NAME, AtmosphereNode::default());
+    render_graph.add_node_edge(NAME, bevy::render::main_graph::node::CAMERA_DRIVER);
 }
 
 /// Whenever settings are changed, resize the image to the appropriate size.
@@ -183,7 +184,7 @@ fn atmosphere_settings_changed(
                     depth_or_array_layers: 6,
                 };
                 image.resize(size);
-                if let Some(mut skybox_material) = material_assets.get_mut(&material.0) {
+                if let Some(skybox_material) = material_assets.get_mut(&material.0) {
                     // `get_mut` tells the material to update, so it's needed anyways
                     skybox_material.dithering = settings.dithering;
                 }

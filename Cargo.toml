@@ -24,7 +24,7 @@ default = ["basic", "all_models"]
 basic = ["detection", "dithering", "procedural"] # enables basic features
 detection = [] # enables camera detection (disable to add skyboxes manually)
 dithering = [] # enables dithering (disable for banding)
-procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
+procedural = [] # enables the automatic addition of `AtmospherePipeline` setup from `AtmospherePlugin` (disable to edit the sky texture manually)
 # models
 all_models = [ "gradient", "nishita"] # enables all models
 gradient = [] # enables the gradient model

@@ -5,7 +5,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(AtmospherePlugin)
-        .add_systems(Update, setup)
+        .add_systems(Startup, setup)
         .run();
 }
 

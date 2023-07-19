@@ -19,10 +19,10 @@ var sky_sampler: sampler;
 @fragment
 fn fragment(
     #import bevy_pbr::mesh_vertex_output
-    
+
     @builtin(position) position: vec4<f32>
 ) -> @location(0) vec4<f32> {
-    let color = textureSample(sky_texture, sky_sampler, world_name).xyz;
+    let color = textureSample(sky_texture, sky_sampler, world_normal).xyz;
 #ifdef DITHER
     return vec4<f32>(color + dither(position.xy), 1f);
 #else

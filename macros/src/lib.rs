@@ -10,14 +10,8 @@ pub(crate) fn bevy_atmosphere_path() -> syn::Path {
         crate_name("bevy_atmosphere").expect("Failed to find bevy_atmosphere in `Cargo.toml`");
 
     match found_crate {
-        FoundCrate::Itself => {
-            
-            
-            BevyManifest::parse_str("crate")
-        },
-        FoundCrate::Name(name) => {
-            BevyManifest::parse_str(name.as_str())
-        },
+        FoundCrate::Itself => BevyManifest::parse_str("crate"),
+        FoundCrate::Name(name) => BevyManifest::parse_str(name.as_str())
     }
 }
 

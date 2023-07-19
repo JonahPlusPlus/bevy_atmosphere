@@ -23,7 +23,7 @@ use bevy::{
 };
 
 use crate::{
-    model::{AtmosphereModel, AtmosphereModelMetadata, AddAtmosphereModel},
+    model::{AtmosphereModel, AtmosphereModelMetadata},
     settings::AtmosphereSettings,
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial},
 };

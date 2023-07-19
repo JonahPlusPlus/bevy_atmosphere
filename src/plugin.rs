@@ -31,10 +31,8 @@ impl Plugin for AtmospherePlugin {
     
         app.add_plugins(MaterialPlugin::<SkyBoxMaterial>::default());
 
-
         #[cfg(feature = "procedural")]
         app.add_plugins(AtmospherePipelinePlugin);
-
 
         {
             let image_handle = {
@@ -66,7 +64,6 @@ impl Plugin for AtmospherePlugin {
         }
 
         app.add_systems(Update, atmosphere_cancel_rotation);
-        
     }
 
     fn finish(&self, app: &mut App) {

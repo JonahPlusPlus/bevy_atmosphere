@@ -5,7 +5,8 @@ use std::ops::{Deref, DerefMut};
 use bevy::{
     ecs::{
         component::{ComponentId, Tick},
-        system::{ReadOnlySystemParam, SystemMeta, SystemParam}, world::unsafe_world_cell::UnsafeWorldCell,
+        system::{ReadOnlySystemParam, SystemMeta, SystemParam},
+        world::unsafe_world_cell::UnsafeWorldCell,
     },
     prelude::*,
 };
@@ -43,7 +44,6 @@ unsafe impl<T: Atmospheric> SystemParam for Atmosphere<'_, T> {
         world: UnsafeWorldCell<'w>,
         change_tick: Tick,
     ) -> Self::Item<'w, 's> {
-        
         let atmosphere_model = <Res<AtmosphereModel> as SystemParam>::get_param(
             state,
             system_meta,

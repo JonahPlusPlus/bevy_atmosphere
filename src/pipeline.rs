@@ -17,8 +17,9 @@ use bevy::{
             StorageTextureAccess, TextureAspect, TextureDescriptor, TextureDimension,
             TextureFormat, TextureUsages, TextureView, TextureViewDescriptor, TextureViewDimension,
         },
+        renderer::RenderDevice,
         texture::FallbackImage,
-        Extract, RenderApp, RenderSet, Render, renderer::RenderDevice,
+        Extract, Render, RenderApp, RenderSet,
     },
 };
 
@@ -55,7 +56,7 @@ pub struct AtmosphereImageBindGroupLayout(pub BindGroupLayout);
 impl FromWorld for AtmosphereImageBindGroupLayout {
     fn from_world(world: &mut World) -> Self {
         let render_device = world.resource::<RenderDevice>();
-        
+
         Self(
             render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                 label: Some("bevy_atmosphere_image_bind_group_layout"),
@@ -91,7 +92,6 @@ pub struct AtmospherePipelinePlugin;
 
 impl Plugin for AtmospherePipelinePlugin {
     fn build(&self, app: &mut App) {
-
         let settings = match app.world.get_resource::<AtmosphereSettings>() {
             Some(s) => *s,
             None => default(),
@@ -140,8 +140,14 @@ impl Plugin for AtmospherePipelinePlugin {
             .init_resource::<CachedAtmosphereModelMetadata>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_systems(ExtractSchedule, extract_atmosphere_resources)
-            .add_systems(Render, Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare))
-            .add_systems(Render, prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare))
+            .add_systems(
+                Render,
+                Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
+            )
+            .add_systems(
+                Render,
+                prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare),
+            )
             .add_systems(Render, queue_atmosphere_bind_group.in_set(RenderSet::Queue));
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
@@ -177,7 +183,7 @@ fn atmosphere_settings_changed(
                     depth_or_array_layers: 6,
                 };
                 image.resize(size);
-                if let Some(mut skybox_material) = material_assets.get_mut(&material.0) {
+                if let Some(skybox_material) = material_assets.get_mut(&material.0) {
                     // `get_mut` tells the material to update, so it's needed anyways
                     skybox_material.dithering = settings.dithering;
                 }

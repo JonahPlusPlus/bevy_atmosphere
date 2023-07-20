@@ -6,13 +6,15 @@ use bevy::{
     prelude::*,
     render::{
         camera::{CameraProjection, Projection},
-        view::RenderLayers, RenderApp
+        view::RenderLayers,
+        RenderApp,
     },
 };
 
 use crate::{
+    model::AddAtmosphereModel,
     pipeline::*,
-    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE}, model::AddAtmosphereModel,
+    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
 /// A `Plugin` that adds the prerequisites for a procedural sky.
@@ -21,14 +23,13 @@ pub struct AtmospherePlugin;
 
 impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {
-
         load_internal_asset!(
             app,
             ATMOSPHERE_SKYBOX_SHADER_HANDLE,
             "shaders/skybox.wgsl",
             Shader::from_wgsl
         );
-    
+
         app.add_plugins(MaterialPlugin::<SkyBoxMaterial>::default());
 
         #[cfg(feature = "procedural")]
@@ -39,14 +40,14 @@ impl Plugin for AtmospherePlugin {
                 let image = app.world.get_resource::<AtmosphereImage>().expect("`AtmosphereImage` missing! If the `procedural` feature is disabled, add the resource before `AtmospherePlugin`");
                 image.handle.clone()
             };
-            
+
             let settings = {
                 let settings = app
                     .world
                     .get_resource::<crate::settings::AtmosphereSettings>();
                 settings.copied().unwrap_or_default()
             };
-            
+
             let mut material_assets = app.world.resource_mut::<Assets<SkyBoxMaterial>>();
             let material = material_assets.add(SkyBoxMaterial {
                 sky_texture: image_handle,
@@ -54,7 +55,6 @@ impl Plugin for AtmospherePlugin {
                 dithering: settings.dithering,
             });
 
-            
             app.insert_resource(AtmosphereSkyBoxMaterial(material));
         }
 
@@ -69,16 +69,14 @@ impl Plugin for AtmospherePlugin {
     fn finish(&self, app: &mut App) {
         let render_app = app.sub_app_mut(RenderApp);
 
-        render_app
-            .init_resource::<AtmosphereImageBindGroupLayout>();
-    
+        render_app.init_resource::<AtmosphereImageBindGroupLayout>();
+
         #[cfg(feature = "gradient")]
         app.add_atmosphere_model::<crate::collection::gradient::Gradient>();
 
         #[cfg(feature = "nishita")]
         app.add_atmosphere_model::<crate::collection::nishita::Nishita>();
     }
-
 }
 
 /// A marker `Component` for a `Camera` that receives a skybox.

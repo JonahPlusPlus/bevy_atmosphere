@@ -9,7 +9,7 @@ use bevy::{
 };
 
 use bevy_atmosphere::prelude::*;
-use bevy_spectator::{SpectatorPlugin, Spectator, SpectatorSettings};
+use bevy_spectator::{Spectator, SpectatorPlugin, SpectatorSettings};
 
 fn main() {
     println!("Demonstrates using `AtmosphereCamera.render_layers` to have multiple skyboxes in the scene at once\n\t- E: Switch camera");

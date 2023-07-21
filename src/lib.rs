@@ -11,7 +11,7 @@
 //! fn main() {
 //!     App::new()
 //!         .add_plugins((DefaultPlugins, AtmospherePlugin))
-//!         .add_system(Startup, setup)
+//!         .add_systems(Startup, setup)
 //!         .run();
 //! }
 //!

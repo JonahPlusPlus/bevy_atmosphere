@@ -132,7 +132,6 @@ impl Plugin for AtmospherePipelinePlugin {
         let type_registry = app.world.resource::<AppTypeRegistry>().clone();
 
         let render_app = app.sub_app_mut(RenderApp);
-
         render_app
             .insert_resource(atmosphere)
             .insert_resource(settings)

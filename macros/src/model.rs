@@ -5,7 +5,7 @@ use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    Data, DataStruct, Error, Fields, LitInt, LitStr, Result, Token, Meta,
+    Data, DataStruct, Error, Fields, LitInt, LitStr, Meta, Result, Token,
 };
 
 const UNIFORM_ATTRIBUTE_NAME: Symbol = Symbol("uniform");
@@ -665,14 +665,11 @@ const VISIBILITY_COMPUTE: Symbol = Symbol("compute");
 const VISIBILITY_ALL: Symbol = Symbol("all");
 const VISIBILITY_NONE: Symbol = Symbol("none");
 
-fn get_visibility_flag_value(
-    metas: &Punctuated<Meta, Token![,]>,
-) -> Result<ShaderStageVisibility> {
+fn get_visibility_flag_value(metas: &Punctuated<Meta, Token![,]>) -> Result<ShaderStageVisibility> {
     let mut visibility = VisibilityFlags::vertex_fragment();
 
     for meta in metas {
         use syn::Meta::Path;
-
         match meta {
             // Parse `visibility(all)]`.
             Path(path) if path == VISIBILITY_ALL => {
@@ -812,7 +809,7 @@ fn get_texture_attrs(metas: Vec<Meta>) -> Result<TextureAttrs> {
                 let value = get_lit_str(DIMENSION, &m.value)?;
                 dimension = get_texture_dimension_value(value)?;
             }
-            // Parse #[texture(0, sample_type = "...")].    
+            // Parse #[texture(0, sample_type = "...")].
             NameValue(m) if m.path == SAMPLE_TYPE => {
                 let value = get_lit_str(SAMPLE_TYPE, &m.value)?;
                 sample_type = get_texture_sample_type_value(value)?;
@@ -828,7 +825,9 @@ fn get_texture_attrs(metas: Vec<Meta>) -> Result<TextureAttrs> {
             }
             // Parse #[texture(0, visibility(...))].
             List(m) if m.path == VISIBILITY => {
-                let metas = m.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated).unwrap();
+                let metas = m
+                    .parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+                    .unwrap();
                 visibility = get_visibility_flag_value(&metas)?;
             }
             NameValue(m) => {
@@ -936,8 +935,7 @@ fn get_sampler_attrs(metas: Vec<Meta>) -> Result<SamplerAttrs> {
     let mut visibility = ShaderStageVisibility::vertex_fragment();
 
     for meta in metas {
-        use syn::
-            Meta::{List, NameValue};
+        use syn::Meta::{List, NameValue};
         match meta {
             // Parse #[sampler(0, sampler_type = "..."))].
             NameValue(m) if m.path == SAMPLER_TYPE => {
@@ -946,7 +944,9 @@ fn get_sampler_attrs(metas: Vec<Meta>) -> Result<SamplerAttrs> {
             }
             // Parse #[sampler(0, visibility(...))].
             List(m) if m.path == VISIBILITY => {
-                let metas = m.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated).unwrap();
+                let metas = m
+                    .parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+                    .unwrap();
                 visibility = get_visibility_flag_value(&metas)?;
             }
             NameValue(m) => {

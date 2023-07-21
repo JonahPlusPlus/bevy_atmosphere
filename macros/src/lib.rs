@@ -11,7 +11,7 @@ pub(crate) fn bevy_atmosphere_path() -> syn::Path {
 
     match found_crate {
         FoundCrate::Itself => BevyManifest::parse_str("crate"),
-        FoundCrate::Name(name) => BevyManifest::parse_str(name.as_str())
+        FoundCrate::Name(name) => BevyManifest::parse_str(name.as_str()),
     }
 }
 

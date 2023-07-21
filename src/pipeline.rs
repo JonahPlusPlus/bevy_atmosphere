@@ -361,7 +361,7 @@ fn queue_atmosphere_bind_group(
     mut cached_metadata: ResMut<CachedAtmosphereModelMetadata>,
     gpu_images: Res<RenderAssets<Image>>,
     atmosphere_image: Res<AtmosphereImage>,
-    render_device: Res<bevy::render::renderer::RenderDevice>,
+    render_device: Res<RenderDevice>,
     fallback_image: Res<FallbackImage>,
     type_registry: Res<AtmosphereTypeRegistry>,
     image_bind_group_layout: Res<AtmosphereImageBindGroupLayout>,

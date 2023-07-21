@@ -7,7 +7,6 @@ use bevy::{
     render::{camera::Viewport, view::RenderLayers},
     window::WindowResized,
 };
-
 use bevy_atmosphere::prelude::*;
 use bevy_spectator::{Spectator, SpectatorPlugin, SpectatorSettings};
 

@@ -1,76 +1,67 @@
 name: Main
 on:
   push:
-    branches-ignore:
-      - 'releases/**'
-      - 'dependabot/**'
+    branches:
+      - master
     paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - '.github/dependabot.yml'
+      - ".gitignore"
+      - ".github/dependabot.yml"
   pull_request:
     paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - '.github/dependabot.yml'
+      - ".gitignore"
+      - ".github/dependabot.yml"
 env:
   CARGO_TERM_COLOR: always
 jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@v3
-      
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache crates
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install alsa and udev
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
-
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@v3
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache crates
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install alsa and udev
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
-
-      - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --no-deps --all-features -- -D warnings
-
   format:
     name: Format
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo
         uses: actions/checkout@v3
-      
-      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Install alsa and udev
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      - name: Cache crates
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Taplo
+        run: cargo install taplo-cli
 
       - name: Format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: -- --check
+        run: |
+          cargo fmt --check
+          taplo fmt --check
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v3
+
+      - name: Instal stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache crates
+        uses: Swatinem/rust-cache@v2
+
+      - name: Clippy
+        run: cargo clippy --no-deps --all-features --tests --examples -- -D warnings
+
+      - name: Rustdoc
+        run: cargo rustdoc -- -D warnings
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v3
+
+      - name: Instal stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache crates
+        uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test

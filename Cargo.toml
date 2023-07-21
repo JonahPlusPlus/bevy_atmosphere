@@ -21,17 +21,15 @@ cfg-if = "1.0"
 
 [dev-dependencies]
 bevy_spectator = "0.3"
-bevy = { version = "0.11.0", features = [
-  "bevy_core_pipeline",
-  "x11",
-] }
+bevy = { version = "0.11", features = ["bevy_core_pipeline", "x11"] }
 
 [features]
 default = ["basic", "all_models"]
 basic = ["detection", "dithering", "procedural"] # enables basic features
 detection = [] # enables camera detection (disable to add skyboxes manually)
 dithering = [] # enables dithering (disable for banding)
-procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` (disable to edit the sky texture manually)
+# enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
+procedural = []
 # models
 all_models = ["gradient", "nishita"] # enables all models
 gradient = []                        # enables the gradient model

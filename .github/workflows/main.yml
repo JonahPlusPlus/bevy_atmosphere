@@ -38,6 +38,11 @@ jobs:
       - name: Clone repo
         uses: actions/checkout@v3
 
+      - name: Install alsa and udev
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+
       - name: Instal stable toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -56,6 +61,11 @@ jobs:
     steps:
       - name: Clone repo
         uses: actions/checkout@v3
+
+      - name: Install alsa and udev
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
 
       - name: Instal stable toolchain
         uses: dtolnay/rust-toolchain@stable

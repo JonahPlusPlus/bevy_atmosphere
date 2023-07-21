@@ -14,9 +14,9 @@ exclude = ["/assets/", "/examples/", "/.github/"]
 proc-macro = true
 
 [dependencies]
-proc-macro-crate = "1.3.1"
-bevy_macro_utils = "0.11.0"
+proc-macro-crate = "1.3"
+bevy_macro_utils = "0.11"
 
-syn = "2.0.25"
+syn = "2.0"
 proc-macro2 = "1.0"
 quote = "1.0"

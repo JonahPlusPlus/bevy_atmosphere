@@ -18,9 +18,8 @@ use bevy_atmosphere::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(AtmospherePlugin)
-        .add_startup_system(setup)
+        .add_plugins((DefaultPlugins, AtmospherePlugin))
+        .add_system(Startup, setup)
         .run();
 }
 

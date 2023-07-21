@@ -2,17 +2,18 @@ name: Dependencies
 on:
   push:
     branches-ignore:
-      - 'dependabot/**'
-      - 'releases/**'
+      - "releases/**"
     paths:
-      - 'Cargo.toml'
-      - 'deny.toml'
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "deny.toml"
   pull_request:
     paths:
-      - 'Cargo.toml'
-      - 'deny.toml'
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "deny.toml"
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0"
 env:
   CARGO_TERM_COLOR: always
 jobs:

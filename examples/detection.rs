@@ -4,8 +4,7 @@ use bevy_atmosphere::prelude::*;
 fn main() {
     println!("Demonstrates adding/removing an `AtmosphereCamera`\n\t- Left Mouse Button: Add `AtmosphereCamera`\n\t- Right Mouse Button: Remove `AtmosphereCamera`");
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugins(AtmospherePlugin)
+        .add_plugins((DefaultPlugins, AtmospherePlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, update)
         .run();

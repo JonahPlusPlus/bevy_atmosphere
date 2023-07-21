@@ -5,9 +5,7 @@ use bevy_spectator::{Spectator, SpectatorPlugin};
 fn main() {
     println!("Demonstrates using the `Nishita` model\n\t- 1-9 number keys: Change preset\n\t- 0 number key: Remove `Nishita` model");
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugins(AtmospherePlugin)
-        .add_plugins(SpectatorPlugin)
+        .add_plugins((DefaultPlugins, AtmospherePlugin, SpectatorPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, change_nishita)
         .run();

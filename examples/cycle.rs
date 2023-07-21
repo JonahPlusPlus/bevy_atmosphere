@@ -10,9 +10,11 @@ fn main() {
             bevy::utils::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
             TimerMode::Repeating,
         )))
-        .add_plugins(DefaultPlugins)
-        .add_plugins(SpectatorPlugin) // Simple movement for this example
-        .add_plugins(AtmospherePlugin) // Default AtmospherePlugin
+        .add_plugins((
+            DefaultPlugins,
+            SpectatorPlugin,  // Simple movement for this example
+            AtmospherePlugin, // Default AtmospherePlugin
+        ))
         .add_systems(Startup, setup_environment)
         .add_systems(Update, daylight_cycle)
         .run();

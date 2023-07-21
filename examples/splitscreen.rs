@@ -24,9 +24,7 @@ fn main() {
             alt_speed: 1.0,
             ..default()
         })
-        .add_plugins(DefaultPlugins)
-        .add_plugins(AtmospherePlugin)
-        .add_plugins(SpectatorPlugin)
+        .add_plugins((DefaultPlugins, AtmospherePlugin, SpectatorPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, set_camera_viewports)
         .add_systems(Update, switch_camera)

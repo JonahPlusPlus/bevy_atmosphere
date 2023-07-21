@@ -6,9 +6,7 @@ fn main() {
     println!("Demonstrates changing the atmosphere model\n\t- G: Gradient\n\t- N: Nishita");
 
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugins(AtmospherePlugin)
-        .add_plugins(SpectatorPlugin)
+        .add_plugins((DefaultPlugins, AtmospherePlugin, SpectatorPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, change_model)
         .run();

@@ -9,9 +9,7 @@ fn main() {
             resolution: 16,
             ..default()
         })
-        .add_plugins(DefaultPlugins)
-        .add_plugins(AtmospherePlugin)
-        .add_plugins(SpectatorPlugin)
+        .add_plugins((DefaultPlugins, AtmospherePlugin, SpectatorPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, change_resolution)
         .run();

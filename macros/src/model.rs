@@ -825,9 +825,7 @@ fn get_texture_attrs(metas: Vec<Meta>) -> Result<TextureAttrs> {
             }
             // Parse #[texture(0, visibility(...))].
             List(m) if m.path == VISIBILITY => {
-                let metas = m
-                    .parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
-                    .unwrap();
+                let metas = m.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
                 visibility = get_visibility_flag_value(&metas)?;
             }
             NameValue(m) => {
@@ -944,9 +942,7 @@ fn get_sampler_attrs(metas: Vec<Meta>) -> Result<SamplerAttrs> {
             }
             // Parse #[sampler(0, visibility(...))].
             List(m) if m.path == VISIBILITY => {
-                let metas = m
-                    .parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
-                    .unwrap();
+                let metas = m.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
                 visibility = get_visibility_flag_value(&metas)?;
             }
             NameValue(m) => {

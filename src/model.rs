@@ -98,8 +98,7 @@ pub trait RegisterAtmosphereModel: GetTypeRegistration {
 /// # use bevy_atmosphere::prelude::*;
 /// fn main() {
 ///     App::new()
-///         .add_plugins(DefaultPlugins)
-///         .add_plugin(AtmospherePlugin)
+///         .add_plugins((DefaultPlugins, AtmospherePlugin))
 ///         .add_atmosphere_model::<MyModel>()
 ///         .insert_resource(AtmosphereModel::new(MyModel::default()))
 ///         .run();

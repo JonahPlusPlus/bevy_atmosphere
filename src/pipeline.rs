@@ -2,7 +2,7 @@
 //!
 //! It's possible to use [`AtmospherePipelinePlugin`] with your own custom code to render to custom targets.
 
-use std::{num::NonZeroU32, ops::Deref};
+use std::ops::Deref;
 
 use bevy::{
     prelude::*,
@@ -19,7 +19,7 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::FallbackImage,
-        Extract, RenderApp, RenderSet,
+        Extract, Render, RenderApp, RenderSet,
     },
 };
 
@@ -77,7 +77,7 @@ impl FromWorld for AtmosphereImageBindGroupLayout {
 }
 
 /// Signals the pipeline (inside `RenderApp`) to render the atmosphere.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Event)]
 pub struct AtmosphereUpdateEvent;
 
 #[derive(Resource, Debug, Clone)]
@@ -125,9 +125,9 @@ impl Plugin for AtmospherePipelinePlugin {
             array_view: None,
         });
 
-        app.add_plugin(ExtractResourcePlugin::<AtmosphereImage>::default());
+        app.add_plugins(ExtractResourcePlugin::<AtmosphereImage>::default());
 
-        app.add_system(atmosphere_settings_changed);
+        app.add_systems(Update, atmosphere_settings_changed);
 
         let type_registry = app.world.resource::<AppTypeRegistry>().clone();
 
@@ -137,14 +137,16 @@ impl Plugin for AtmospherePipelinePlugin {
             .insert_resource(settings)
             .insert_resource(AtmosphereTypeRegistry(type_registry))
             .init_resource::<CachedAtmosphereModelMetadata>()
-            .init_resource::<AtmosphereImageBindGroupLayout>()
             .init_resource::<Events<AtmosphereUpdateEvent>>()
-            .add_systems((
-                extract_atmosphere_resources.in_schedule(ExtractSchedule),
-                Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
-                prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare),
-                queue_atmosphere_bind_group.in_set(RenderSet::Queue),
-            ));
+            .add_systems(ExtractSchedule, extract_atmosphere_resources)
+            .add_systems(
+                Render,
+                (
+                    Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
+                    prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare),
+                    queue_atmosphere_bind_group.in_set(RenderSet::Queue),
+                ),
+            );
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
         render_graph.add_node(NAME, AtmosphereNode::default());
@@ -179,7 +181,7 @@ fn atmosphere_settings_changed(
                     depth_or_array_layers: 6,
                 };
                 image.resize(size);
-                if let Some(mut skybox_material) = material_assets.get_mut(&material.0) {
+                if let Some(skybox_material) = material_assets.get_mut(&material.0) {
                     // `get_mut` tells the material to update, so it's needed anyways
                     skybox_material.dithering = settings.dithering;
                 }
@@ -284,7 +286,7 @@ pub const ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = Textu
     base_mip_level: 0,
     mip_level_count: None,
     base_array_layer: 0,
-    array_layer_count: NonZeroU32::new(6),
+    array_layer_count: Some(6),
 };
 
 /// For creating a `TextureView` with `TextureViewDimension::D2Array`.
@@ -296,7 +298,7 @@ pub const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = Text
     base_mip_level: 0,
     mip_level_count: None,
     base_array_layer: 0,
-    array_layer_count: NonZeroU32::new(6),
+    array_layer_count: Some(6),
 };
 
 /// For creating a `Texture` with 6 layers.

@@ -49,7 +49,7 @@ fn main(@builtin(global_invocation_id) invocation_id: vec3<u32>, @builtin(num_wo
         case 4u {
             ray = vec3<f32>(dir.x, -dir.y, 1f); // +Z
         }
-        default {
+        default: {
             ray = vec3<f32>(-dir.x, -dir.y, -1f);// -Z
         }
     }

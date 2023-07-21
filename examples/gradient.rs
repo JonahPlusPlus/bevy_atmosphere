@@ -1,16 +1,14 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
-use bevy_spectator::*;
+use bevy_spectator::{Spectator, SpectatorPlugin};
 
 fn main() {
     println!("Demonstrates using the `Gradient` model\n\t- 1-9 number keys: Change preset\n\t- 0 number key: Remove `Gradient` model");
     App::new()
-        .add_plugins(DefaultPlugins)
         .insert_resource(AtmosphereModel::new(Gradient::default()))
-        .add_plugin(AtmospherePlugin)
-        .add_plugin(SpectatorPlugin)
-        .add_startup_system(setup)
-        .add_system(change_gradient)
+        .add_plugins((DefaultPlugins, AtmospherePlugin, SpectatorPlugin))
+        .add_systems(Startup, setup)
+        .add_systems(Update, change_gradient)
         .run();
 }
 

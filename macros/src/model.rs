@@ -5,7 +5,7 @@ use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    Data, DataStruct, Error, Fields, LitInt, LitStr, NestedMeta, Result, Token,
+    Data, DataStruct, Error, Fields, LitInt, LitStr, Meta, Result, Token,
 };
 
 const UNIFORM_ATTRIBUTE_NAME: Symbol = Symbol("uniform");
@@ -47,7 +47,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
     let atmosphere_path = super::bevy_atmosphere_path();
     let render_path = manifest.get_path("bevy_render");
     let asset_path = manifest.get_path("bevy_asset");
-    let app_path = manifest.get_path("bevy_app");
+    let ecs_path = manifest.get_path("bevy_ecs");
 
     let id = {
         use std::collections::hash_map::DefaultHasher;
@@ -65,7 +65,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
 
     // Read struct-level attributes
     for attr in &ast.attrs {
-        if let Some(attr_ident) = attr.path.get_ident() {
+        if let Some(attr_ident) = attr.path().get_ident() {
             if attr_ident == UNIFORM_ATTRIBUTE_NAME {
                 let (binding_index, converted_shader_type) = get_uniform_binding_attr(attr)?;
 
@@ -109,10 +109,10 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     binding_states.resize(required_len, BindingState::Free);
                 }
                 binding_states[binding_index as usize] = BindingState::OccupiedConvertedUniform;
-            } else if let Some(attr_ident) = attr.path.get_ident() {
+            } else if let Some(attr_ident) = attr.path().get_ident() {
                 if attr_ident == EXTERNAL_ATTRIBUTE_NAME {
                     if shader_path != ShaderPathType::None {
-                        return Err(Error::new_spanned(attr, format!("Shader path already set")));
+                        return Err(Error::new_spanned(attr, "Shader path already set"));
                     }
 
                     let lit_str = get_shader_path_attr(attr)?;
@@ -120,7 +120,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     shader_path = ShaderPathType::External(lit_str);
                 } else if attr_ident == INTERNAL_ATTRIBUTE_NAME {
                     if shader_path != ShaderPathType::None {
-                        return Err(Error::new_spanned(attr, format!("Shader path already set")));
+                        return Err(Error::new_spanned(attr, "Shader path already set"));
                     }
 
                     let lit_str = get_shader_path_attr(attr)?;
@@ -174,7 +174,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
     // Read field-level attributes
     for field in fields.iter() {
         for attr in &field.attrs {
-            let Some(attr_ident) = attr.path.get_ident() else {
+            let Some(attr_ident) = attr.path().get_ident() else {
                 continue;
             };
 
@@ -483,7 +483,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     pipeline,
                 };
 
-                let type_registry = app.world.resource_mut::<#app_path::AppTypeRegistry>();
+                let type_registry = app.world.resource_mut::<#ecs_path::reflect::AppTypeRegistry>();
                 {
                     let mut type_registry = type_registry.write();
 
@@ -527,7 +527,7 @@ enum BindingMeta {
 struct BindingIndexOptions {
     lit_int: LitInt,
     _comma: Token![,],
-    meta_list: Punctuated<NestedMeta, Token![,]>,
+    meta_list: Punctuated<syn::Meta, Token![,]>,
 }
 
 /// Represents the arguments for the `external` and `internal` binding attributes
@@ -550,7 +550,7 @@ impl Parse for BindingIndexOptions {
         Ok(Self {
             lit_int: input.parse()?,
             _comma: input.parse()?,
-            meta_list: input.parse_terminated(NestedMeta::parse)?,
+            meta_list: input.parse_terminated(Meta::parse, Token![,])?,
         })
     }
 }
@@ -582,7 +582,7 @@ fn get_uniform_binding_attr(attr: &syn::Attribute) -> Result<(u32, Ident)> {
     Ok((binding_index, ident))
 }
 
-fn get_binding_nested_attr(attr: &syn::Attribute) -> Result<(u32, Vec<NestedMeta>)> {
+fn get_binding_nested_attr(attr: &syn::Attribute) -> Result<(u32, Vec<syn::Meta>)> {
     let binding_meta = attr.parse_args_with(BindingMeta::parse)?;
 
     match binding_meta {
@@ -665,35 +665,33 @@ const VISIBILITY_COMPUTE: Symbol = Symbol("compute");
 const VISIBILITY_ALL: Symbol = Symbol("all");
 const VISIBILITY_NONE: Symbol = Symbol("none");
 
-fn get_visibility_flag_value(
-    nested_metas: &Punctuated<NestedMeta, Token![,]>,
-) -> Result<ShaderStageVisibility> {
+fn get_visibility_flag_value(metas: &Punctuated<Meta, Token![,]>) -> Result<ShaderStageVisibility> {
     let mut visibility = VisibilityFlags::vertex_fragment();
 
-    for meta in nested_metas {
-        use syn::{Meta::Path, NestedMeta::Meta};
+    for meta in metas {
+        use syn::Meta::Path;
         match meta {
             // Parse `visibility(all)]`.
-            Meta(Path(path)) if path == VISIBILITY_ALL => {
+            Path(path) if path == VISIBILITY_ALL => {
                 return Ok(ShaderStageVisibility::All)
             }
             // Parse `visibility(none)]`.
-            Meta(Path(path)) if path == VISIBILITY_NONE => {
+            Path(path) if path == VISIBILITY_NONE => {
                 return Ok(ShaderStageVisibility::None)
             }
             // Parse `visibility(vertex, ...)]`.
-            Meta(Path(path)) if path == VISIBILITY_VERTEX => {
+            Path(path) if path == VISIBILITY_VERTEX => {
                 visibility.vertex = true;
             }
             // Parse `visibility(fragment, ...)]`.
-            Meta(Path(path)) if path == VISIBILITY_FRAGMENT => {
+            Path(path) if path == VISIBILITY_FRAGMENT => {
                 visibility.fragment = true;
             }
             // Parse `visibility(compute, ...)]`.
-            Meta(Path(path)) if path == VISIBILITY_COMPUTE => {
+            Path(path) if path == VISIBILITY_COMPUTE => {
                 visibility.compute = true;
             }
-            Meta(Path(path)) => return Err(Error::new_spanned(
+            Path(path) => return Err(Error::new_spanned(
                 path,
                 "Not a valid visibility flag. Must be `all`, `none`, or a list-combination of `vertex`, `fragment` and/or `compute`."
             )),
@@ -794,7 +792,7 @@ const DEPTH: &str = "depth";
 const S_INT: &str = "s_int";
 const U_INT: &str = "u_int";
 
-fn get_texture_attrs(metas: Vec<NestedMeta>) -> Result<TextureAttrs> {
+fn get_texture_attrs(metas: Vec<Meta>) -> Result<TextureAttrs> {
     let mut dimension = Default::default();
     let mut sample_type = Default::default();
     let mut multisampled = Default::default();
@@ -804,35 +802,33 @@ fn get_texture_attrs(metas: Vec<NestedMeta>) -> Result<TextureAttrs> {
     let mut visibility = ShaderStageVisibility::vertex_fragment();
 
     for meta in metas {
-        use syn::{
-            Meta::{List, NameValue},
-            NestedMeta::Meta,
-        };
+        use syn::Meta::{List, NameValue};
         match meta {
             // Parse #[texture(0, dimension = "...")].
-            Meta(NameValue(m)) if m.path == DIMENSION => {
-                let value = get_lit_str(DIMENSION, &m.lit)?;
+            NameValue(m) if m.path == DIMENSION => {
+                let value = get_lit_str(DIMENSION, &m.value)?;
                 dimension = get_texture_dimension_value(value)?;
             }
             // Parse #[texture(0, sample_type = "...")].
-            Meta(NameValue(m)) if m.path == SAMPLE_TYPE => {
-                let value = get_lit_str(SAMPLE_TYPE, &m.lit)?;
+            NameValue(m) if m.path == SAMPLE_TYPE => {
+                let value = get_lit_str(SAMPLE_TYPE, &m.value)?;
                 sample_type = get_texture_sample_type_value(value)?;
             }
             // Parse #[texture(0, multisampled = "...")].
-            Meta(NameValue(m)) if m.path == MULTISAMPLED => {
-                multisampled = get_lit_bool(MULTISAMPLED, &m.lit)?;
+            NameValue(m) if m.path == MULTISAMPLED => {
+                multisampled = get_lit_bool(MULTISAMPLED, &m.value)?;
             }
             // Parse #[texture(0, filterable = "...")].
-            Meta(NameValue(m)) if m.path == FILTERABLE => {
-                filterable = get_lit_bool(FILTERABLE, &m.lit)?.into();
+            NameValue(m) if m.path == FILTERABLE => {
+                filterable = get_lit_bool(FILTERABLE, &m.value)?.into();
                 filterable_ident = m.path.into();
             }
             // Parse #[texture(0, visibility(...))].
-            Meta(List(m)) if m.path == VISIBILITY => {
-                visibility = get_visibility_flag_value(&m.nested)?;
+            List(m) if m.path == VISIBILITY => {
+                let metas = m.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+                visibility = get_visibility_flag_value(&metas)?;
             }
-            Meta(NameValue(m)) => {
+            NameValue(m) => {
                 return Err(Error::new_spanned(
                     m.path,
                     "Not a valid name. Available attributes: `dimension`, `sample_type`, `multisampled`, or `filterable`."
@@ -932,26 +928,24 @@ const FILTERING: &str = "filtering";
 const NON_FILTERING: &str = "non_filtering";
 const COMPARISON: &str = "comparison";
 
-fn get_sampler_attrs(metas: Vec<NestedMeta>) -> Result<SamplerAttrs> {
+fn get_sampler_attrs(metas: Vec<Meta>) -> Result<SamplerAttrs> {
     let mut sampler_binding_type = Default::default();
     let mut visibility = ShaderStageVisibility::vertex_fragment();
 
     for meta in metas {
-        use syn::{
-            Meta::{List, NameValue},
-            NestedMeta::Meta,
-        };
+        use syn::Meta::{List, NameValue};
         match meta {
             // Parse #[sampler(0, sampler_type = "..."))].
-            Meta(NameValue(m)) if m.path == SAMPLER_TYPE => {
-                let value = get_lit_str(DIMENSION, &m.lit)?;
+            NameValue(m) if m.path == SAMPLER_TYPE => {
+                let value = get_lit_str(DIMENSION, &m.value)?;
                 sampler_binding_type = get_sampler_binding_type_value(value)?;
             }
             // Parse #[sampler(0, visibility(...))].
-            Meta(List(m)) if m.path == VISIBILITY => {
-                visibility = get_visibility_flag_value(&m.nested)?;
+            List(m) if m.path == VISIBILITY => {
+                let metas = m.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+                visibility = get_visibility_flag_value(&metas)?;
             }
-            Meta(NameValue(m)) => {
+            NameValue(m) => {
                 return Err(Error::new_spanned(
                     m.path,
                     "Not a valid name. Available attributes: `sampler_type`.",

@@ -8,7 +8,7 @@ use bevy::{
     window::WindowResized,
 };
 use bevy_atmosphere::prelude::*;
-use bevy_spectator::*;
+use bevy_spectator::{Spectator, SpectatorPlugin, SpectatorSettings};
 
 fn main() {
     println!("Demonstrates using `AtmosphereCamera.render_layers` to have multiple skyboxes in the scene at once\n\t- E: Switch camera");
@@ -23,12 +23,10 @@ fn main() {
             alt_speed: 1.0,
             ..default()
         })
-        .add_plugins(DefaultPlugins)
-        .add_plugin(AtmospherePlugin)
-        .add_plugin(SpectatorPlugin)
-        .add_startup_system(setup)
-        .add_system(set_camera_viewports)
-        .add_system(switch_camera)
+        .add_plugins((DefaultPlugins, AtmospherePlugin, SpectatorPlugin))
+        .add_systems(Startup, setup)
+        .add_systems(Update, set_camera_viewports)
+        .add_systems(Update, switch_camera)
         .run();
 }
 

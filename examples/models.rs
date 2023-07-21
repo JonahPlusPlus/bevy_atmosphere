@@ -1,15 +1,14 @@
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
-use bevy_spectator::*;
+use bevy_spectator::{Spectator, SpectatorPlugin};
 
 fn main() {
     println!("Demonstrates changing the atmosphere model\n\t- G: Gradient\n\t- N: Nishita");
+
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(AtmospherePlugin)
-        .add_plugin(SpectatorPlugin)
-        .add_startup_system(setup)
-        .add_system(change_model)
+        .add_plugins((DefaultPlugins, AtmospherePlugin, SpectatorPlugin))
+        .add_systems(Startup, setup)
+        .add_systems(Update, change_model)
         .run();
 }
 

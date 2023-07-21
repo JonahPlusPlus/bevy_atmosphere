@@ -2,11 +2,6 @@
 unmaintained = "deny"
 yanked = "deny"
 notice = "deny"
-ignore = [
-    "RUSTSEC-2020-0056", # ignore stdweb (from gilrs)
-    "RUSTSEC-2021-0139", # ignore ansi_term until there is a replacement
-    "RUSTSEC-2022-0048", # ignore xml-rs as it is needed by winit
-]
 
 [licenses]
 copyleft = "deny"

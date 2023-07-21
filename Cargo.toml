@@ -11,24 +11,31 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
-bevy = {version = "0.11", default-features = false, features = ["bevy_asset", "bevy_render", "bevy_pbr"]}
+bevy = { version = "0.11", default-features = false, features = [
+  "bevy_asset",
+  "bevy_render",
+  "bevy_pbr",
+] }
 bevy_atmosphere_macros = { path = "macros", version = "0.2.1" }
 cfg-if = "1.0"
 
 [dev-dependencies]
 bevy_spectator = "0.3"
-bevy = { version = "0.11.0", features = ["bevy_core_pipeline", "x11"] } # load all in case docs.rs complains
+bevy = { version = "0.11.0", features = [
+  "bevy_core_pipeline",
+  "x11",
+] }
 
 [features]
 default = ["basic", "all_models"]
 basic = ["detection", "dithering", "procedural"] # enables basic features
 detection = [] # enables camera detection (disable to add skyboxes manually)
 dithering = [] # enables dithering (disable for banding)
-procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
+procedural = [] # enables the automatic addition of `AtmospherePipelinePlugin` (disable to edit the sky texture manually)
 # models
-all_models = [ "gradient", "nishita"] # enables all models
-gradient = [] # enables the gradient model
-nishita = [] # enables the nishita model
+all_models = ["gradient", "nishita"] # enables all models
+gradient = []                        # enables the gradient model
+nishita = []                         # enables the nishita model
 
 [[example]]
 name = "basic"

@@ -25,5 +25,5 @@ wildcards = "deny"
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-git = [
-    "https://github.com/GodGotzi/bevy_spectator.git",
+    "https://github.com/GodGotzi/bevy_spectator.git"
 ]

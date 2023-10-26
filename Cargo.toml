@@ -3,7 +3,7 @@ name = "bevy_atmosphere"
 description = "A procedural sky plugin for bevy"
 version = "0.7.0"
 edition = "2021"
-authors = ["JonahPlusPlus <33059163+JonahPlusPlus@users.noreply.github.com>"]
+authors = ["JonahPlusPlus <33059163+JonahPlusPlus@users.noreply.github.com>", "Lance Warden <wanderlanz@proton.me>"]
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/bevy_atmosphere"
 homepage = "https://github.com/JonahPlusPlus/bevy_atmosphere"
@@ -25,15 +25,16 @@ bevy = { version = "0.11", features = ["bevy_core_pipeline", "x11"] }
 
 [features]
 default = ["basic", "all_models"]
-basic = ["detection", "dithering", "procedural"] # enables basic features
-detection = []                                   # enables camera detection (disable to add skyboxes manually)
-dithering = []                                   # enables dithering (disable for banding)
+basic = ["procedural"]            # enables basic features
 # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
 procedural = []
 # models
-all_models = ["gradient", "nishita"] # enables all models
-gradient = []                        # enables the gradient model
-nishita = []                         # enables the nishita model
+all_models = ["gradient", "nishita", "applesky"] # enables all models
+gradient = []                                    # enables the gradient model
+utils = []                                       # enables the nishita utils
+precompute = ["utils"]                           # enables the nishita precompute model
+nishita = ["utils"]                              # enables the nishita model
+applesky = ["utils", "precompute"]               # enables the applesky model
 
 [[example]]
 name = "basic"

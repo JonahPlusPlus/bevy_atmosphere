@@ -1,3 +1,6 @@
+#![feature(fmt_internals)]
+#![allow(non_camel_case_types, non_snake_case)]
+
 use bevy_macro_utils::BevyManifest;
 use proc_macro::TokenStream;
 use proc_macro_crate::{crate_name, FoundCrate};
@@ -15,7 +18,10 @@ pub(crate) fn bevy_atmosphere_path() -> syn::Path {
     }
 }
 
-#[proc_macro_derive(Atmospheric, attributes(external, internal, uniform, texture, sampler))]
+#[proc_macro_derive(
+    Atmospheric,
+    attributes(external, internal, defines, after, precompute, uniform)
+)]
 pub fn derive_atmospheric(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 

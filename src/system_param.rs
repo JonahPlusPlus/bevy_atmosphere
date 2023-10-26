@@ -60,20 +60,21 @@ unsafe impl<T: Atmospheric> SystemParam for Atmosphere<'_, T> {
 
 /// Accessor for writing to an [`Atmospheric`] model.
 pub struct AtmosphereMut<'w, T: Atmospheric> {
-    value: &'w mut T,
+    value: ResMut<'w, AtmosphereModel>, // could keep pointer, but rather just avoid unsafe
+    _marker: std::marker::PhantomData<T>,
 }
 
 impl<'w, T: Atmospheric> Deref for AtmosphereMut<'w, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        self.value
+        self.value.to_ref().unwrap()
     }
 }
 
 impl<'w, T: Atmospheric> DerefMut for AtmosphereMut<'w, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        self.value
+        self.value.to_mut().unwrap()
     }
 }
 
@@ -92,16 +93,19 @@ unsafe impl<T: Atmospheric> SystemParam for AtmosphereMut<'_, T> {
         world: UnsafeWorldCell<'w>,
         change_tick: Tick,
     ) -> Self::Item<'w, 's> {
-        let atmosphere_model = <ResMut<AtmosphereModel> as SystemParam>::get_param(
-            state,
-            system_meta,
-            world,
-            change_tick,
-        )
-        .into_inner();
-        let value = atmosphere_model
-            .to_mut::<T>()
+        let value: ResMut<'w, AtmosphereModel> =
+            <ResMut<'w, AtmosphereModel> as SystemParam>::get_param(
+                state,
+                system_meta,
+                world,
+                change_tick,
+            );
+        value
+            .to_ref::<T>()
             .expect("Wrong type of `Atmospheric` model found");
-        Self::Item { value }
+        Self::Item {
+            value,
+            _marker: std::marker::PhantomData,
+        }
     }
 }

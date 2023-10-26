@@ -70,15 +70,27 @@ pub mod model;
 pub mod pipeline;
 pub mod plugin;
 pub mod settings;
-pub mod skybox;
 pub mod system_param;
+
+// TODO:
+// - move precompute behind feature flag
+// - improve sun disk quality (blur and/or bloom when environment light?)
+// - add environment light map support (postcompute), *probably* doesn't need seperate pass
+// - update examples
 
 pub mod prelude {
     //! `use bevy_atmosphere::prelude::*;` to import the most commonly used items.
     pub use crate::model::{AddAtmosphereModel, AtmosphereModel, Atmospheric};
-    pub use crate::plugin::{AtmosphereCamera, AtmospherePlugin};
+    pub use crate::pipeline::AtmosphereImage;
+    pub use crate::plugin::AtmospherePlugin;
     pub use crate::settings::AtmosphereSettings;
     pub use crate::system_param::{Atmosphere, AtmosphereMut};
+
+    #[cfg(any(doc, feature = "applesky"))]
+    pub use crate::collection::applesky::Applesky;
+
+    #[cfg(any(doc, feature = "precompute"))]
+    pub use crate::collection::nishita_precompute::NishitaPrecompute;
 
     #[cfg(any(doc, feature = "nishita"))]
     pub use crate::collection::nishita::Nishita;

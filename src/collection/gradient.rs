@@ -1,10 +1,13 @@
 use crate::model::Atmospheric;
-use bevy::{prelude::*, render::render_resource::ShaderType};
+use bevy::{
+    prelude::*,
+    render::render_resource::{AsBindGroup, ShaderType},
+};
 
 /// The Gradient sky model.
 ///
 /// A simple gradient for creating a stylized environment.
-#[derive(Atmospheric, ShaderType, Reflect, Debug, Clone)]
+#[derive(AsBindGroup, Atmospheric, ShaderType, Reflect, Debug, Clone)]
 #[uniform(0, Gradient)]
 #[internal("shaders/gradient.wgsl")]
 pub struct Gradient {

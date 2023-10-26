@@ -1,3 +1,5 @@
+// #import bevy_atmosphere::utils // for wgsl-analyzer
+#import bevy_atmosphere::utils PI,M_PI_2F,D_PI_2F,D_2_PI,D_1_PI,D_1_6F,rsi
 
 struct Nishita {
     ray_origin: vec3<f32>,
@@ -12,28 +14,8 @@ struct Nishita {
     mie_direction: f32,
 }
 
-const PI: f32 = 3.141592653589793;
 const ISTEPS: u32 = 16u;
 const JSTEPS: u32 = 8u;
-
-fn rsi(rd: vec3<f32>, r0: vec3<f32>, sr: f32) -> vec2<f32> {
-    // ray-sphere intersection that assumes
-    // the sphere is centered at the origin.
-    // No intersection when result.x > result.y
-    let a = dot(rd, rd);
-    let b = 2.0 * dot(rd, r0);
-    let c = dot(r0, r0) - (sr * sr);
-    let d = (b * b) - (4.0 * a * c);
-
-    if d < 0.0 {
-        return vec2<f32>(1e5, -1e5);
-    } else {
-        return vec2<f32>(
-            (-b - sqrt(d)) / (2.0 * a),
-            (-b + sqrt(d)) / (2.0 * a)
-        );
-    }
-}
 
 fn render_nishita(r: vec3<f32>, r0: vec3<f32>, p_sun: vec3<f32>, i_sun: f32, r_planet: f32, r_atmos: f32, k_rlh: vec3<f32>, k_mie: f32, sh_rlh: f32, sh_mie: f32, g: f32) -> vec3<f32> {
     // Normalize the ray direction and sun position.

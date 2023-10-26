@@ -37,10 +37,7 @@ fn change_resolution(
         if let Some(mut settings) = settings {
             settings.dithering ^= true;
         } else {
-            commands.insert_resource(AtmosphereSettings {
-                dithering: false,
-                ..default()
-            });
+            commands.insert_resource(AtmosphereSettings { ..default() });
         }
         info!("Toggled dithering");
     } else if keys.just_pressed(KeyCode::Key1) {

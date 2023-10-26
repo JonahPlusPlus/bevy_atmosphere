@@ -36,7 +36,10 @@ use bevy::{
     render::{
         extract_resource::ExtractResource,
         render_asset::RenderAssets,
-        render_resource::{BindGroup, BindGroupLayout, CachedComputePipelineId},
+        render_resource::{
+            self, AsBindGroup, AsBindGroupError, BindGroup, BindGroupLayout,
+            CachedComputePipelineId, OwnedBindingResource,
+        },
         renderer::RenderDevice,
         texture::FallbackImage,
     },
@@ -57,13 +60,40 @@ pub trait Atmospheric: Send + Sync + Reflect + Any + 'static {
         render_device: &RenderDevice,
         images: &RenderAssets<Image>,
         fallback_image: &FallbackImage,
-    ) -> BindGroup;
+    ) -> Result<PreparedBindGroup, AsBindGroupError>;
+
+    fn update_precompute<'a>(
+        &'a self,
+        commands: &'a mut Commands,
+        precompute: Option<&'a mut ResMut<AtmosphereModelPrecompute>>,
+    ) {
+        if let Some(_) = precompute {
+            commands.remove_resource::<AtmosphereModelPrecompute>();
+        }
+    }
 
     fn clone_dynamic(&self) -> Box<dyn Atmospheric>;
 
     fn as_reflect(&self) -> &dyn Reflect;
 
     fn as_reflect_mut(&mut self) -> &mut dyn Reflect;
+}
+
+/// A prepared bind group returned as a result of [`Atmospheric::as_bind_group`].
+pub struct PreparedBindGroup {
+    pub bindings: Vec<OwnedBindingResource>,
+    pub bind_group: BindGroup,
+    pub data: Box<dyn Any>,
+}
+
+impl<T: Any> From<render_resource::PreparedBindGroup<T>> for PreparedBindGroup {
+    fn from(prepared: render_resource::PreparedBindGroup<T>) -> Self {
+        Self {
+            bindings: prepared.bindings,
+            bind_group: prepared.bind_group,
+            data: Box::new(prepared.data),
+        }
+    }
 }
 
 impl Clone for Box<dyn Atmospheric> {
@@ -84,10 +114,8 @@ pub struct AtmosphereModelMetadata {
 }
 
 /// A trait for registering [`AtmosphereModelMetadata`].
-pub trait RegisterAtmosphereModel: GetTypeRegistration {
+pub trait RegisterAtmosphereModel: GetTypeRegistration + AsBindGroup {
     fn register(app: &mut App);
-
-    fn bind_group_layout(render_device: &RenderDevice) -> BindGroupLayout;
 }
 
 /// A trait for using [`RegisterAtmosphereModel`] from `App`.
@@ -161,26 +189,21 @@ impl AtmosphereModel {
     }
 }
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "nishita")] {
-        impl Default for AtmosphereModel {
-            fn default() -> Self {
+impl Default for AtmosphereModel {
+    fn default() -> Self {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "nishita")] {
                 use crate::collection::nishita::Nishita;
                 Self::new(Nishita::default())
-            }
-        }
-    } else if #[cfg(feature = "gradient")] {
-        impl Default for AtmosphereModel {
-            fn default() -> Self {
+            } else if #[cfg(feature = "gradient")] {
                 use crate::collection::gradient::Gradient;
                 Self::new(Gradient::default())
-            }
-        }
-    } else {
-        impl Default for AtmosphereModel {
-            fn default() -> Self {
+            } else {
                 panic!("Enable at least one atmospheric model!");
             }
         }
     }
 }
+
+#[derive(Resource, ExtractResource, Clone)]
+pub struct AtmosphereModelPrecompute(pub AtmosphereModel);

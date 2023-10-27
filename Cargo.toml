@@ -28,10 +28,10 @@ default = ["basic", "all_models"]
 basic = ["procedural"]            # enables basic features
 # enables the automatic addition of `AtmospherePipelinePlugin` from `AtmospherePlugin` (disable to edit the sky texture manually)
 procedural = []
+utils = []      # enables the nishita utils
 # models
 all_models = ["gradient", "nishita", "applesky"] # enables all models
 gradient = []                                    # enables the gradient model
-utils = []                                       # enables the nishita utils
 precompute = ["utils"]                           # enables the nishita precompute model
 nishita = ["utils"]                              # enables the nishita model
 applesky = ["utils", "precompute"]               # enables the applesky model

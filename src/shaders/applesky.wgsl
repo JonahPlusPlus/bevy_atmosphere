@@ -146,15 +146,11 @@ fn render_applesky(ray_dir: vec3<f32>, ray_origin: vec3<f32>, sun_dir: vec3<f32>
     // Calculate and return the final color.
     let atmos = i_step_size * ((rayleigh_phase * rayleigh_coefficients * total_rayleigh) + (mie_phase * mie_coefficient * total_mie));
 
-    // If we are outside the sun disk, or we intersect planet, we just return the atmosphere color
-    if ray_sun_theta > sun_angular_radius || p_planet.y > 0f {
-        return sun_intensity * atmos;
-    } else {
-        // Else we add transmittance to render a simple sun disk
-        let optical_depth = scale_density * ray_optical_depth(ray_origin, ray_dir, planet_radius, atmosphere_radius, rayleigh_scale_height, mie_scale_height);
-        let transmittance = exp(-((rayleigh_coefficients * optical_depth.x) + (1.11 * mie_coefficient * optical_depth.y))) / (M_PI_2F * (1f - cos(sun_angular_radius)));
-        return sun_intensity * (atmos + transmittance);
-    }
+    let optical_depth = scale_density * ray_optical_depth(ray_origin, ray_dir, planet_radius, atmosphere_radius, rayleigh_scale_height, mie_scale_height);
+    let transmittance = exp(-((rayleigh_coefficients * optical_depth.x) + (1.11 * mie_coefficient * optical_depth.y))) / (M_PI_2F * (1f - cos(sun_angular_radius)));
+    // simple linear smoothing
+    let transmittance_factor = max((sun_angular_radius - ray_sun_theta) / sun_angular_radius, 0f);
+    return sun_intensity * (atmos + (transmittance * transmittance_factor));
 }
 
 @compute @workgroup_size(8, 8, 1)

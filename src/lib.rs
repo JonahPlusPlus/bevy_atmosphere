@@ -74,7 +74,7 @@ pub mod system_param;
 
 // TODO:
 // - move precompute behind feature flag
-// - improve sun disk quality (blur and/or bloom when environment light?)
+// - improve sun disk quality (just slight blur for now) (probably needs sampling to billboard for best quality)
 // - add environment light map support (postcompute), *probably* doesn't need seperate pass
 // - update examples
 

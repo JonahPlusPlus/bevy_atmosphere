@@ -143,7 +143,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
         ShaderPathType::Internal(s) => quote! {
             {
                 use bevy::reflect::TypeUuid;
-                let handle = #asset_path::HandleUntyped::weak_from_u64(#render_path::render_resource::Shader::TYPE_UUID, #id);
+                let handle: #asset_path::Handle<Shader> = #asset_path::Handle::weak_from_u128(#id as u128);
 
                 let internal_handle = handle.clone();
                 #asset_path::load_internal_asset!(
@@ -153,7 +153,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     Shader::from_wgsl
                 );
 
-                handle.typed()
+                handle
             }
         },
     };
@@ -423,14 +423,9 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
             ) -> #render_path::render_resource::BindGroup {
                 let bindings = vec![#(#binding_impls,)*];
 
-                let bind_group = {
-                    let descriptor = #render_path::render_resource::BindGroupDescriptor {
-                        entries: &[#(#bind_group_entries,)*],
-                        label: None,
-                        layout: &layout,
-                    };
-                    render_device.create_bind_group(&descriptor)
-                };
+                let bind_group =
+                    render_device.create_bind_group(
+                        None, &layout, &[#(#bind_group_entries,)*]);
                 bind_group
             }
 

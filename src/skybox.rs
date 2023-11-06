@@ -15,11 +15,11 @@ use bevy::{
 pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
 /// The `Handle` for the shader for the [`SkyBoxMaterial`].
-pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 4511926918914205353);
+pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: Handle<Shader> =
+    Handle::weak_from_u128(4511926918914205353);
 
 /// The `Material` that renders skyboxes.
-#[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone)]
+#[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone, Asset)]
 #[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]
 #[bind_group_data(SkyBoxMaterialKey)]
 pub struct SkyBoxMaterial {
@@ -40,7 +40,7 @@ pub struct SkyBoxMaterialKey {
 
 impl Material for SkyBoxMaterial {
     fn fragment_shader() -> ShaderRef {
-        ATMOSPHERE_SKYBOX_SHADER_HANDLE.typed().into()
+        ATMOSPHERE_SKYBOX_SHADER_HANDLE.into()
     }
 
     fn specialize(

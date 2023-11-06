@@ -8,14 +8,14 @@ use bevy::{
     prelude::*,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
-        render_asset::{PrepareAssetSet, RenderAssets},
+        render_asset::RenderAssets,
         render_graph::{self, RenderGraph},
         render_resource::{
-            BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
-            BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
-            CachedPipelineState, ComputePassDescriptor, Extent3d, PipelineCache, ShaderStages,
-            StorageTextureAccess, TextureAspect, TextureDescriptor, TextureDimension,
-            TextureFormat, TextureUsages, TextureView, TextureViewDescriptor, TextureViewDimension,
+            BindGroup, BindGroupEntries, BindGroupLayout, BindGroupLayoutDescriptor,
+            BindGroupLayoutEntry, BindingResource, BindingType, CachedPipelineState,
+            ComputePassDescriptor, Extent3d, PipelineCache, ShaderStages, StorageTextureAccess,
+            TextureAspect, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+            TextureView, TextureViewDescriptor, TextureViewDimension,
         },
         renderer::RenderDevice,
         texture::FallbackImage,
@@ -142,8 +142,8 @@ impl Plugin for AtmospherePipelinePlugin {
             .add_systems(
                 Render,
                 (
-                    Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
-                    prepare_atmosphere_assets.in_set(PrepareAssetSet::PostAssetPrepare),
+                    //Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
+                    prepare_atmosphere_assets.in_set(RenderSet::PrepareAssets),
                     queue_atmosphere_bind_group.in_set(RenderSet::Queue),
                 ),
             );
@@ -336,7 +336,7 @@ fn prepare_atmosphere_assets(
             name = "bevy_atmosphere::pipeline::prepare_atmosphere_assets"
         )
         .entered();
-        let texture = &gpu_images[&atmosphere_image.handle].texture;
+        let texture = &gpu_images.get(&atmosphere_image.handle).unwrap().texture;
         let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
         atmosphere_image.array_view = Some(view);
         update();
@@ -394,14 +394,11 @@ fn queue_atmosphere_bind_group(
         &fallback_image,
     );
 
-    let image_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
-        label: Some("bevy_atmosphere_image_bind_group"),
-        layout: &image_bind_group_layout.0,
-        entries: &[BindGroupEntry {
-            binding: 0,
-            resource: BindingResource::TextureView(view),
-        }],
-    });
+    let image_bind_group = render_device.create_bind_group(
+        "bevy_atmosphere_image_bind_group",
+        &image_bind_group_layout.0,
+        &BindGroupEntries::sequential((BindingResource::TextureView(view),)),
+    );
 
     commands.insert_resource(AtmosphereBindGroups(
         atmosphere_bind_group,

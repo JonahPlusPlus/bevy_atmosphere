@@ -1,7 +1,7 @@
 //! Provides a `Plugin` for making skyboxes with procedural sky textures.
 
 use bevy::{
-    asset::load_internal_asset,
+    asset::embedded_asset,
     pbr::{NotShadowCaster, NotShadowReceiver},
     prelude::*,
     render::{
@@ -14,7 +14,7 @@ use bevy::{
 use crate::{
     model::AddAtmosphereModel,
     pipeline::*,
-    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
+    skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial},
 };
 
 /// A `Plugin` that adds the prerequisites for a procedural sky.
@@ -23,12 +23,7 @@ pub struct AtmospherePlugin;
 
 impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {
-        load_internal_asset!(
-            app,
-            ATMOSPHERE_SKYBOX_SHADER_HANDLE,
-            "shaders/skybox.wgsl",
-            Shader::from_wgsl
-        );
+        embedded_asset!(app, "src/", "shaders/skybox.wgsl");
 
         app.add_plugins(MaterialPlugin::<SkyBoxMaterial>::default());
 

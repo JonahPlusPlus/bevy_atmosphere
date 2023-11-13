@@ -49,14 +49,6 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
     let asset_path = manifest.get_path("bevy_asset");
     let ecs_path = manifest.get_path("bevy_ecs");
 
-    let id = {
-        use std::collections::hash_map::DefaultHasher;
-        use std::hash::{Hash, Hasher};
-        let mut hasher = DefaultHasher::new();
-        ast.ident.hash(&mut hasher);
-        hasher.finish()
-    };
-
     let mut shader_path = ShaderPathType::None;
     let mut binding_states: Vec<BindingState> = Vec::new();
     let mut binding_impls = Vec::new();
@@ -140,22 +132,16 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                 asset_server.load(#s)
             }
         },
-        ShaderPathType::Internal(s) => quote! {
+        ShaderPathType::Internal(s) => {
+            quote! {
             {
-                use bevy::reflect::TypeUuid;
-                let handle: #asset_path::Handle<Shader> = #asset_path::Handle::weak_from_u128(#id as u128);
 
-                let internal_handle = handle.clone();
-                #asset_path::load_internal_asset!(
-                    app,
-                    internal_handle,
-                    concat!(env!("CARGO_MANIFEST_DIR"), "/src/", #s),
-                    Shader::from_wgsl
-                );
-
-                handle
+                #asset_path::embedded_asset!(app, "src/", #s);
+                let asset_server = app.world.resource::<AssetServer>();
+                asset_server.load(format!("embedded://{}", #asset_path::embedded_path!("src/", #s).display()))
             }
-        },
+            }
+        }
     };
 
     let fields = match &ast.data {

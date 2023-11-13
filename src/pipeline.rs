@@ -5,6 +5,7 @@
 use std::ops::Deref;
 
 use bevy::{
+    ecs::event::event_update_system,
     prelude::*,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
@@ -142,7 +143,7 @@ impl Plugin for AtmospherePipelinePlugin {
             .add_systems(
                 Render,
                 (
-                    //Events::<AtmosphereUpdateEvent>::update_system.in_set(RenderSet::Prepare),
+                    event_update_system::<AtmosphereUpdateEvent>.in_set(RenderSet::Prepare),
                     prepare_atmosphere_assets.in_set(RenderSet::PrepareAssets),
                     queue_atmosphere_bind_group.in_set(RenderSet::Queue),
                 ),
@@ -397,7 +398,7 @@ fn queue_atmosphere_bind_group(
     let image_bind_group = render_device.create_bind_group(
         "bevy_atmosphere_image_bind_group",
         &image_bind_group_layout.0,
-        &BindGroupEntries::sequential((BindingResource::TextureView(view),)),
+        &BindGroupEntries::single(BindingResource::TextureView(view)),
     );
 
     commands.insert_resource(AtmosphereBindGroups(

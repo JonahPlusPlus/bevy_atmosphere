@@ -1,7 +1,7 @@
 [package]
 name = "bevy_atmosphere_macros"
 description = "Proc macros for bevy_atmosphere"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 authors = ["JonahPlusPlus <33059163+JonahPlusPlus@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
@@ -14,8 +14,8 @@ exclude = ["/assets/", "/examples/", "/.github/"]
 proc-macro = true
 
 [dependencies]
-proc-macro-crate = "1.3"
-bevy_macro_utils = "0.11"
+proc-macro-crate = "2.0"
+bevy_macro_utils = "0.12"
 
 syn = "2.0"
 proc-macro2 = "1.0"

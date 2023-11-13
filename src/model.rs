@@ -116,9 +116,9 @@ impl AddAtmosphereModel for App {
     }
 }
 
-/// A `Resource` that stores an [`Atmospheric`](crate::model::Atmospheric) model.
+/// A `Resource` that stores an [`Atmospheric`] model.
 ///
-/// Acts as a wrapper for accessing an [`Atmospheric`](crate::model::Atmospheric) model as a resource.
+/// Acts as a wrapper for accessing an [`Atmospheric`] model as a resource.
 #[derive(Resource, ExtractResource, Clone)]
 pub struct AtmosphereModel {
     model: Box<dyn Atmospheric>,
@@ -131,31 +131,31 @@ impl From<&AtmosphereModel> for AtmosphereModel {
 }
 
 impl AtmosphereModel {
-    /// Creates a new `AtmosphereModel` from a [`Atmospheric`](crate::model::Atmospheric) model.
+    /// Creates a new `AtmosphereModel` from a [`Atmospheric`] model.
     pub fn new(model: impl Atmospheric + 'static) -> Self {
         Self {
             model: Box::new(model),
         }
     }
 
-    /// Get a reference of the underlying [`Atmospheric`](crate::model::Atmospheric) trait object.
+    /// Get a reference of the underlying [`Atmospheric`] trait object.
     #[inline]
     pub fn model(&self) -> &dyn Atmospheric {
         &*self.model
     }
 
-    /// Get a mutable reference of the underlying [`Atmospheric`](crate::model::Atmospheric) trait object.
+    /// Get a mutable reference of the underlying [`Atmospheric`] trait object.
     #[inline]
     pub fn model_mut(&mut self) -> &mut dyn Atmospheric {
         &mut *self.model
     }
 
-    /// Convert the underlying model to a reference of the specified [`Atmospheric`](crate::model::Atmospheric) model.
+    /// Convert the underlying model to a reference of the specified [`Atmospheric`] model.
     pub fn to_ref<T: Atmospheric>(&self) -> Option<&T> {
         Atmospheric::as_reflect(&*self.model).downcast_ref()
     }
 
-    /// Convert the underlying model to a mutable reference of the specified [`Atmospheric`](crate::model::Atmospheric) model.
+    /// Convert the underlying model to a mutable reference of the specified [`Atmospheric`] model.
     pub fn to_mut<T: Atmospheric>(&mut self) -> Option<&mut T> {
         Atmospheric::as_reflect_mut(&mut *self.model).downcast_mut()
     }

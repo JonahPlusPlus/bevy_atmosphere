@@ -6,8 +6,8 @@ struct Gradient {
 }
 
 fn render_gradient(r: vec3<f32>, g: Gradient) -> vec3<f32> {
-    let r = normalize(r);
-    let y = r.y;
+    let r_norm = normalize(r);
+    let y = r_norm.y;
 
     let p_sky = max(y, 0f);
     let p_horizon = 1f-abs(y);

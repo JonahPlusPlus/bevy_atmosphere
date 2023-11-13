@@ -10,7 +10,7 @@ fn dither(frag_coord: vec2<f32>) -> vec3<f32> {
 }
 #endif
 
-#import bevy_pbr::mesh_vertex_output MeshVertexOutput
+#import bevy_pbr::forward_io::VertexOutput
 
 @group(1) @binding(0)
 var sky_texture: texture_cube<f32>;
@@ -19,7 +19,7 @@ var sky_sampler: sampler;
 
 @fragment
 fn fragment(
-    in: MeshVertexOutput
+    in: VertexOutput
 ) -> @location(0) vec4<f32> {
     let color = textureSample(sky_texture, sky_sampler, in.world_normal).xyz;
 #ifdef DITHER

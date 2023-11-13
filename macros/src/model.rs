@@ -49,14 +49,6 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
     let asset_path = manifest.get_path("bevy_asset");
     let ecs_path = manifest.get_path("bevy_ecs");
 
-    let id = {
-        use std::collections::hash_map::DefaultHasher;
-        use std::hash::{Hash, Hasher};
-        let mut hasher = DefaultHasher::new();
-        ast.ident.hash(&mut hasher);
-        hasher.finish()
-    };
-
     let mut shader_path = ShaderPathType::None;
     let mut binding_states: Vec<BindingState> = Vec::new();
     let mut binding_impls = Vec::new();
@@ -140,22 +132,16 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                 asset_server.load(#s)
             }
         },
-        ShaderPathType::Internal(s) => quote! {
+        ShaderPathType::Internal(s) => {
+            quote! {
             {
-                use bevy::reflect::TypeUuid;
-                let handle = #asset_path::HandleUntyped::weak_from_u64(#render_path::render_resource::Shader::TYPE_UUID, #id);
 
-                let internal_handle = handle.clone();
-                #asset_path::load_internal_asset!(
-                    app,
-                    internal_handle,
-                    concat!(env!("CARGO_MANIFEST_DIR"), "/src/", #s),
-                    Shader::from_wgsl
-                );
-
-                handle.typed()
+                #asset_path::embedded_asset!(app, "src/", #s);
+                let asset_server = app.world.resource::<AssetServer>();
+                asset_server.load(format!("embedded://{}", #asset_path::embedded_path!("src/", #s).display()))
             }
-        },
+            }
+        }
     };
 
     let fields = match &ast.data {
@@ -423,14 +409,9 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
             ) -> #render_path::render_resource::BindGroup {
                 let bindings = vec![#(#binding_impls,)*];
 
-                let bind_group = {
-                    let descriptor = #render_path::render_resource::BindGroupDescriptor {
-                        entries: &[#(#bind_group_entries,)*],
-                        label: None,
-                        layout: &layout,
-                    };
-                    render_device.create_bind_group(&descriptor)
-                };
+                let bind_group =
+                    render_device.create_bind_group(
+                        None, &layout, &[#(#bind_group_entries,)*]);
                 bind_group
             }
 

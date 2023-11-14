@@ -1,7 +1,6 @@
 //! Provides types and data needed for rendering a skybox.
 
 use bevy::{
-    asset::AssetPath,
     pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
     reflect::{TypePath, TypeUuid},
@@ -14,6 +13,10 @@ use bevy::{
 /// The `Handle` for the created [`SkyBoxMaterial`].
 #[derive(Resource)]
 pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
+
+/// The `Handle` for the shader for the [`SkyBoxMaterial`].
+pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: Handle<Shader> =
+    Handle::weak_from_u128(4511926918914205353);
 
 /// The `Material` that renders skyboxes.
 #[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone, Asset)]
@@ -37,7 +40,7 @@ pub struct SkyBoxMaterialKey {
 
 impl Material for SkyBoxMaterial {
     fn fragment_shader() -> ShaderRef {
-        AssetPath::parse("embedded://bevy_atmosphere/shaders/skybox.wgsl").into()
+        ATMOSPHERE_SKYBOX_SHADER_HANDLE.into()
     }
 
     fn specialize(

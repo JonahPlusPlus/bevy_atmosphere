@@ -6,7 +6,7 @@ use bevy::{prelude::*, render::render_resource::ShaderType};
 /// A simple gradient for creating a stylized environment.
 #[derive(Atmospheric, ShaderType, Reflect, Debug, Clone)]
 #[uniform(0, Gradient)]
-#[internal("../shaders/gradient.wgsl")]
+#[internal("shaders/gradient.wgsl")]
 pub struct Gradient {
     /// Sky Color (Default: `Color::rgb(0.29, 0.41, 0.50)`).
     /// <div style="background-color:rgb(29%, 41%, 50%); width: 10px; padding: 10px; border: 1px solid;"></div>

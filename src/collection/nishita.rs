@@ -6,7 +6,7 @@ use bevy::{prelude::*, render::render_resource::ShaderType};
 /// An atmospheric model that uses Rayleigh and Mie scattering to simulate a realistic sky.
 #[derive(Atmospheric, ShaderType, Reflect, Debug, Clone)]
 #[uniform(0, Nishita)]
-#[internal("../shaders/nishita.wgsl")]
+#[internal("shaders/nishita.wgsl")]
 pub struct Nishita {
     /// Ray Origin (Default: `(0.0, 6372e3, 0.0)`).
     ///

@@ -9,8 +9,9 @@ use bevy::{
     prelude::*,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
-        render_asset::RenderAssets,
-        render_graph::{self, RenderGraph},
+        graph::CameraDriverLabel,
+        render_asset::{RenderAssetUsages, RenderAssets},
+        render_graph::{self, RenderGraph, RenderLabel},
         render_resource::{
             BindGroup, BindGroupEntries, BindGroupLayout, BindGroupLayoutDescriptor,
             BindGroupLayoutEntry, BindingResource, BindingType, CachedPipelineState,
@@ -31,7 +32,8 @@ use crate::{
 };
 
 /// Name of the compute pipeline `render_graph::Node`.
-pub const NAME: &str = "bevy_atmosphere";
+#[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
+pub struct BevyAtmosphereLabel;
 /// Size of the compute workgroups in the x and y axis.
 ///
 /// Complete workgroup size is (8, 8, 6);
@@ -58,22 +60,20 @@ impl FromWorld for AtmosphereImageBindGroupLayout {
     fn from_world(world: &mut World) -> Self {
         let render_device = world.resource::<RenderDevice>();
 
-        Self(
-            render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-                label: Some("bevy_atmosphere_image_bind_group_layout"),
-                entries: &[BindGroupLayoutEntry {
-                    // AtmosphereImage
-                    binding: 0,
-                    visibility: ShaderStages::COMPUTE,
-                    ty: BindingType::StorageTexture {
-                        access: StorageTextureAccess::WriteOnly,
-                        format: TextureFormat::Rgba16Float,
-                        view_dimension: TextureViewDimension::D2Array,
-                    },
-                    count: None,
-                }],
-            }),
-        )
+        Self(render_device.create_bind_group_layout(
+            "bevy_atmosphere_image_bind_group_layout",
+            &[BindGroupLayoutEntry {
+                // AtmosphereImage
+                binding: 0,
+                visibility: ShaderStages::COMPUTE,
+                ty: BindingType::StorageTexture {
+                    access: StorageTextureAccess::WriteOnly,
+                    format: TextureFormat::Rgba16Float,
+                    view_dimension: TextureViewDimension::D2Array,
+                },
+                count: None,
+            }],
+        ))
     }
 }
 
@@ -112,6 +112,7 @@ impl Plugin for AtmospherePipelinePlugin {
             TextureDimension::D2,
             &[0; 4 * 4],
             TextureFormat::Rgba16Float,
+            RenderAssetUsages::default(),
         );
 
         image.texture_view_descriptor = Some(ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR);
@@ -150,8 +151,8 @@ impl Plugin for AtmospherePipelinePlugin {
             );
 
         let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
-        render_graph.add_node(NAME, AtmosphereNode::default());
-        render_graph.add_node_edge(NAME, bevy::render::main_graph::node::CAMERA_DRIVER);
+        render_graph.add_node(BevyAtmosphereLabel, AtmosphereNode::default());
+        render_graph.add_node_edge(BevyAtmosphereLabel, CameraDriverLabel);
     }
 }
 
@@ -500,6 +501,7 @@ impl render_graph::Node for AtmosphereNode {
                     let mut pass = render_context.command_encoder().begin_compute_pass(
                         &ComputePassDescriptor {
                             label: Some("atmosphere_pass"),
+                            timestamp_writes: None,
                         },
                     );
 

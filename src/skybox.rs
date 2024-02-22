@@ -3,9 +3,10 @@
 use bevy::{
     pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
-    reflect::{TypePath, TypeUuid},
+    reflect::TypePath,
     render::{
         mesh::{Indices, Mesh, MeshVertexBufferLayout, PrimitiveTopology},
+        render_asset::RenderAssetUsages,
         render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderDefVal, ShaderRef},
     },
 };
@@ -19,8 +20,7 @@ pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: Handle<Shader> =
     Handle::weak_from_u128(4511926918914205353);
 
 /// The `Material` that renders skyboxes.
-#[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone, Asset)]
-#[uuid = "b460ff90-0ee4-42df-875f-0a62ecd1301c"]
+#[derive(AsBindGroup, TypePath, Debug, Clone, Asset)]
 #[bind_group_data(SkyBoxMaterialKey)]
 pub struct SkyBoxMaterial {
     /// [Handle] to the [AtmosphereImage](crate::pipeline::AtmosphereImage)
@@ -102,9 +102,12 @@ pub fn mesh(far: f32) -> Mesh {
     let positions: Vec<_> = vertices.iter().map(|(p, _)| *p).collect();
     let normals: Vec<_> = vertices.iter().map(|(_, n)| *n).collect();
 
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+    let mut mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    );
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-    mesh.set_indices(Some(Indices::U16(indices.to_vec())));
+    mesh.insert_indices(Indices::U16(indices.to_vec()));
     mesh
 }

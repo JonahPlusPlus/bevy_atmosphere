@@ -30,7 +30,7 @@ enum BindingState<'a> {
         ident: &'a Ident,
     },
     OccupiedConvertedUniform,
-    OccupiedMergableUniform {
+    OccupiedMergeableUniform {
         uniform_fields: Vec<&'a syn::Field>,
     },
 }
@@ -142,7 +142,6 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
         },
         ShaderPathType::Internal(s) => quote! {
             {
-                use bevy::reflect::TypeUuid;
                 let handle: #asset_path::Handle<Shader> = #asset_path::Handle::weak_from_u128(#id as u128);
 
                 let internal_handle = handle.clone();
@@ -199,7 +198,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
             match &mut binding_states[binding_index as usize] {
                 value @ BindingState::Free => {
                     *value = match binding_type {
-                        BindingType::Uniform => BindingState::OccupiedMergableUniform {
+                        BindingType::Uniform => BindingState::OccupiedMergeableUniform {
                             uniform_fields: vec![field],
                         },
                         _ => {
@@ -234,7 +233,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                         format!("The '{field_name}' field cannot be assigned to binding {binding_index} because it is already occupied by a struct-level uniform binding at the same index.")
                     ));
                 }
-                BindingState::OccupiedMergableUniform { uniform_fields } => match binding_type {
+                BindingState::OccupiedMergeableUniform { uniform_fields } => match binding_type {
                     BindingType::Uniform => {
                         uniform_fields.push(field);
                     }
@@ -259,7 +258,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     } = get_texture_attrs(nested_meta_items)?;
 
                     let visibility =
-                        visibility.hygenic_quote(&quote! { #render_path::render_resource });
+                        visibility.hygienic_quote(&quote! { #render_path::render_resource });
 
                     binding_impls.push(quote! {
                         #render_path::render_resource::OwnedBindingResource::TextureView({
@@ -292,7 +291,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     } = get_sampler_attrs(nested_meta_items)?;
 
                     let visibility =
-                        visibility.hygenic_quote(&quote! { #render_path::render_resource });
+                        visibility.hygienic_quote(&quote! { #render_path::render_resource });
 
                     binding_impls.push(quote! {
                         #render_path::render_resource::OwnedBindingResource::Sampler({
@@ -323,7 +322,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
     let mut field_struct_impls = Vec::new();
     for (binding_index, binding_state) in binding_states.iter().enumerate() {
         let binding_index = binding_index as u32;
-        if let BindingState::OccupiedMergableUniform { uniform_fields } = binding_state {
+        if let BindingState::OccupiedMergeableUniform { uniform_fields } = binding_state {
             let binding_vec_index = bind_group_entries.len();
             bind_group_entries.push(quote! {
                 #render_path::render_resource::BindGroupEntry {
@@ -488,10 +487,10 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
             }
 
             fn bind_group_layout(render_device: &#render_path::renderer::RenderDevice) -> #render_path::render_resource::BindGroupLayout {
-                render_device.create_bind_group_layout(&#render_path::render_resource::BindGroupLayoutDescriptor {
-                    entries: &[#(#binding_layouts,)*],
-                    label: None,
-                })
+                render_device.create_bind_group_layout(
+                    "atmospheric_bind_group_layout",
+                    &[#(#binding_layouts,)*],
+                )
             }
         }
     }))
@@ -630,7 +629,7 @@ impl VisibilityFlags {
 }
 
 impl ShaderStageVisibility {
-    fn hygenic_quote(&self, path: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    fn hygienic_quote(&self, path: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         match self {
             ShaderStageVisibility::All => quote! { #path::ShaderStages::all() },
             ShaderStageVisibility::None => quote! { #path::ShaderStages::NONE },

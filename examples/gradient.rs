@@ -20,67 +20,67 @@ fn setup(mut commands: Commands) {
     ));
 }
 
-fn change_gradient(mut commands: Commands, keys: Res<Input<KeyCode>>) {
-    if keys.just_pressed(KeyCode::Key1) {
+fn change_gradient(mut commands: Commands, keys: Res<ButtonInput<KeyCode>>) {
+    if keys.just_pressed(KeyCode::Digit1) {
         info!("Changed to Atmosphere Preset 1 (Default Gradient)");
         commands.insert_resource(AtmosphereModel::new(Gradient::default()));
-    } else if keys.just_pressed(KeyCode::Key2) {
+    } else if keys.just_pressed(KeyCode::Digit2) {
         info!("Changed to Atmosphere Preset 2 (Cotton Candy)");
         commands.insert_resource(AtmosphereModel::new(Gradient {
             ground: Color::rgb(1.0, 0.5, 0.75),
             horizon: Color::WHITE,
             sky: Color::rgb(0.5, 0.75, 1.0),
         }));
-    } else if keys.just_pressed(KeyCode::Key3) {
+    } else if keys.just_pressed(KeyCode::Digit3) {
         info!("Changed to Atmosphere Preset 3 (80's Sunset)");
         commands.insert_resource(AtmosphereModel::new(Gradient {
             sky: Color::PURPLE,
             horizon: Color::PINK,
             ground: Color::ORANGE,
         }));
-    } else if keys.just_pressed(KeyCode::Key4) {
+    } else if keys.just_pressed(KeyCode::Digit4) {
         info!("Changed to Atmosphere Preset 4 (Winter)");
         commands.insert_resource(AtmosphereModel::new(Gradient {
             ground: Color::rgb(0.0, 0.1, 0.2),
             horizon: Color::rgb(0.3, 0.4, 0.5),
             sky: Color::rgb(0.7, 0.8, 0.9),
         }));
-    } else if keys.just_pressed(KeyCode::Key5) {
+    } else if keys.just_pressed(KeyCode::Digit5) {
         info!("Changed to Atmosphere Preset 5 (Nether)");
         commands.insert_resource(AtmosphereModel::new(Gradient {
             ground: Color::BLACK,
             horizon: Color::rgb(0.2, 0.0, 0.0),
             sky: Color::rgb(0.5, 0.1, 0.0),
         }));
-    } else if keys.just_pressed(KeyCode::Key6) {
+    } else if keys.just_pressed(KeyCode::Digit6) {
         info!("Changed to Atmosphere Preset 6 (Golden)");
         commands.insert_resource(AtmosphereModel::new(Gradient {
             ground: Color::ORANGE_RED,
             horizon: Color::ORANGE,
             sky: Color::GOLD,
         }));
-    } else if keys.just_pressed(KeyCode::Key7) {
+    } else if keys.just_pressed(KeyCode::Digit7) {
         info!("Changed to Atmosphere Preset 7 (Noir)");
         commands.insert_resource(AtmosphereModel::new(Gradient {
             ground: Color::BLACK,
             horizon: Color::BLACK,
             sky: Color::WHITE,
         }));
-    } else if keys.just_pressed(KeyCode::Key8) {
+    } else if keys.just_pressed(KeyCode::Digit8) {
         info!("Changed to Atmosphere Preset 8 (Midnight)");
         commands.insert_resource(AtmosphereModel::new(Gradient {
             ground: Color::BLACK,
             horizon: Color::BLACK,
             sky: Color::MIDNIGHT_BLUE,
         }));
-    } else if keys.just_pressed(KeyCode::Key9) {
+    } else if keys.just_pressed(KeyCode::Digit9) {
         info!("Changed to Atmosphere Preset 9 (Greenery)");
         commands.insert_resource(AtmosphereModel::new(Gradient {
             ground: Color::rgb(0.1, 0.2, 0.0),
             horizon: Color::rgb(0.3, 0.4, 0.1),
             sky: Color::rgb(0.6, 0.8, 0.2),
         }));
-    } else if keys.just_pressed(KeyCode::Key0) {
+    } else if keys.just_pressed(KeyCode::Digit0) {
         info!("Reset Atmosphere to Default");
         commands.remove_resource::<AtmosphereModel>();
     }

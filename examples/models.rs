@@ -20,14 +20,14 @@ fn setup(mut commands: Commands) {
     ));
 }
 
-fn change_model(mut commands: Commands, keys: Res<Input<KeyCode>>) {
-    if keys.just_pressed(KeyCode::G) {
+fn change_model(mut commands: Commands, keys: Res<ButtonInput<KeyCode>>) {
+    if keys.just_pressed(KeyCode::KeyG) {
         info!("Changed to Gradient atmosphere model");
         commands.insert_resource(AtmosphereModel::new(Gradient::default()));
-    } else if keys.just_pressed(KeyCode::N) {
+    } else if keys.just_pressed(KeyCode::KeyN) {
         info!("Changed to Nishita atmosphere model");
         commands.insert_resource(AtmosphereModel::new(Nishita::default()));
-    } else if keys.just_pressed(KeyCode::Key0) {
+    } else if keys.just_pressed(KeyCode::Digit0) {
         info!("Reset atmosphere model to default");
         commands.remove_resource::<AtmosphereModel>();
     }

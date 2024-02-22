@@ -19,7 +19,7 @@ fn setup(mut commands: Commands) {
 
 fn update(
     mut commands: Commands,
-    mouse: Res<Input<MouseButton>>,
+    mouse: Res<ButtonInput<MouseButton>>,
     primary_camera_query: Query<Entity, With<PrimaryCamera>>,
 ) {
     let Ok(primary_camera) = primary_camera_query.get_single() else {

@@ -27,7 +27,7 @@ fn setup(mut commands: Commands) {
 fn change_resolution(
     mut commands: Commands,
     settings: Option<ResMut<AtmosphereSettings>>,
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
 ) {
     if keys.just_pressed(KeyCode::Space) {
         #[cfg(feature = "bevy/trace")]
@@ -43,25 +43,25 @@ fn change_resolution(
             });
         }
         info!("Toggled dithering");
-    } else if keys.just_pressed(KeyCode::Key1) {
+    } else if keys.just_pressed(KeyCode::Digit1) {
         change(commands, settings, 8); // 8x8
-    } else if keys.just_pressed(KeyCode::Key2) {
+    } else if keys.just_pressed(KeyCode::Digit2) {
         change(commands, settings, 16); // 16x16
-    } else if keys.just_pressed(KeyCode::Key3) {
+    } else if keys.just_pressed(KeyCode::Digit3) {
         change(commands, settings, 32); // 32x32
-    } else if keys.just_pressed(KeyCode::Key4) {
+    } else if keys.just_pressed(KeyCode::Digit4) {
         change(commands, settings, 64); // 64x64
-    } else if keys.just_pressed(KeyCode::Key5) {
+    } else if keys.just_pressed(KeyCode::Digit5) {
         change(commands, settings, 128); // 128x128
-    } else if keys.just_pressed(KeyCode::Key6) {
+    } else if keys.just_pressed(KeyCode::Digit6) {
         change(commands, settings, 256); // 256x256
-    } else if keys.just_pressed(KeyCode::Key7) {
+    } else if keys.just_pressed(KeyCode::Digit7) {
         change(commands, settings, 512); // 512x512
-    } else if keys.just_pressed(KeyCode::Key8) {
+    } else if keys.just_pressed(KeyCode::Digit8) {
         change(commands, settings, 1024); // 1024x1024
-    } else if keys.just_pressed(KeyCode::Key9) {
+    } else if keys.just_pressed(KeyCode::Digit9) {
         change(commands, settings, 2048); // 2048x2048
-    } else if keys.just_pressed(KeyCode::Key0) {
+    } else if keys.just_pressed(KeyCode::Digit0) {
         commands.remove_resource::<AtmosphereSettings>(); // Removes settings, goes back to defaults
         info!("Removed AtmosphereSettings");
     }

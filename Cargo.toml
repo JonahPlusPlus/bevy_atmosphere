@@ -21,7 +21,7 @@ cfg-if = "1.0"
 
 [dev-dependencies]
 # point to latest version once this is merged
-bevy_spectator = { git = "https://github.com/VirxEC/bevy_spectator", branch = "bevy0.13" }
+bevy_spectator = "0.5"
 bevy = { version = "0.13", features = ["bevy_core_pipeline", "x11"] }
 
 [features]

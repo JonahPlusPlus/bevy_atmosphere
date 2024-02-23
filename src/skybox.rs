@@ -6,7 +6,6 @@ use bevy::{
     reflect::TypePath,
     render::{
         mesh::{Indices, Mesh, MeshVertexBufferLayout, PrimitiveTopology},
-        render_asset::RenderAssetUsages,
         render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderDefVal, ShaderRef},
     },
 };
@@ -102,12 +101,8 @@ pub fn mesh(far: f32) -> Mesh {
     let positions: Vec<_> = vertices.iter().map(|(p, _)| *p).collect();
     let normals: Vec<_> = vertices.iter().map(|(_, n)| *n).collect();
 
-    let mut mesh = Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    );
-    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-    mesh.insert_indices(Indices::U16(indices.to_vec()));
-    mesh
+    Mesh::new(PrimitiveTopology::TriangleList, Default::default())
+        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+        .with_inserted_indices(Indices::U16(indices.to_vec()))
 }

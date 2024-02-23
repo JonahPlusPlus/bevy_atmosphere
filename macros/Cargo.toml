@@ -15,7 +15,7 @@ proc-macro = true
 
 [dependencies]
 proc-macro-crate = "2.0"
-bevy_macro_utils = "0.12"
+bevy_macro_utils = "0.13"
 
 syn = "2.0"
 proc-macro2 = "1.0"

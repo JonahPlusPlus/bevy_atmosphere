@@ -30,9 +30,10 @@ use crate::{
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial},
 };
 
-/// Name of the compute pipeline `render_graph::Node`.
+/// Label of the compute pipeline `render_graph::Node`.
 #[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
 pub struct BevyAtmosphereLabel;
+
 /// Size of the compute workgroups in the x and y axis.
 ///
 /// Complete workgroup size is (8, 8, 6);

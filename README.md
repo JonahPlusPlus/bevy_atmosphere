@@ -40,6 +40,7 @@ For more information on the technicalities, you can check out the [technical doc
 
 | bevy | bevy_atmosphere |
 |------|-----------------|
+| 0.13 | 0.9             |
 | 0.12 | 0.8             |
 | 0.11 | 0.7             |
 | 0.10 | 0.6             |

@@ -2,7 +2,6 @@
 //! Used to demonstrate how multiple skyboxes could be made for a local multiplayer game
 
 use bevy::{
-    core_pipeline::clear_color::ClearColorConfig,
     prelude::*,
     render::{camera::Viewport, view::RenderLayers},
     window::WindowResized,
@@ -38,8 +37,8 @@ fn setup(
 ) {
     // Plane
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane::from_size(100.0))),
-        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        mesh: meshes.add(Plane3d::new(Vec3::Y).mesh().size(100.0, 100.0)),
+        material: materials.add(Color::rgb(0.3, 0.5, 0.3)),
         ..default()
     });
 
@@ -83,13 +82,11 @@ fn setup(
             camera: Camera {
                 // Renders the right camera after the left camera, which has a default priority of 0
                 order: 1,
-                ..default()
-            },
-            camera_3d: Camera3d {
                 // Don't clear on the second camera because the first camera already cleared the window
                 clear_color: ClearColorConfig::None,
                 ..default()
             },
+            camera_3d: Camera3d::default(),
             ..default()
         },
         RenderLayers::from_layers(&[0, 2]),
@@ -136,14 +133,14 @@ fn set_camera_viewports(
 
 fn switch_camera(
     mut settings: ResMut<SpectatorSettings>,
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     left_camera: Query<Entity, (With<LeftCamera>, Without<RightCamera>)>,
     right_camera: Query<Entity, With<RightCamera>>,
 ) {
     let left_camera = left_camera.single();
     let right_camera = right_camera.single();
 
-    if keys.just_pressed(KeyCode::E) {
+    if keys.just_pressed(KeyCode::KeyE) {
         if let Some(spectator) = settings.active_spectator {
             if spectator == left_camera {
                 settings.active_spectator = Some(right_camera);

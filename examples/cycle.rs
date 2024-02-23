@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{pbr::light_consts::lux::AMBIENT_DAYLIGHT, prelude::*};
 use bevy_atmosphere::prelude::*;
 use bevy_spectator::{Spectator, SpectatorPlugin};
 
@@ -43,7 +43,7 @@ fn daylight_cycle(
 
         if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
             light_trans.rotation = Quat::from_rotation_x(-t);
-            directional.illuminance = t.sin().max(0.0).powf(2.0) * 100000.0;
+            directional.illuminance = t.sin().max(0.0).powf(2.0) * AMBIENT_DAYLIGHT;
         }
     }
 }
@@ -64,14 +64,14 @@ fn setup_environment(
 
     // Simple transform shape just for reference
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        mesh: meshes.add(Cuboid::default()),
         material: materials.add(StandardMaterial::from(Color::rgb(0.8, 0.8, 0.8))),
         ..Default::default()
     });
 
     // X axis
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
+        mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
         material: materials.add(StandardMaterial::from(Color::rgb(0.8, 0.0, 0.0))),
         transform: Transform::from_xyz(1., 0., 0.),
         ..Default::default()
@@ -79,7 +79,7 @@ fn setup_environment(
 
     // Y axis
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
+        mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
         material: materials.add(StandardMaterial::from(Color::rgb(0.0, 0.8, 0.0))),
         transform: Transform::from_xyz(0., 1., 0.),
         ..Default::default()
@@ -87,7 +87,7 @@ fn setup_environment(
 
     // Z axis
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
+        mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
         material: materials.add(StandardMaterial::from(Color::rgb(0.0, 0.0, 0.8))),
         transform: Transform::from_xyz(0., 0., 1.),
         ..Default::default()

@@ -82,6 +82,8 @@ fn setup(
             camera: Camera {
                 // Renders the right camera after the left camera, which has a default priority of 0
                 order: 1,
+                // Don't clear on the second camera because the first camera already cleared the window
+                clear_color: ClearColorConfig::None,
                 ..default()
             },
             camera_3d: Camera3d::default(),

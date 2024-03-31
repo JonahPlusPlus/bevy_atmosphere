@@ -145,8 +145,8 @@ impl Plugin for AtmospherePipelinePlugin {
                 Render,
                 (
                     event_update_system::<AtmosphereUpdateEvent>.in_set(RenderSet::Prepare),
-                    prepare_atmosphere_assets.in_set(RenderSet::PrepareAssets),
-                    queue_atmosphere_bind_group.in_set(RenderSet::Queue),
+                    prepare_atmosphere_resources.in_set(RenderSet::PrepareResources),
+                    prepare_atmosphere_bind_group.in_set(RenderSet::PrepareBindGroups),
                 ),
             );
 
@@ -323,7 +323,7 @@ pub const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'sta
     };
 
 /// Whenever settings changed, the texture view needs to be updated to use the new texture.
-fn prepare_atmosphere_assets(
+fn prepare_atmosphere_resources(
     mut update_events: ResMut<Events<AtmosphereUpdateEvent>>,
     mut atmosphere_image: ResMut<AtmosphereImage>,
     gpu_images: Res<RenderAssets<Image>>,
@@ -356,7 +356,7 @@ fn prepare_atmosphere_assets(
 
 /// Queue the generated bind groups for the compute pipeline.
 #[allow(clippy::too_many_arguments)]
-fn queue_atmosphere_bind_group(
+fn prepare_atmosphere_bind_group(
     mut commands: Commands,
     mut cached_metadata: ResMut<CachedAtmosphereModelMetadata>,
     gpu_images: Res<RenderAssets<Image>>,

@@ -135,7 +135,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
         ShaderPathType::None => panic!("Expected `external` or `internal` attribute"),
         ShaderPathType::External(s) => quote! {
             {
-                let asset_server = app.world.resource::<AssetServer>();
+                let asset_server = app.world().resource::<AssetServer>();
 
                 asset_server.load(#s)
             }
@@ -262,7 +262,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
 
                     binding_impls.push(quote! {
                         #render_path::render_resource::OwnedBindingResource::TextureView({
-                            let handle: Option<&#asset_path::Handle<#render_path::texture::Image>> = (&self.#field_name).into();
+                            let handle: Option<&#asset_path::Handle<#render_path::texture::GpuImage>> = (&self.#field_name).into();
                             if let Some(handle) = handle {
                                 images.get(handle).ok_or_else(|| #render_path::render_resource::AsBindGroupError::RetryNextUpdate)?.texture_view.clone()
                             } else {
@@ -295,7 +295,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
 
                     binding_impls.push(quote! {
                         #render_path::render_resource::OwnedBindingResource::Sampler({
-                            let handle: Option<&#asset_path::Handle<#render_path::texture::Image>> = (&self.#field_name).into();
+                            let handle: Option<&#asset_path::Handle<#render_path::texture::GpuImage>> = (&self.#field_name).into();
                             if let Some(handle) = handle {
                                 images.get(handle).ok_or_else(|| #render_path::render_resource::AsBindGroupError::RetryNextUpdate)?.sampler.clone()
                             } else {
@@ -417,7 +417,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                 &self,
                 layout: &#render_path::render_resource::BindGroupLayout,
                 render_device: &#render_path::renderer::RenderDevice,
-                images: &#render_path::render_asset::RenderAssets<#render_path::texture::Image>,
+                images: &#render_path::render_asset::RenderAssets<#render_path::texture::GpuImage>,
                 fallback_image: &#render_path::texture::FallbackImage,
             ) -> #render_path::render_resource::BindGroup {
                 let bindings = vec![#(#binding_impls,)*];
@@ -450,12 +450,12 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                 let handle = #shader_path_impl;
 
                 let render_app = app.sub_app_mut(#render_path::RenderApp);
-                let render_device = render_app.world.resource::<#render_path::renderer::RenderDevice>();
-                let #atmosphere_path::pipeline::AtmosphereImageBindGroupLayout(image_bind_group_layout) = render_app.world.resource::<#atmosphere_path::pipeline::AtmosphereImageBindGroupLayout>().clone();
+                let render_device = render_app.world().resource::<#render_path::renderer::RenderDevice>();
+                let #atmosphere_path::pipeline::AtmosphereImageBindGroupLayout(image_bind_group_layout) = render_app.world().resource::<#atmosphere_path::pipeline::AtmosphereImageBindGroupLayout>().clone();
 
                 let bind_group_layout = Self::bind_group_layout(render_device);
 
-                let mut pipeline_cache = render_app.world.resource_mut::<#render_path::render_resource::PipelineCache>();
+                let mut pipeline_cache = render_app.world_mut().resource_mut::<#render_path::render_resource::PipelineCache>();
 
                 let pipeline = pipeline_cache.queue_compute_pipeline(#render_path::render_resource::ComputePipelineDescriptor {
                     label: Some(Cow::from("bevy_atmosphere_compute_pipeline")),
@@ -477,7 +477,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     pipeline,
                 };
 
-                let type_registry = app.world.resource_mut::<#ecs_path::reflect::AppTypeRegistry>();
+                let type_registry = app.world_mut().resource_mut::<#ecs_path::reflect::AppTypeRegistry>();
                 {
                     let mut type_registry = type_registry.write();
 

@@ -5,7 +5,6 @@
 use std::ops::Deref;
 
 use bevy::{
-    ecs::event::event_update_system,
     prelude::*,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
@@ -19,7 +18,7 @@ use bevy::{
             TextureFormat, TextureUsages, TextureView, TextureViewDescriptor, TextureViewDimension,
         },
         renderer::RenderDevice,
-        texture::FallbackImage,
+        texture::{FallbackImage, GpuImage},
         Extract, Render, RenderApp, RenderSet,
     },
 };
@@ -93,12 +92,12 @@ pub struct AtmospherePipelinePlugin;
 
 impl Plugin for AtmospherePipelinePlugin {
     fn build(&self, app: &mut App) {
-        let settings = match app.world.get_resource::<AtmosphereSettings>() {
+        let settings = match app.world().get_resource::<AtmosphereSettings>() {
             Some(s) => *s,
             None => default(),
         };
 
-        let atmosphere = match app.world.get_resource::<AtmosphereModel>() {
+        let atmosphere = match app.world().get_resource::<AtmosphereModel>() {
             Some(a) => a.clone(),
             None => default(),
         };
@@ -119,7 +118,7 @@ impl Plugin for AtmospherePipelinePlugin {
 
         image.texture_descriptor = ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR(settings.resolution);
 
-        let mut image_assets = app.world.resource_mut::<Assets<Image>>();
+        let mut image_assets = app.world_mut().resource_mut::<Assets<Image>>();
         let handle = image_assets.add(image);
 
         app.insert_resource(AtmosphereImage {
@@ -131,7 +130,7 @@ impl Plugin for AtmospherePipelinePlugin {
 
         app.add_systems(Update, atmosphere_settings_changed);
 
-        let type_registry = app.world.resource::<AppTypeRegistry>().clone();
+        let type_registry = app.world().resource::<AppTypeRegistry>().clone();
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app
@@ -139,18 +138,17 @@ impl Plugin for AtmospherePipelinePlugin {
             .insert_resource(settings)
             .insert_resource(AtmosphereTypeRegistry(type_registry))
             .init_resource::<CachedAtmosphereModelMetadata>()
-            .init_resource::<Events<AtmosphereUpdateEvent>>()
+            .add_event::<AtmosphereUpdateEvent>()
             .add_systems(ExtractSchedule, extract_atmosphere_resources)
             .add_systems(
                 Render,
                 (
-                    event_update_system::<AtmosphereUpdateEvent>.in_set(RenderSet::Prepare),
                     prepare_atmosphere_resources.in_set(RenderSet::PrepareResources),
                     prepare_atmosphere_bind_group.in_set(RenderSet::PrepareBindGroups),
                 ),
             );
 
-        let mut render_graph = render_app.world.resource_mut::<RenderGraph>();
+        let mut render_graph = render_app.world_mut().resource_mut::<RenderGraph>();
         render_graph.add_node(BevyAtmosphereLabel, AtmosphereNode::default());
         render_graph.add_node_edge(BevyAtmosphereLabel, CameraDriverLabel);
     }
@@ -326,7 +324,7 @@ pub const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'sta
 fn prepare_atmosphere_resources(
     mut update_events: ResMut<Events<AtmosphereUpdateEvent>>,
     mut atmosphere_image: ResMut<AtmosphereImage>,
-    gpu_images: Res<RenderAssets<Image>>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
     atmosphere: Res<AtmosphereModel>,
 ) {
     let mut update = || update_events.send(AtmosphereUpdateEvent);
@@ -359,7 +357,7 @@ fn prepare_atmosphere_resources(
 fn prepare_atmosphere_bind_group(
     mut commands: Commands,
     mut cached_metadata: ResMut<CachedAtmosphereModelMetadata>,
-    gpu_images: Res<RenderAssets<Image>>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
     atmosphere_image: Res<AtmosphereImage>,
     render_device: Res<RenderDevice>,
     fallback_image: Res<FallbackImage>,

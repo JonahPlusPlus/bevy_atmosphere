@@ -38,7 +38,7 @@ use bevy::{
         render_asset::RenderAssets,
         render_resource::{BindGroup, BindGroupLayout, CachedComputePipelineId},
         renderer::RenderDevice,
-        texture::FallbackImage,
+        texture::{FallbackImage, GpuImage},
     },
 };
 
@@ -55,7 +55,7 @@ pub trait Atmospheric: Send + Sync + Reflect + Any + 'static {
         &self,
         layout: &BindGroupLayout,
         render_device: &RenderDevice,
-        images: &RenderAssets<Image>,
+        images: &RenderAssets<GpuImage>,
         fallback_image: &FallbackImage,
     ) -> BindGroup;
 

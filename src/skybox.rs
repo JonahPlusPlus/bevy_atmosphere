@@ -5,7 +5,7 @@ use bevy::{
     prelude::*,
     reflect::TypePath,
     render::{
-        mesh::{Indices, Mesh, MeshVertexBufferLayout, PrimitiveTopology},
+        mesh::{Indices, Mesh, MeshVertexBufferLayoutRef, PrimitiveTopology},
         render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderDefVal, ShaderRef},
     },
 };
@@ -45,7 +45,7 @@ impl Material for SkyBoxMaterial {
     fn specialize(
         _pipeline: &MaterialPipeline<Self>,
         descriptor: &mut RenderPipelineDescriptor,
-        _layout: &MeshVertexBufferLayout,
+        _layout: &MeshVertexBufferLayoutRef,
         key: MaterialPipelineKey<Self>,
     ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
         #[cfg(feature = "dithering")]

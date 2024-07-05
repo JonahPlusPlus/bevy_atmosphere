@@ -37,18 +37,18 @@ impl Plugin for AtmospherePlugin {
 
         {
             let image_handle = {
-                let image = app.world.get_resource::<AtmosphereImage>().expect("`AtmosphereImage` missing! If the `procedural` feature is disabled, add the resource before `AtmospherePlugin`");
+                let image = app.world().get_resource::<AtmosphereImage>().expect("`AtmosphereImage` missing! If the `procedural` feature is disabled, add the resource before `AtmospherePlugin`");
                 image.handle.clone()
             };
 
             let settings = {
                 let settings = app
-                    .world
+                    .world()
                     .get_resource::<crate::settings::AtmosphereSettings>();
                 settings.copied().unwrap_or_default()
             };
 
-            let mut material_assets = app.world.resource_mut::<Assets<SkyBoxMaterial>>();
+            let mut material_assets = app.world_mut().resource_mut::<Assets<SkyBoxMaterial>>();
             let material = material_assets.add(SkyBoxMaterial {
                 sky_texture: image_handle,
                 #[cfg(feature = "dithering")]
@@ -84,7 +84,7 @@ impl Plugin for AtmospherePlugin {
 /// When added, a skybox will be created as a child.
 /// When removed, that skybox will also be removed.
 /// This behaviour can be disabled by turning off the "detection" feature.
-#[derive(Component, Default, Debug, Clone, Copy)]
+#[derive(Component, Default, Debug, Clone)]
 pub struct AtmosphereCamera {
     /// Controls whether or not the skybox will be seen only on certain render layers.
     pub render_layers: Option<RenderLayers>,
@@ -129,7 +129,7 @@ fn atmosphere_insert(
                     render_layers: Some(render_layers),
                 } = atmosphere_camera
                 {
-                    child.insert(*render_layers);
+                    child.insert(render_layers.clone());
                 }
             });
     }

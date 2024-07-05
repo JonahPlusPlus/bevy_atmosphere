@@ -37,7 +37,7 @@
 //! }
 //!
 //! fn write_gradient(mut atmosphere: AtmosphereMut<Gradient>) {
-//!     atmosphere.horizon = Color::RED;
+//!     atmosphere.horizon = LinearRgba::RED;
 //! }
 //!
 //! fn check_model(atmosphere: Res<AtmosphereModel>) {

@@ -12,7 +12,6 @@ use bevy_spectator::{Spectator, SpectatorPlugin, SpectatorSettings};
 fn main() {
     println!("Demonstrates using `AtmosphereCamera.render_layers` to have multiple skyboxes in the scene at once\n\t- E: Switch camera");
     App::new()
-        .insert_resource(Msaa::Sample4)
         .insert_resource(AtmosphereModel::new(Nishita {
             rayleigh_coefficient: Vec3::new(22.4e-6, 5.5e-6, 13.0e-6), // Change rayleigh coefficient to change color
             ..default()
@@ -36,34 +35,31 @@ fn setup(
     mut settings: ResMut<SpectatorSettings>,
 ) {
     // Plane
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Plane3d::default().mesh().size(100.0, 100.0)),
-        material: materials.add(Color::srgb(0.3, 0.5, 0.3)),
-        ..default()
-    });
+    commands.spawn((
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(100.0, 100.0))),
+        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
+    ));
 
     // Light
-    commands.spawn(DirectionalLightBundle {
-        transform: Transform::from_rotation(Quat::from_euler(
+    commands.spawn((
+        DirectionalLight {
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform::from_rotation(Quat::from_euler(
             EulerRot::ZYX,
             0.0,
             1.0,
             -std::f32::consts::FRAC_PI_4,
-        )),
-        directional_light: DirectionalLight {
-            shadows_enabled: true,
-            ..default()
-        },
-        ..default()
-    });
+        ))
+    ));
 
     // Spawn left screen camera and make it the default spectator
     let left = commands
         .spawn((
-            Camera3dBundle {
-                transform: Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
-                ..default()
-            },
+            Camera3d::default(),
+            Transform::from_xyz(0.0, 25.0, -100.0).looking_at(Vec3::ZERO, Vec3::Y),
+            Msaa::Sample4,
             RenderLayers::from_layers(&[0, 1]), // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
             AtmosphereCamera {
                 render_layers: Some(RenderLayers::layer(1)),
@@ -77,19 +73,17 @@ fn setup(
 
     // Spawn right screen camera
     commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(100.0, 50.0, 150.0).looking_at(Vec3::ZERO, Vec3::Y),
-            camera: Camera {
-                // Renders the right camera after the left camera, which has a default priority of 0
-                order: 1,
-                // Don't clear on the second camera because the first camera already cleared the window
-                clear_color: ClearColorConfig::None,
-                ..default()
-            },
-            camera_3d: Camera3d::default(),
+        Camera {
+            // Renders the right camera after the left camera, which has a default priority of 0
+            order: 1,
+            // Don't clear on the second camera because the first camera already cleared the window
+            clear_color: ClearColorConfig::None,
             ..default()
         },
-        RenderLayers::from_layers(&[0, 2]),
+        Camera3d::default(),
+        Transform::from_xyz(100.0, 50.0, 150.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Msaa::Sample4,
+        RenderLayers::from_layers(&[0, 2]), // To prevent each player from seeing the other skybox, we put each one on a separate render layer (you could also use this render layer for other player specific effects)
         AtmosphereCamera {
             render_layers: Some(RenderLayers::layer(2)),
         },

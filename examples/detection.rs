@@ -14,7 +14,7 @@ fn main() {
 struct PrimaryCamera;
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera3dBundle::default(), PrimaryCamera));
+    commands.spawn((Camera3d::default(), PrimaryCamera));
 }
 
 fn update(

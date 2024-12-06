@@ -341,10 +341,20 @@ fn prepare_atmosphere_resources(
         atmosphere_image.array_view = Some(view);
         update();
         #[cfg(feature = "bevy/trace")]
-        trace!(
-            "Created new 2D array texture view from atmosphere texture of size {:?}",
-            &gpu_images[&atmosphere_image.handle].size
-        );
+        {
+            if let Some(image) = gpu_images.get(&atmosphere_image.handle) {
+                trace!(
+                    "Created new 2D array texture view from atmosphere texture of size {:?}",
+                    image.size
+                );
+            } else {
+                trace!(
+                    "Failed to find gpu_image for {:?}",
+                    &atmosphere_image.handle
+                );
+            }
+        }
+
     }
 
     if atmosphere.is_changed() {

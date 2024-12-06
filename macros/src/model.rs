@@ -467,6 +467,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     shader: handle,
                     shader_defs: vec![],
                     entry_point: Cow::from("main"),
+                    zero_initialize_workgroup_memory: true,
                 });
 
                 let id = TypeId::of::<Self>();

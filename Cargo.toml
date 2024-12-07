@@ -72,11 +72,6 @@ path = "examples/settings.rs"
 required-features = ["default"]
 
 [[example]]
-name = "settings_trace"
-path = "examples/settings.rs"
-required-features = ["default", "bevy/trace", "bevy/trace_chrome"]
-
-[[example]]
 name = "splitscreen"
 path = "examples/splitscreen.rs"
 required-features = ["default"]

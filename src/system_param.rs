@@ -21,7 +21,7 @@ pub struct Atmosphere<'w, T: Atmospheric> {
 // SAFETY: Res only reads a single World resource
 unsafe impl<T: Atmospheric> ReadOnlySystemParam for Atmosphere<'_, T> {}
 
-impl<'w, T: Atmospheric> Deref for Atmosphere<'w, T> {
+impl<T: Atmospheric> Deref for Atmosphere<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -63,7 +63,7 @@ pub struct AtmosphereMut<'w, T: Atmospheric> {
     value: &'w mut T,
 }
 
-impl<'w, T: Atmospheric> Deref for AtmosphereMut<'w, T> {
+impl<T: Atmospheric> Deref for AtmosphereMut<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -71,7 +71,7 @@ impl<'w, T: Atmospheric> Deref for AtmosphereMut<'w, T> {
     }
 }
 
-impl<'w, T: Atmospheric> DerefMut for AtmosphereMut<'w, T> {
+impl<T: Atmospheric> DerefMut for AtmosphereMut<'_, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.value
     }

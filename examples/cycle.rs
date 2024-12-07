@@ -4,7 +4,6 @@ use bevy_spectator::{Spectator, SpectatorPlugin};
 
 fn main() {
     App::new()
-        .insert_resource(Msaa::Sample4)
         .insert_resource(AtmosphereModel::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
             bevy::utils::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
@@ -38,7 +37,7 @@ fn daylight_cycle(
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let t = time.elapsed_seconds_wrapped() / 2.0;
+        let t = time.elapsed_secs_wrapped() / 2.0;
         atmosphere.sun_position = Vec3::new(0., t.sin(), t.cos());
 
         if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
@@ -56,49 +55,42 @@ fn setup_environment(
 ) {
     // Our Sun
     commands.spawn((
-        DirectionalLightBundle {
-            ..Default::default()
-        },
+        DirectionalLight::default(),
         Sun, // Marks the light as Sun
     ));
 
     // Simple transform shape just for reference
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Cuboid::default()),
-        material: materials.add(StandardMaterial::from(Color::srgb(0.8, 0.8, 0.8))),
-        ..Default::default()
-    });
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::default())),
+        MeshMaterial3d(materials.add(StandardMaterial::from(Color::srgb(0.8, 0.8, 0.8)))),
+    ));
 
     // X axis
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
-        material: materials.add(StandardMaterial::from(Color::srgb(0.8, 0.0, 0.0))),
-        transform: Transform::from_xyz(1., 0., 0.),
-        ..Default::default()
-    });
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
+        MeshMaterial3d(materials.add(StandardMaterial::from(Color::srgb(0.8, 0.0, 0.0)))),
+        Transform::from_xyz(1., 0., 0.),
+    ));
 
     // Y axis
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
-        material: materials.add(StandardMaterial::from(Color::srgb(0.0, 0.8, 0.0))),
-        transform: Transform::from_xyz(0., 1., 0.),
-        ..Default::default()
-    });
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
+        MeshMaterial3d(materials.add(StandardMaterial::from(Color::srgb(0.0, 0.8, 0.0)))),
+        Transform::from_xyz(0., 1., 0.),
+    ));
 
     // Z axis
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
-        material: materials.add(StandardMaterial::from(Color::srgb(0.0, 0.0, 0.8))),
-        transform: Transform::from_xyz(0., 0., 1.),
-        ..Default::default()
-    });
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
+        MeshMaterial3d(materials.add(StandardMaterial::from(Color::srgb(0.0, 0.0, 0.8)))),
+        Transform::from_xyz(0., 0., 1.),
+    ));
 
     // Spawn our camera
     commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(5., 0., 5.),
-            ..default()
-        },
+        Camera3d::default(),
+        Transform::from_xyz(5., 0., 5.),
+        Msaa::Sample4,
         AtmosphereCamera::default(), // Marks camera as having a skybox, by default it doesn't specify the render layers the skybox can be seen on
         Spectator,                   // Marks camera as spectator (specific to bevy_spectator)
     ));

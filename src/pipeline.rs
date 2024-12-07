@@ -165,7 +165,6 @@ fn atmosphere_settings_changed(
 ) {
     if let Some(settings) = settings {
         if settings.is_changed() {
-            #[cfg(feature = "bevy/trace")]
             let _atmosphere_settings_changed_executed_span = info_span!(
                 "executed",
                 name = "bevy_atmosphere::pipeline::atmosphere_settings_changed"
@@ -186,14 +185,12 @@ fn atmosphere_settings_changed(
                     skybox_material.dithering = settings.dithering;
                 }
                 atmosphere_image.array_view = None; // drop the previous texture view
-                #[cfg(feature = "bevy/trace")]
                 trace!("Resized image to {:?}", size);
             }
         }
         *settings_existed = true;
     } else {
         if *settings_existed {
-            #[cfg(feature = "bevy/trace")]
             let _atmosphere_settings_changed_executed_span = info_span!(
                 "executed",
                 name = "bevy_atmosphere::pipeline::atmosphere_settings_changed"
@@ -212,7 +209,6 @@ fn atmosphere_settings_changed(
                 image.resize(size);
                 let _ = material_assets.get_mut(&material.0); // `get_mut` tells the material to update
                 atmosphere_image.array_view = None; // drop the previous texture view
-                #[cfg(feature = "bevy/trace")]
                 trace!("Resized image to {:?}", size);
             }
         }
@@ -330,7 +326,6 @@ fn prepare_atmosphere_resources(
     let mut update = || update_events.send(AtmosphereUpdateEvent);
 
     if atmosphere_image.array_view.is_none() {
-        #[cfg(feature = "bevy/trace")]
         let _prepare_atmosphere_assets_executed_span = info_span!(
             "executed",
             name = "bevy_atmosphere::pipeline::prepare_atmosphere_assets"
@@ -340,11 +335,17 @@ fn prepare_atmosphere_resources(
         let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
         atmosphere_image.array_view = Some(view);
         update();
-        #[cfg(feature = "bevy/trace")]
-        trace!(
-            "Created new 2D array texture view from atmosphere texture of size {:?}",
-            &gpu_images[&atmosphere_image.handle].size
-        );
+        if let Some(image) = gpu_images.get(&atmosphere_image.handle) {
+            trace!(
+                "Created new 2D array texture view from atmosphere texture of size {:?}",
+                image.size
+            );
+        } else {
+            trace!(
+                "Failed to find gpu_image for {:?}",
+                &atmosphere_image.handle
+            );
+        }
     }
 
     if atmosphere.is_changed() {

@@ -105,21 +105,14 @@ fn atmosphere_insert(
     atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera), Added<AtmosphereCamera>>,
 ) {
     for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
-        #[cfg(feature = "bevy/trace")]
         trace!("Adding skybox to camera entity (ID:{:?})", camera);
         commands
             .entity(camera)
-            .insert(VisibilityBundle {
-                visibility: Visibility::Visible,
-                ..default()
-            })
+            .insert(Visibility::Visible)
             .with_children(|c| {
                 let mut child = c.spawn((
-                    MaterialMeshBundle {
-                        mesh: mesh_assets.add(crate::skybox::mesh(projection.far())),
-                        material: material.0.clone(),
-                        ..default()
-                    },
+                    Mesh3d(mesh_assets.add(crate::skybox::mesh(projection.far()))),
+                    MeshMaterial3d(material.0.clone()),
                     AtmosphereSkyBox,
                     NotShadowCaster,
                     NotShadowReceiver,
@@ -144,7 +137,6 @@ fn atmosphere_remove(
     mut atmosphere_cameras: RemovedComponents<AtmosphereCamera>,
 ) {
     for camera in &mut atmosphere_cameras.read() {
-        #[cfg(feature = "bevy/trace")]
         trace!("Removing skybox from camera entity (ID:{:?})", camera);
         let Ok(children) = parents.get(camera) else {
             error!("Failed to get skybox children entities from camera entity.");
@@ -153,7 +145,6 @@ fn atmosphere_remove(
 
         for child in children {
             let Ok(skybox_entity) = atmosphere_skyboxes.get(*child) else {
-                #[cfg(feature = "bevy/trace")]
                 trace!("Child wasn't found in skybox entities.");
                 continue;
             };

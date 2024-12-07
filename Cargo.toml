@@ -11,17 +11,18 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 exclude = ["/assets/", "/examples/", "/.github/"]
 
 [dependencies]
-bevy = { version = "0.14", default-features = false, features = [
+bevy = { version = "0.15", default-features = false, features = [
   "bevy_asset",
   "bevy_render",
   "bevy_pbr",
+  "png",         # Enable temporary due to 0.15 bug: https://github.com/bevyengine/bevy/issues/16563
 ] }
-bevy_atmosphere_macros = { path = "macros", version = "0.6" }
+bevy_atmosphere_macros = { path = "macros", version = "0.7" }
 cfg-if = "1.0"
 
 [dev-dependencies]
-bevy_spectator = "0.6"
-bevy = { version = "0.14", features = ["bevy_core_pipeline", "x11"] }
+bevy_spectator = "0.7"
+bevy = { version = "0.15", features = ["bevy_core_pipeline", "x11"] }
 
 [features]
 default = ["basic", "all_models"]

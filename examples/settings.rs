@@ -16,11 +16,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((
-        Camera3dBundle::default(),
-        AtmosphereCamera::default(),
-        Spectator,
-    ));
+    commands.spawn((Camera3d::default(), AtmosphereCamera::default(), Spectator));
 }
 
 // Change the resolution when the user presses a number key
@@ -30,8 +26,6 @@ fn change_resolution(
     keys: Res<ButtonInput<KeyCode>>,
 ) {
     if keys.just_pressed(KeyCode::Space) {
-        #[cfg(feature = "bevy/trace")]
-        // enabling "bevy/trace" (via "bevy/trace_chrome" or "bevy/trace_tracy") allows you to debug bevy_atmosphere
         let _change_dithering_executed_span =
             info_span!("executed", name = "settings::change_dithering").entered();
         if let Some(mut settings) = settings {
@@ -69,8 +63,6 @@ fn change_resolution(
 
 // A separate `change` fn makes it easier to debug in tracy.
 fn change(mut commands: Commands, settings: Option<ResMut<AtmosphereSettings>>, resolution: u32) {
-    #[cfg(feature = "bevy/trace")]
-    // enabling "bevy/trace" (via "bevy/trace_chrome" or "bevy/trace_tracy") allows you to debug bevy_atmosphere
     let _change_resolution_executed_span =
         info_span!("executed", name = "settings::change_resolution").entered();
     if let Some(mut settings) = settings {

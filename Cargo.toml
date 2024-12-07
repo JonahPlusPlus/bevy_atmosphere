@@ -1,7 +1,7 @@
 [package]
 name = "bevy_atmosphere"
 description = "A procedural sky plugin for bevy"
-version = "0.10.0"
+version = "0.11.0"
 edition = "2021"
 authors = ["JonahPlusPlus <33059163+JonahPlusPlus@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"

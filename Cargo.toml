@@ -79,7 +79,3 @@ required-features = ["default", "bevy/trace", "bevy/trace_chrome"]
 name = "splitscreen"
 path = "examples/splitscreen.rs"
 required-features = ["default"]
-
-[patch.crates-io]
-# TODO: Temporary patch for dev-dep, remove when upstream updates
-bevy_spectator = { git = "https://github.com/ptsd/bevy_spectator.git", branch = "bevy-0.15" }

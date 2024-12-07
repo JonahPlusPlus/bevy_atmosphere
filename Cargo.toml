@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/bevy_atmosphere"
 homepage = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
-include = ["/src", "/examples", "/LICENSE*"]
+include = ["/src", "/examples/*.rs", "/LICENSE*"]
 
 [dependencies]
 bevy = { version = "0.15", default-features = false, features = [

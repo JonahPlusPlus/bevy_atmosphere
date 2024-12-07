@@ -51,7 +51,7 @@ fn setup(
             0.0,
             1.0,
             -std::f32::consts::FRAC_PI_4,
-        ))
+        )),
     ));
 
     // Spawn left screen camera and make it the default spectator

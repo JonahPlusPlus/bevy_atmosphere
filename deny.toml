@@ -1,11 +1,16 @@
-[advisories]
-unmaintained = "deny"
-yanked = "deny"
-notice = "deny"
-
 [licenses]
-copyleft = "deny"
-allow-osi-fsf-free = "either"
+allow = [
+  "Apache-2.0",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "BSL-1.0",
+  "CC0-1.0",
+  "ISC",
+  "MIT-0",
+  "MIT",
+  "Unicode-3.0",
+  "Zlib",
+]
 
 [[licenses.clarify]]
 name = "stretch"

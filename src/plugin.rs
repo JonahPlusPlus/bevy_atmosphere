@@ -105,12 +105,17 @@ pub struct AtmosphereSkyBox;
 fn atmosphere_insert(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
-    settings: Res<AtmosphereSettings>,
+    settings: Option<Res<AtmosphereSettings>>,
     material: Res<AtmosphereSkyBoxMaterial>,
     atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera), Added<AtmosphereCamera>>,
 ) {
+    let skybox_creation_mode = match settings {
+        Some(settings) => settings.skybox_creation_mode,
+        None => SkyboxCreationMode::default(),
+    };
+
     for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
-        let far_size = match settings.skybox_creation_mode {
+        let far_size = match skybox_creation_mode {
             // TODO: Use `unwrap_or(fallback)` when `projection.far()` becomes an `Option<f32>`
             SkyboxCreationMode::FromProjectionFarWithFallback(_fallback) => projection.far(),
             SkyboxCreationMode::FromSpecifiedFar(specified) => specified,

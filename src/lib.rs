@@ -52,13 +52,28 @@
 //!
 //! Use the [`AtmosphereSettings`](crate::settings::AtmosphereSettings) resource to change how the sky is rendered.
 //! ```no_run
-//! # use bevy_atmosphere::settings::AtmosphereSettings;
+//! # use bevy::utils::default;
+//! use bevy_atmosphere::settings::AtmosphereSettings;
 //! # let _ =
 //! AtmosphereSettings {
 //!     // changes the resolution (should be a multiple of 8)
 //!     resolution: 1024,
 //!     // turns off dithering
 //!     dithering: false,
+//!     ..default()
+//! }
+//! # ;
+//! ```
+//!
+//! When using the `detection` feature, you can use [`SkyboxCreationMode`](crate::settings::SkyboxCreationMode) to control the size of the generated skybox.
+//! ```no_run
+//! # use bevy::utils::default;
+//! use bevy_atmosphere::settings::{AtmosphereSettings, SkyboxCreationMode};
+//! # let _ =
+//! AtmosphereSettings {
+//!     // Will use the camera projections `far` value or `1000.0` as a fallback
+//!     skybox_creation_mode: SkyboxCreationMode::FromProjectionFarWithFallback(1000.0),
+//!     ..default()
 //! }
 //! # ;
 //! ```

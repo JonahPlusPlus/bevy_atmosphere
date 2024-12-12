@@ -14,8 +14,12 @@ use bevy::{
 use crate::{
     model::AddAtmosphereModel,
     pipeline::*,
+    settings::AtmosphereSettings,
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
+
+#[cfg(feature = "detection")]
+use crate::settings::SkyboxCreationMode;
 
 /// A `Plugin` that adds the prerequisites for a procedural sky.
 #[derive(Debug, Clone, Copy)]
@@ -101,17 +105,29 @@ pub struct AtmosphereSkyBox;
 fn atmosphere_insert(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
+    settings: Res<AtmosphereSettings>,
     material: Res<AtmosphereSkyBoxMaterial>,
     atmosphere_cameras: Query<(Entity, &Projection, &AtmosphereCamera), Added<AtmosphereCamera>>,
 ) {
     for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
-        trace!("Adding skybox to camera entity (ID:{:?})", camera);
+        let far_size = match settings.skybox_creation_mode {
+            // TODO: Use `unwrap_or(fallback)` when `projection.far()` becomes an `Option<f32>`
+            SkyboxCreationMode::FromProjectionFarWithFallback(_fallback) => projection.far(),
+            SkyboxCreationMode::FromSpecifiedFar(specified) => specified,
+        };
+
+        trace!(
+            "Adding skybox to camera entity (ID:{:?}) with far_size {}",
+            camera,
+            far_size
+        );
+
         commands
             .entity(camera)
             .insert(Visibility::Visible)
             .with_children(|c| {
                 let mut child = c.spawn((
-                    Mesh3d(mesh_assets.add(crate::skybox::mesh(projection.far()))),
+                    Mesh3d(mesh_assets.add(crate::skybox::mesh(far_size))),
                     MeshMaterial3d(material.0.clone()),
                     AtmosphereSkyBox,
                     NotShadowCaster,

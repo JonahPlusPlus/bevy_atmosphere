@@ -2,24 +2,25 @@
 
 use bevy::{
     asset::load_internal_asset,
-    pbr::{NotShadowCaster, NotShadowReceiver},
     prelude::*,
-    render::{
-        camera::{CameraProjection, Projection},
-        view::RenderLayers,
-        RenderApp,
-    },
+    render::{view::RenderLayers, RenderApp},
 };
 
 use crate::{
-    model::AddAtmosphereModel,
     pipeline::*,
-    settings::AtmosphereSettings,
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
 #[cfg(feature = "detection")]
-use crate::settings::SkyboxCreationMode;
+use crate::settings::{AtmosphereSettings, SkyboxCreationMode};
+#[cfg(feature = "detection")]
+use bevy::{
+    pbr::{NotShadowCaster, NotShadowReceiver},
+    render::camera::CameraProjection as _,
+};
+
+#[cfg(any(feature = "gradient", feature = "nishita"))]
+use crate::model::AddAtmosphereModel as _;
 
 /// A `Plugin` that adds the prerequisites for a procedural sky.
 #[derive(Debug, Clone, Copy)]
@@ -45,6 +46,7 @@ impl Plugin for AtmospherePlugin {
                 image.handle.clone()
             };
 
+            #[cfg(feature = "dithering")]
             let settings = {
                 let settings = app
                     .world()

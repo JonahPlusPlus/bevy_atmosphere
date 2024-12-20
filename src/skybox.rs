@@ -6,9 +6,12 @@ use bevy::{
     reflect::TypePath,
     render::{
         mesh::{Indices, Mesh, MeshVertexBufferLayoutRef, PrimitiveTopology},
-        render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderDefVal, ShaderRef},
+        render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderRef},
     },
 };
+
+#[cfg(feature = "dithering")]
+use bevy::render::render_resource::ShaderDefVal;
 
 /// The `Handle` for the created [`SkyBoxMaterial`].
 #[derive(Resource)]
@@ -44,9 +47,12 @@ impl Material for SkyBoxMaterial {
 
     fn specialize(
         _pipeline: &MaterialPipeline<Self>,
+        #[cfg_attr(not(feature = "dithering"), allow(unused_variables))]
         descriptor: &mut RenderPipelineDescriptor,
         _layout: &MeshVertexBufferLayoutRef,
-        key: MaterialPipelineKey<Self>,
+        #[cfg_attr(not(feature = "dithering"), allow(unused_variables))] key: MaterialPipelineKey<
+            Self,
+        >,
     ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
         #[cfg(feature = "dithering")]
         if key.bind_group_data.dithering {
@@ -62,7 +68,9 @@ impl Material for SkyBoxMaterial {
 }
 
 impl From<&SkyBoxMaterial> for SkyBoxMaterialKey {
-    fn from(material: &SkyBoxMaterial) -> SkyBoxMaterialKey {
+    fn from(
+        #[cfg_attr(not(feature = "dithering"), allow(unused_variables))] material: &SkyBoxMaterial,
+    ) -> SkyBoxMaterialKey {
         SkyBoxMaterialKey {
             #[cfg(feature = "dithering")]
             dithering: material.dithering,

@@ -138,7 +138,7 @@ impl Plugin for AtmospherePipelinePlugin {
             .insert_resource(settings)
             .insert_resource(AtmosphereTypeRegistry(type_registry))
             .init_resource::<CachedAtmosphereModelMetadata>()
-            .add_event::<AtmosphereUpdateEvent>()
+            .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_systems(ExtractSchedule, extract_atmosphere_resources)
             .add_systems(
                 Render,

@@ -138,13 +138,14 @@ impl Plugin for AtmospherePipelinePlugin {
             .insert_resource(settings)
             .insert_resource(AtmosphereTypeRegistry(type_registry))
             .init_resource::<CachedAtmosphereModelMetadata>()
-            .add_event::<AtmosphereUpdateEvent>()
+            .init_resource::<Events<AtmosphereUpdateEvent>>()
             .add_systems(ExtractSchedule, extract_atmosphere_resources)
             .add_systems(
                 Render,
                 (
                     prepare_atmosphere_resources.in_set(RenderSet::PrepareResources),
                     prepare_atmosphere_bind_group.in_set(RenderSet::PrepareBindGroups),
+                    clear_update_events.in_set(RenderSet::Cleanup),
                 ),
             );
 
@@ -521,4 +522,8 @@ impl render_graph::Node for AtmosphereNode {
 
         Ok(())
     }
+}
+
+fn clear_update_events(mut update_events: ResMut<Events<AtmosphereUpdateEvent>>) {
+    update_events.clear();
 }

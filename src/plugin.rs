@@ -179,11 +179,11 @@ fn atmosphere_remove(
 
 /// Cancels the rotation of the camera.
 fn atmosphere_cancel_rotation(
-    mut atmosphere_sky_boxes: Query<(&mut Transform, &Parent), With<AtmosphereSkyBox>>,
+    mut atmosphere_sky_boxes: Query<(&mut Transform, &ChildOf), With<AtmosphereSkyBox>>,
     atmosphere_cameras: Query<&GlobalTransform, With<AtmosphereCamera>>,
 ) {
-    for (mut transform, parent) in &mut atmosphere_sky_boxes {
-        if let Ok(parent_transform) = atmosphere_cameras.get(parent.get()) {
+    for (mut transform, child_of) in &mut atmosphere_sky_boxes {
+        if let Ok(parent_transform) = atmosphere_cameras.get(child_of.parent()) {
             let (_, parent_rotation, _) = parent_transform.to_scale_rotation_translation();
             transform.rotation = parent_rotation.inverse();
         } else {

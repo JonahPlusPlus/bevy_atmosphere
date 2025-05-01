@@ -285,6 +285,7 @@ pub const ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = Textu
     mip_level_count: None,
     base_array_layer: 0,
     array_layer_count: Some(6),
+    usage: None,
 };
 
 /// For creating a `TextureView` with `TextureViewDimension::D2Array`.
@@ -297,6 +298,7 @@ pub const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = Text
     mip_level_count: None,
     base_array_layer: 0,
     array_layer_count: Some(6),
+    usage: None,
 };
 
 /// For creating a `Texture` with 6 layers.

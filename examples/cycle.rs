@@ -6,7 +6,7 @@ fn main() {
     App::new()
         .insert_resource(AtmosphereModel::default()) // Default Atmosphere material, we can edit it to simulate another planet
         .insert_resource(CycleTimer(Timer::new(
-            bevy::utils::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
+            std::time::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
             TimerMode::Repeating,
         )))
         .add_plugins((
@@ -40,7 +40,7 @@ fn daylight_cycle(
         let t = time.elapsed_secs_wrapped() / 2.0;
         atmosphere.sun_position = Vec3::new(0., t.sin(), t.cos());
 
-        if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
+        if let Some(Ok((mut light_trans, mut directional))) = query.single_mut().into() {
             light_trans.rotation = Quat::from_rotation_x(-t);
             directional.illuminance = t.sin().max(0.0).powf(2.0) * AMBIENT_DAYLIGHT;
         }

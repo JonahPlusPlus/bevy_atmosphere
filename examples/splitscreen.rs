@@ -109,19 +109,21 @@ fn set_camera_viewports(
     // A resize_event is sent when the window is first created, allowing us to reuse this system for initial setup.
     for resize_event in resize_events.read() {
         let window = windows.get(resize_event.window).unwrap();
-        let mut left_camera = left_camera.single_mut();
-        left_camera.viewport = Some(Viewport {
-            physical_position: UVec2::new(0, 0),
-            physical_size: UVec2::new(window.physical_width() / 2, window.physical_height()),
-            ..default()
-        });
+        if let Ok(mut left_camera) = left_camera.single_mut() {
+            left_camera.viewport = Some(Viewport {
+                physical_position: UVec2::new(0, 0),
+                physical_size: UVec2::new(window.physical_width() / 2, window.physical_height()),
+                ..default()
+            });
+        }
 
-        let mut right_camera = right_camera.single_mut();
-        right_camera.viewport = Some(Viewport {
-            physical_position: UVec2::new(window.physical_width() / 2, 0),
-            physical_size: UVec2::new(window.physical_width() / 2, window.physical_height()),
-            ..default()
-        });
+        if let Ok(mut right_camera) = right_camera.single_mut() {
+            right_camera.viewport = Some(Viewport {
+                physical_position: UVec2::new(window.physical_width() / 2, 0),
+                physical_size: UVec2::new(window.physical_width() / 2, window.physical_height()),
+                ..default()
+            });
+        }
     }
 }
 
@@ -131,8 +133,12 @@ fn switch_camera(
     left_camera: Query<Entity, (With<LeftCamera>, Without<RightCamera>)>,
     right_camera: Query<Entity, With<RightCamera>>,
 ) {
-    let left_camera = left_camera.single();
-    let right_camera = right_camera.single();
+    let Ok(left_camera) = left_camera.single() else {
+        return;
+    };
+    let Ok(right_camera) = right_camera.single() else {
+        return;
+    };
 
     if keys.just_pressed(KeyCode::KeyE) {
         if let Some(spectator) = settings.active_spectator {

@@ -8,6 +8,7 @@ use bevy::{
         mesh::{Indices, Mesh, MeshVertexBufferLayoutRef, PrimitiveTopology},
         render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderRef},
     },
+    asset::weak_handle,
 };
 
 #[cfg(feature = "dithering")]
@@ -19,7 +20,7 @@ pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
 /// The `Handle` for the shader for the [`SkyBoxMaterial`].
 pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: Handle<Shader> =
-    Handle::weak_from_u128(4511926918914205353);
+    weak_handle!("19578f73-d5ab-42d6-8151-63046a5e6a49");
 
 /// The `Material` that renders skyboxes.
 #[derive(AsBindGroup, TypePath, Debug, Clone, Asset)]

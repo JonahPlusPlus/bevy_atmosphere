@@ -22,7 +22,7 @@ fn update(
     mouse: Res<ButtonInput<MouseButton>>,
     primary_camera_query: Query<Entity, With<PrimaryCamera>>,
 ) {
-    let Ok(primary_camera) = primary_camera_query.get_single() else {
+    let Ok(primary_camera) = primary_camera_query.single() else {
         error!("Failed to get a single `PrimaryCamera`");
         return;
     };

@@ -43,7 +43,7 @@ enum ShaderPathType {
 }
 
 pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
-    let manifest = BevyManifest::default();
+    let manifest = BevyManifest::shared();
     let atmosphere_path = super::bevy_atmosphere_path();
     let render_path = manifest.get_path("bevy_render");
     let asset_path = manifest.get_path("bevy_asset");

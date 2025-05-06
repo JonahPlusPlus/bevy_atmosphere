@@ -1,7 +1,7 @@
 [package]
 name = "bevy_atmosphere"
 description = "A procedural sky plugin for bevy"
-version = "0.12.2"
+version = "0.13.0"
 edition = "2021"
 authors = ["JonahPlusPlus <33059163+JonahPlusPlus@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
@@ -11,18 +11,19 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 include = ["/src", "/examples/*.rs", "/LICENSE*"]
 
 [dependencies]
-bevy = { version = "0.15", default-features = false, features = [
+bevy = { version = "0.16", default-features = false, features = [
   "bevy_asset",
   "bevy_render",
   "bevy_pbr",
+  "bevy_log",
   "png",         # Enable temporary due to 0.15 bug: https://github.com/bevyengine/bevy/issues/16563
 ] }
-bevy_atmosphere_macros = { path = "macros", version = "0.7" }
+bevy_atmosphere_macros = { path = "macros", version = "0.8" }
 cfg-if = "1.0"
 
 [dev-dependencies]
-bevy_spectator = "0.7"
-bevy = { version = "0.15", features = ["bevy_core_pipeline", "x11"] }
+bevy_spectator = "0.8"
+bevy = { version = "0.16", features = ["bevy_core_pipeline", "x11"] }
 
 [features]
 default = ["basic", "all_models"]

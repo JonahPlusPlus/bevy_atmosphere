@@ -23,7 +23,7 @@ use bevy::{
 use crate::model::AddAtmosphereModel as _;
 
 /// A `Plugin` that adds the prerequisites for a procedural sky.
-#[derive(Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct AtmospherePlugin;
 
 impl Plugin for AtmospherePlugin {

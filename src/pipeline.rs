@@ -277,7 +277,7 @@ fn extract_atmosphere_resources(
 
 /// For creating a `TextureView` with `TextureViewDimension::Cube`.
 pub const ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = TextureViewDescriptor {
-    label: Some("atmosphere_image_array_view"),
+    label: Some("atmosphere_image_cube_view"),
     format: Some(TextureFormat::Rgba16Float),
     dimension: Some(TextureViewDimension::Cube),
     aspect: TextureAspect::All,
@@ -290,7 +290,7 @@ pub const ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = Textu
 
 /// For creating a `TextureView` with `TextureViewDimension::D2Array`.
 pub const ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR: TextureViewDescriptor = TextureViewDescriptor {
-    label: Some("atmosphere_image_cube_view"),
+    label: Some("atmosphere_image_array_view"),
     format: Some(TextureFormat::Rgba16Float),
     dimension: Some(TextureViewDimension::D2Array),
     aspect: TextureAspect::All,
@@ -340,10 +340,10 @@ fn prepare_atmosphere_resources(
         atmosphere_image.array_view = Some(view);
         update();
         if let Some(image) = gpu_images.get(&atmosphere_image.handle) {
-            trace!(
-                "Created new 2D array texture view from atmosphere texture of size {:?}",
-                image.size
-            );
+        trace!(
+            "Created new 2D array texture view from atmosphere texture of size {:?}",
+            image.size
+        );
         } else {
             trace!(
                 "Failed to find gpu_image for {:?}",

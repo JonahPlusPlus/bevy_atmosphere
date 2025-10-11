@@ -20,3 +20,4 @@ bevy_macro_utils = "0.16"
 syn = "2.0"
 proc-macro2 = "1.0"
 quote = "1.0"
+uuid = { version = "1.18.1", features = ["v4"] }

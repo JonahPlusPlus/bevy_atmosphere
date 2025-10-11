@@ -49,13 +49,13 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
     let asset_path = manifest.get_path("bevy_asset");
     let ecs_path = manifest.get_path("bevy_ecs");
 
-    let id = {
+    let id = uuid::Uuid::from_u128({
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
         let mut hasher = DefaultHasher::new();
         ast.ident.hash(&mut hasher);
         hasher.finish()
-    };
+    } as u128).to_string();
 
     let mut shader_path = ShaderPathType::None;
     let mut binding_states: Vec<BindingState> = Vec::new();
@@ -142,7 +142,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
         },
         ShaderPathType::Internal(s) => quote! {
             {
-                let handle: #asset_path::Handle<Shader> = #asset_path::Handle::weak_from_u128(#id as u128);
+                let handle: #asset_path::Handle<Shader> = #asset_path::uuid_handle!(#id);
 
                 let internal_handle = handle.clone();
                 #asset_path::load_internal_asset!(
@@ -466,7 +466,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                     push_constant_ranges: vec![],
                     shader: handle,
                     shader_defs: vec![],
-                    entry_point: Cow::from("main"),
+                    entry_point: Some(Cow::from("main")),
                     zero_initialize_workgroup_memory: true,
                 });
 

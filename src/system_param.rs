@@ -33,8 +33,8 @@ unsafe impl<T: Atmospheric> SystemParam for Atmosphere<'_, T> {
     type State = ComponentId;
     type Item<'w, 's> = Atmosphere<'w, T>;
 
-    fn init_state(world: &mut World, system_meta: &mut SystemMeta) -> Self::State {
-        Res::<AtmosphereModel>::init_state(world, system_meta)
+    fn init_state(world: &mut World) -> Self::State {
+        Res::<AtmosphereModel>::init_state(world)
     }
 
     #[inline]
@@ -55,6 +55,19 @@ unsafe impl<T: Atmospheric> SystemParam for Atmosphere<'_, T> {
             .to_ref::<T>()
             .expect("Wrong type of `Atmospheric` model found");
         Self::Item { value }
+    }
+
+    fn init_access(
+        _state: &Self::State,
+        _system_meta: &mut SystemMeta,
+        component_access_set: &mut bevy::ecs::query::FilteredAccessSet,
+        world: &mut World,
+    ) {
+        let mut filtered_access = bevy::ecs::query::FilteredAccess::default();
+
+        filtered_access.add_resource_read(world.register_resource::<AtmosphereModel>());
+
+        component_access_set.add(filtered_access);
     }
 }
 
@@ -81,8 +94,8 @@ unsafe impl<T: Atmospheric> SystemParam for AtmosphereMut<'_, T> {
     type State = ComponentId;
     type Item<'w, 's> = AtmosphereMut<'w, T>;
 
-    fn init_state(world: &mut World, system_meta: &mut SystemMeta) -> Self::State {
-        ResMut::<AtmosphereModel>::init_state(world, system_meta)
+    fn init_state(world: &mut World) -> Self::State {
+        ResMut::<AtmosphereModel>::init_state(world)
     }
 
     #[inline]
@@ -103,5 +116,18 @@ unsafe impl<T: Atmospheric> SystemParam for AtmosphereMut<'_, T> {
             .to_mut::<T>()
             .expect("Wrong type of `Atmospheric` model found");
         Self::Item { value }
+    }
+
+    fn init_access(
+        _state: &Self::State,
+        _system_meta: &mut SystemMeta,
+        component_access_set: &mut bevy::ecs::query::FilteredAccessSet,
+        world: &mut World,
+    ) {
+        let mut filtered_access = bevy::ecs::query::FilteredAccess::default();
+
+        filtered_access.add_resource_write(world.register_resource::<AtmosphereModel>());
+
+        component_access_set.add(filtered_access);
     }
 }

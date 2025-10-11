@@ -1,9 +1,7 @@
 //! Provides a `Plugin` for making skyboxes with procedural sky textures.
 
 use bevy::{
-    asset::load_internal_asset,
-    prelude::*,
-    render::{view::RenderLayers, RenderApp},
+    asset::load_internal_asset, camera::visibility::RenderLayers, prelude::*, render::RenderApp
 };
 
 use crate::{
@@ -15,8 +13,7 @@ use crate::{
 use crate::settings::{AtmosphereSettings, SkyboxCreationMode};
 #[cfg(feature = "detection")]
 use bevy::{
-    pbr::{NotShadowCaster, NotShadowReceiver},
-    render::camera::CameraProjection as _,
+    light::{NotShadowCaster, NotShadowReceiver},
 };
 
 #[cfg(any(feature = "gradient", feature = "nishita"))]

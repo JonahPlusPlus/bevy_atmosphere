@@ -1,18 +1,17 @@
 //! Provides types and data needed for rendering a skybox.
 
 use bevy::{
-    asset::weak_handle,
+    asset::uuid_handle,
+    mesh::{Indices, MeshVertexBufferLayoutRef, PrimitiveTopology},
     pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
     reflect::TypePath,
-    render::{
-        mesh::{Indices, Mesh, MeshVertexBufferLayoutRef, PrimitiveTopology},
-        render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderRef},
-    },
+    render::render_resource::{AsBindGroup, RenderPipelineDescriptor},
+    shader::ShaderRef,
 };
 
 #[cfg(feature = "dithering")]
-use bevy::render::render_resource::ShaderDefVal;
+use bevy::shader::ShaderDefVal;
 
 /// The `Handle` for the created [`SkyBoxMaterial`].
 #[derive(Resource)]
@@ -20,15 +19,15 @@ pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
 /// The `Handle` for the shader for the [`SkyBoxMaterial`].
 pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: Handle<Shader> =
-    weak_handle!("01968d2d-0491-76b2-af3d-eeda07e46ec2");
+    uuid_handle!("01968d2d-0491-76b2-af3d-eeda07e46ec2");
 
 /// The `Material` that renders skyboxes.
 #[derive(AsBindGroup, TypePath, Debug, Clone, Asset)]
 #[bind_group_data(SkyBoxMaterialKey)]
 pub struct SkyBoxMaterial {
     /// [Handle] to the [AtmosphereImage](crate::pipeline::AtmosphereImage)
-    #[texture(0, dimension = "cube")]
-    #[sampler(1)]
+    #[texture(100, dimension = "cube")]
+    #[sampler(101)]
     pub sky_texture: Handle<Image>,
     #[cfg(feature = "dithering")]
     pub dithering: bool,
@@ -47,7 +46,7 @@ impl Material for SkyBoxMaterial {
     }
 
     fn specialize(
-        _pipeline: &MaterialPipeline<Self>,
+        _pipeline: &MaterialPipeline,
         #[cfg_attr(not(feature = "dithering"), allow(unused_variables))]
         descriptor: &mut RenderPipelineDescriptor,
         _layout: &MeshVertexBufferLayoutRef,

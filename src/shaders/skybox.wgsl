@@ -12,9 +12,9 @@ fn dither(frag_coord: vec2<f32>) -> vec3<f32> {
 
 #import bevy_pbr::forward_io::VertexOutput
 
-@group(2) @binding(0)
+@group(#{MATERIAL_BIND_GROUP}) @binding(0)
 var sky_texture: texture_cube<f32>;
-@group(2) @binding(1)
+@group(#{MATERIAL_BIND_GROUP}) @binding(1)
 var sky_sampler: sampler;
 
 @fragment

@@ -5,11 +5,12 @@
 use std::ops::Deref;
 
 use bevy::{
+    asset::RenderAssetUsages,
     prelude::*,
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         graph::CameraDriverLabel,
-        render_asset::{RenderAssetUsages, RenderAssets},
+        render_asset::RenderAssets,
         render_graph::{self, RenderGraph, RenderLabel},
         render_resource::{
             BindGroup, BindGroupEntries, BindGroupLayout, BindGroupLayoutEntry, BindingResource,
@@ -19,7 +20,7 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::{FallbackImage, GpuImage},
-        Extract, Render, RenderApp, RenderSet,
+        Extract, Render, RenderApp, RenderSystems,
     },
 };
 
@@ -77,7 +78,7 @@ impl FromWorld for AtmosphereImageBindGroupLayout {
 }
 
 /// Signals the pipeline (inside `RenderApp`) to render the atmosphere.
-#[derive(Debug, Clone, Copy, Event)]
+#[derive(Debug, Clone, Copy, Event, Message)]
 pub struct AtmosphereUpdateEvent;
 
 #[derive(Resource, Debug, Clone)]
@@ -111,7 +112,7 @@ impl Plugin for AtmospherePipelinePlugin {
             TextureDimension::D2,
             &[0; 4 * 4],
             TextureFormat::Rgba16Float,
-            RenderAssetUsages::default(),
+            RenderAssetUsages::RENDER_WORLD,
         );
 
         image.texture_view_descriptor = Some(ATMOSPHERE_CUBE_TEXTURE_VIEW_DESCRIPTOR);
@@ -121,10 +122,12 @@ impl Plugin for AtmospherePipelinePlugin {
         let mut image_assets = app.world_mut().resource_mut::<Assets<Image>>();
         let handle = image_assets.add(image);
 
-        app.insert_resource(AtmosphereImage {
-            handle,
+        let atmosphere_image = AtmosphereImage {
+            handle: handle.clone(),
             array_view: None,
-        });
+        };
+
+        app.insert_resource(atmosphere_image.clone());
 
         app.add_plugins(ExtractResourcePlugin::<AtmosphereImage>::default());
 
@@ -134,20 +137,24 @@ impl Plugin for AtmospherePipelinePlugin {
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app
+            // Ensure this exists on frame 0 even if ExtractResource hasn't run yet.
+            .insert_resource(atmosphere_image)
             .insert_resource(atmosphere)
             .insert_resource(settings)
             .insert_resource(AtmosphereTypeRegistry(type_registry))
             .init_resource::<CachedAtmosphereModelMetadata>()
-            .init_resource::<Events<AtmosphereUpdateEvent>>()
+            .init_resource::<Messages<AtmosphereUpdateEvent>>()
             .add_systems(ExtractSchedule, extract_atmosphere_resources)
             .add_systems(
                 Render,
-                (
-                    prepare_atmosphere_resources.in_set(RenderSet::PrepareResources),
-                    prepare_atmosphere_bind_group.in_set(RenderSet::PrepareBindGroups),
-                    clear_update_events.in_set(RenderSet::Cleanup),
-                ),
-            );
+                prepare_atmosphere_resources.in_set(RenderSystems::PrepareResources),
+            )
+            .add_systems(
+                Render,
+                prepare_atmosphere_bind_group.in_set(RenderSystems::PrepareBindGroups),
+            )
+            // Must run after the render graph has had a chance to read the messages.
+            .add_systems(Render, clear_update_events.in_set(RenderSystems::Cleanup));
 
         let mut render_graph = render_app.world_mut().resource_mut::<RenderGraph>();
         render_graph.add_node(BevyAtmosphereLabel, AtmosphereNode::default());
@@ -221,7 +228,8 @@ fn atmosphere_settings_changed(
 /// Extracts [`AtmosphereModel`] and [`AtmosphereSettings`] from main world.
 #[allow(clippy::too_many_arguments)]
 fn extract_atmosphere_resources(
-    type_registry: Res<AtmosphereTypeRegistry>,
+    main_type_registry: Extract<Res<AppTypeRegistry>>,
+    mut type_registry: ResMut<AtmosphereTypeRegistry>,
     mut cached_metadata: ResMut<CachedAtmosphereModelMetadata>,
     main_atmosphere: Extract<Option<Res<AtmosphereModel>>>,
     mut render_atmosphere: ResMut<AtmosphereModel>,
@@ -230,6 +238,10 @@ fn extract_atmosphere_resources(
     mut render_settings: ResMut<AtmosphereSettings>,
     mut settings_existed: Local<bool>,
 ) {
+    // Model metadata is registered in the main world type registry.
+    // Keep the render world in sync so the render graph can find AtmosphereModelMetadata.
+    type_registry.0 = (**main_type_registry).clone();
+
     macro_rules! cache_metadata {
         ($id:ident) => {
             *cached_metadata = CachedAtmosphereModelMetadata(Some({
@@ -322,12 +334,12 @@ pub const ATMOSPHERE_IMAGE_TEXTURE_DESCRIPTOR: fn(u32) -> TextureDescriptor<'sta
 
 /// Whenever settings changed, the texture view needs to be updated to use the new texture.
 fn prepare_atmosphere_resources(
-    mut update_events: ResMut<Events<AtmosphereUpdateEvent>>,
+    mut update_events: ResMut<Messages<AtmosphereUpdateEvent>>,
     mut atmosphere_image: ResMut<AtmosphereImage>,
     gpu_images: Res<RenderAssets<GpuImage>>,
     atmosphere: Res<AtmosphereModel>,
 ) {
-    let mut update = || update_events.send(AtmosphereUpdateEvent);
+    let mut update = || update_events.write(AtmosphereUpdateEvent);
 
     if atmosphere_image.array_view.is_none() {
         let _prepare_atmosphere_assets_executed_span = info_span!(
@@ -335,7 +347,15 @@ fn prepare_atmosphere_resources(
             name = "bevy_atmosphere::pipeline::prepare_atmosphere_assets"
         )
         .entered();
-        let texture = &gpu_images.get(&atmosphere_image.handle).unwrap().texture;
+        let Some(gpu_image) = gpu_images.get(&atmosphere_image.handle) else {
+            trace!(
+                "Atmosphere GPU image not ready yet for {:?}",
+                &atmosphere_image.handle
+            );
+            return;
+        };
+
+        let texture = &gpu_image.texture;
         let view = texture.create_view(&ATMOSPHERE_ARRAY_TEXTURE_VIEW_DESCRIPTOR);
         atmosphere_image.array_view = Some(view);
         update();
@@ -363,14 +383,21 @@ fn prepare_atmosphere_bind_group(
     mut commands: Commands,
     mut cached_metadata: ResMut<CachedAtmosphereModelMetadata>,
     gpu_images: Res<RenderAssets<GpuImage>>,
-    atmosphere_image: Res<AtmosphereImage>,
+    atmosphere_image: Option<Res<AtmosphereImage>>,
     render_device: Res<RenderDevice>,
     fallback_image: Res<FallbackImage>,
     type_registry: Res<AtmosphereTypeRegistry>,
     image_bind_group_layout: Res<AtmosphereImageBindGroupLayout>,
     atmosphere: Option<Res<AtmosphereModel>>,
 ) {
-    let view = atmosphere_image.array_view.as_ref().expect("prepare_changed_settings should have took care of making AtmosphereImage.array_value Some(TextureView)");
+    let Some(atmosphere_image) = atmosphere_image else {
+        return;
+    };
+
+    let Some(view) = atmosphere_image.array_view.as_ref() else {
+        // Texture view isn't ready yet; try again next frame.
+        return;
+    };
 
     let atmosphere = match atmosphere {
         Some(a) => a.clone(),
@@ -470,8 +497,8 @@ impl render_graph::Node for AtmosphereNode {
                 if let CachedPipelineState::Ok(_) =
                     pipeline_cache.get_compute_pipeline_state(pipeline)
                 {
-                    let mut event_writer = world.resource_mut::<Events<AtmosphereUpdateEvent>>();
-                    event_writer.send(AtmosphereUpdateEvent);
+                    let mut event_writer = world.resource_mut::<Messages<AtmosphereUpdateEvent>>();
+                    event_writer.write(AtmosphereUpdateEvent);
                     self.state = AtmosphereState::Update;
                 }
             }
@@ -485,13 +512,16 @@ impl render_graph::Node for AtmosphereNode {
         render_context: &mut bevy::render::renderer::RenderContext,
         world: &World,
     ) -> Result<(), render_graph::NodeRunError> {
-        let update_events = world.resource::<Events<AtmosphereUpdateEvent>>();
+        let update_events = world.resource::<Messages<AtmosphereUpdateEvent>>();
         match self.state {
             AtmosphereState::Loading => {}
             AtmosphereState::Update => {
-                if !update_events.is_empty() {
+                if update_events.len() > 0 {
                     // only run when there are update events available
-                    let bind_groups = world.resource::<AtmosphereBindGroups>();
+                    let Some(bind_groups) = world.get_resource::<AtmosphereBindGroups>() else {
+                        // Bind groups aren't ready yet; try again on the next update event.
+                        return Ok(());
+                    };
                     let pipeline_cache = world.resource::<PipelineCache>();
                     let cached_metadata = world.resource::<CachedAtmosphereModelMetadata>();
                     let settings = world.resource::<AtmosphereSettings>();
@@ -526,6 +556,6 @@ impl render_graph::Node for AtmosphereNode {
     }
 }
 
-fn clear_update_events(mut update_events: ResMut<Events<AtmosphereUpdateEvent>>) {
+fn clear_update_events(mut update_events: ResMut<Messages<AtmosphereUpdateEvent>>) {
     update_events.clear();
 }

@@ -3,7 +3,7 @@
 use bevy::{
     asset::load_internal_asset,
     prelude::*,
-    render::{view::RenderLayers, RenderApp},
+    render::RenderApp,
 };
 
 use crate::{
@@ -11,13 +11,11 @@ use crate::{
     skybox::{AtmosphereSkyBoxMaterial, SkyBoxMaterial, ATMOSPHERE_SKYBOX_SHADER_HANDLE},
 };
 
+#[cfg(feature = "gradient")]
+use crate::collection::gradient::GRADIENT_SHADER_HANDLE;
+
 #[cfg(feature = "detection")]
 use crate::settings::{AtmosphereSettings, SkyboxCreationMode};
-#[cfg(feature = "detection")]
-use bevy::{
-    pbr::{NotShadowCaster, NotShadowReceiver},
-    render::camera::CameraProjection as _,
-};
 
 #[cfg(any(feature = "gradient", feature = "nishita"))]
 use crate::model::AddAtmosphereModel as _;
@@ -34,12 +32,30 @@ impl Plugin for AtmospherePlugin {
             "shaders/skybox.wgsl",
             Shader::from_wgsl
         );
+        
+        #[cfg(feature = "gradient")]
+        load_internal_asset!(
+            app,
+            GRADIENT_SHADER_HANDLE,
+            "shaders/gradient.wgsl",
+            Shader::from_wgsl
+        );
 
         app.add_plugins(MaterialPlugin::<SkyBoxMaterial>::default());
 
         #[cfg(feature = "procedural")]
         app.add_plugins(AtmospherePipelinePlugin);
 
+        #[cfg(feature = "detection")]
+        {
+            app.add_systems(PostUpdate, (atmosphere_insert, atmosphere_remove));
+        }
+
+        app.add_systems(Update, atmosphere_cancel_rotation);
+    }
+
+    fn finish(&self, app: &mut App) {
+        // Create skybox material after AtmospherePipelinePlugin has built and created AtmosphereImage
         {
             let image_handle = {
                 let image = app.world().get_resource::<AtmosphereImage>().expect("`AtmosphereImage` missing! If the `procedural` feature is disabled, add the resource before `AtmospherePlugin`");
@@ -64,15 +80,6 @@ impl Plugin for AtmospherePlugin {
             app.insert_resource(AtmosphereSkyBoxMaterial(material));
         }
 
-        #[cfg(feature = "detection")]
-        {
-            app.add_systems(PostUpdate, (atmosphere_insert, atmosphere_remove));
-        }
-
-        app.add_systems(Update, atmosphere_cancel_rotation);
-    }
-
-    fn finish(&self, app: &mut App) {
         let render_app = app.sub_app_mut(RenderApp);
 
         render_app.init_resource::<AtmosphereImageBindGroupLayout>();
@@ -92,8 +99,7 @@ impl Plugin for AtmospherePlugin {
 /// This behaviour can be disabled by turning off the "detection" feature.
 #[derive(Component, Default, Debug, Clone)]
 pub struct AtmosphereCamera {
-    /// Controls whether or not the skybox will be seen only on certain render layers.
-    pub render_layers: Option<RenderLayers>,
+    // Placeholder for future settings
 }
 
 /// A marker `Component` for skybox entities.
@@ -116,7 +122,7 @@ fn atmosphere_insert(
         None => SkyboxCreationMode::default(),
     };
 
-    for (camera, projection, atmosphere_camera) in &atmosphere_cameras {
+    for (camera, projection, _atmosphere_camera) in &atmosphere_cameras {
         let far_size = match skybox_creation_mode {
             // TODO: Use `unwrap_or(fallback)` when `projection.far()` becomes an `Option<f32>`
             SkyboxCreationMode::FromProjectionFarWithFallback(_fallback) => projection.far(),
@@ -133,20 +139,11 @@ fn atmosphere_insert(
             .entity(camera)
             .insert(Visibility::Visible)
             .with_children(|c| {
-                let mut child = c.spawn((
+                c.spawn((
                     Mesh3d(mesh_assets.add(crate::skybox::mesh(far_size))),
                     MeshMaterial3d(material.0.clone()),
                     AtmosphereSkyBox,
-                    NotShadowCaster,
-                    NotShadowReceiver,
                 ));
-
-                if let AtmosphereCamera {
-                    render_layers: Some(render_layers),
-                } = atmosphere_camera
-                {
-                    child.insert(render_layers.clone());
-                }
             });
     }
 }

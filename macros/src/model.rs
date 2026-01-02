@@ -49,7 +49,7 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
     let asset_path = manifest.get_path("bevy_asset");
     let ecs_path = manifest.get_path("bevy_ecs");
 
-    let id = {
+    let _id = {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
         let mut hasher = DefaultHasher::new();
@@ -140,19 +140,37 @@ pub fn derive_atmospheric(ast: syn::DeriveInput) -> Result<TokenStream> {
                 asset_server.load(#s)
             }
         },
-        ShaderPathType::Internal(s) => quote! {
-            {
-                let handle: #asset_path::Handle<Shader> = #asset_path::Handle::weak_from_u128(#id as u128);
-
-                let internal_handle = handle.clone();
-                #asset_path::load_internal_asset!(
-                    app,
-                    internal_handle,
-                    concat!(env!("CARGO_MANIFEST_DIR"), "/src/", #s),
-                    Shader::from_wgsl
-                );
-
-                handle
+        ShaderPathType::Internal(s) => {
+            let shader_path = manifest.get_path("bevy_shader");
+            // Generate UUID from path using a hash
+            let uuid = {
+                use std::collections::hash_map::DefaultHasher;
+                use std::hash::{Hash, Hasher};
+                let mut hasher = DefaultHasher::new();
+                s.hash(&mut hasher);
+                let hash = hasher.finish();
+                format!("{:08x}-{:04x}-{:04x}-{:04x}-{:012x}", 
+                    (hash >> 32) as u32,
+                    ((hash >> 16) & 0xFFFF) as u16,
+                    (hash & 0xFFFF) as u16,
+                    ((hash >> 48) & 0xFFFF) as u16,
+                    hash & 0xFFFFFFFFFFFF)
+            };
+            // Use load_internal_asset! for internal shaders
+            quote! {
+                {
+                    use #shader_path::Shader;
+                    let handle = #asset_path::uuid_handle!(#uuid);
+                    #asset_path::load_internal_asset!(
+                        app,
+                        handle,
+                        #s,
+                        |source: String, path: Option<std::borrow::Cow<'static, str>>| {
+                            Shader::from_wgsl(source, path.unwrap_or_default().into_owned())
+                        }
+                    );
+                    handle
+                }
             }
         },
     };

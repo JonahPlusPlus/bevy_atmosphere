@@ -1,18 +1,15 @@
 //! Provides types and data needed for rendering a skybox.
 
 use bevy::{
-    asset::weak_handle,
+    asset::uuid_handle,
     pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
     reflect::TypePath,
-    render::{
-        mesh::{Indices, Mesh, MeshVertexBufferLayoutRef, PrimitiveTopology},
-        render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderRef},
-    },
+    render::render_resource::{AsBindGroup, RenderPipelineDescriptor},
+    shader::ShaderRef,
 };
 
-#[cfg(feature = "dithering")]
-use bevy::render::render_resource::ShaderDefVal;
+use bevy_mesh::{Indices, Mesh, PrimitiveTopology};
 
 /// The `Handle` for the created [`SkyBoxMaterial`].
 #[derive(Resource)]
@@ -20,7 +17,7 @@ pub struct AtmosphereSkyBoxMaterial(pub Handle<SkyBoxMaterial>);
 
 /// The `Handle` for the shader for the [`SkyBoxMaterial`].
 pub const ATMOSPHERE_SKYBOX_SHADER_HANDLE: Handle<Shader> =
-    weak_handle!("01968d2d-0491-76b2-af3d-eeda07e46ec2");
+    uuid_handle!("01968d2d-0491-76b2-af3d-eeda07e46ec2");
 
 /// The `Material` that renders skyboxes.
 #[derive(AsBindGroup, TypePath, Debug, Clone, Asset)]
@@ -47,10 +44,10 @@ impl Material for SkyBoxMaterial {
     }
 
     fn specialize(
-        _pipeline: &MaterialPipeline<Self>,
+        _pipeline: &MaterialPipeline,
         #[cfg_attr(not(feature = "dithering"), allow(unused_variables))]
         descriptor: &mut RenderPipelineDescriptor,
-        _layout: &MeshVertexBufferLayoutRef,
+        _layout: &bevy_mesh::MeshVertexBufferLayoutRef,
         #[cfg_attr(not(feature = "dithering"), allow(unused_variables))] key: MaterialPipelineKey<
             Self,
         >,
@@ -58,9 +55,7 @@ impl Material for SkyBoxMaterial {
         #[cfg(feature = "dithering")]
         if key.bind_group_data.dithering {
             if let Some(fragment) = &mut descriptor.fragment {
-                fragment
-                    .shader_defs
-                    .push(ShaderDefVal::Bool(String::from("DITHER"), true));
+                fragment.shader_defs.push("DITHER".into());
             }
         }
 

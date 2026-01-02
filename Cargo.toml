@@ -11,22 +11,23 @@ repository = "https://github.com/JonahPlusPlus/bevy_atmosphere"
 include = ["/src", "/examples/*.rs", "/LICENSE*"]
 
 [dependencies]
-bevy = { version = "0.16", default-features = false, features = [
+bevy = { version = "0.17", default-features = false, features = [
   "bevy_asset",
   "bevy_render",
   "bevy_pbr",
   "bevy_log",
-  "png",         # Enable temporary due to 0.15 bug: https://github.com/bevyengine/bevy/issues/16563
+  "png",
 ] }
+bevy_mesh = "0.17"
 bevy_atmosphere_macros = { path = "macros", version = "0.8" }
 cfg-if = "1.0"
 
 [dev-dependencies]
 bevy_spectator = "0.8"
-bevy = { version = "0.16", features = ["bevy_core_pipeline", "x11"] }
+bevy = { version = "0.17", features = ["bevy_core_pipeline", "x11"] }
 
 [features]
-default = ["basic", "all_models"]
+default = ["basic", "gradient"]
 basic = ["detection", "dithering", "procedural"] # enables basic features
 detection = []                                   # enables camera detection (disable to add skyboxes manually)
 dithering = []                                   # enables dithering (disable for banding)
